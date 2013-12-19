@@ -2,8 +2,10 @@ package twofactor
 
 import (
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"hash"
+	"net/url"
 )
 
 type Type uint
@@ -13,7 +15,14 @@ const (
 	OATH_TOTP
 )
 
+// PRNG is an io.Reader that provides a cryptographically secure
+// random byte stream.
 var PRNG = rand.Reader
+
+var (
+	ErrInvalidURL  = errors.New("twofactor: invalid URL")
+	ErrInvalidAlgo = errors.New("twofactor: invalid algorithm")
+)
 
 // Type OTP represents a one-time password token -- whether a
 // software taken (as in the case of Google Authenticator) or a
@@ -58,4 +67,24 @@ func OTPString(otp OTP) string {
 		typeName = "OATH-TOTP"
 	}
 	return fmt.Sprintf("%s, %d", typeName, otp.Size())
+}
+
+func FromURL(URL string) (OTP, string, error) {
+	u, err := url.Parse(URL)
+	if err != nil {
+		return nil, "", err
+	}
+
+	if u.Scheme != "otpauth" {
+		return nil, "", ErrInvalidURL
+	}
+
+	switch {
+	case u.Host == "totp":
+		return totpFromURL(u)
+	case u.Host == "hotp":
+		return hotpFromURL(u)
+	default:
+		return nil, "", ErrInvalidURL
+	}
 }

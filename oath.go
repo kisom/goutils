@@ -1,6 +1,7 @@
 package twofactor
 
 import (
+	"code.google.com/p/rsc/qr"
 	"crypto"
 	"crypto/hmac"
 	"encoding/base32"
@@ -20,20 +21,6 @@ type oath struct {
 	hash     func() hash.Hash
 	algo     crypto.Hash
 	provider string
-}
-
-// truncate contains the DT function from the RFC; this is used to
-// deterministically select a sequence of 4 bytes from the HMAC
-// counter hash.
-func truncate(in []byte) int64 {
-	offset := int(in[len(in)-1] & 0xF)
-	p := in[offset : offset+4]
-	var binCode int32
-	binCode = int32((p[0] & 0x7f)) << 24
-	binCode += int32((p[1] & 0xff)) << 16
-	binCode += int32((p[2] & 0xff)) << 8
-	binCode += int32((p[3] & 0xff))
-	return int64(binCode) & 0x7FFFFFFF
 }
 
 func (o oath) Size() int {
@@ -92,11 +79,7 @@ func (o oath) URL(t Type, label string) string {
 
 }
 
-func (o oath) QR(label string) ([]byte, error) {
-	return nil, nil
-}
-
-var digits = []int{
+var digits = []int64{
 	0:  1,
 	1:  10,
 	2:  100,
@@ -117,7 +100,7 @@ func (o oath) OTP(counter uint64) string {
 	var ctr [8]byte
 	binary.BigEndian.PutUint64(ctr[:], counter)
 
-	var mod int = 1
+	var mod int64 = 1
 	if len(digits) > o.size {
 		for i := 1; i <= o.size; i++ {
 			mod *= 10
@@ -128,8 +111,32 @@ func (o oath) OTP(counter uint64) string {
 
 	h := hmac.New(o.hash, o.key)
 	h.Write(ctr[:])
-	dt := truncate(h.Sum(nil))
-	dt = dt % int64(mod)
-	fmtStr := fmt.Sprintf("%%%dd", o.size)
+	dt := truncate(h.Sum(nil)) % mod
+	fmtStr := fmt.Sprintf("%%0%dd", o.size)
 	return fmt.Sprintf(fmtStr, dt)
+}
+
+// truncate contains the DT function from the RFC; this is used to
+// deterministically select a sequence of 4 bytes from the HMAC
+// counter hash.
+func truncate(in []byte) int64 {
+	offset := int(in[len(in)-1] & 0xF)
+	p := in[offset : offset+4]
+	var binCode int32
+	binCode = int32((p[0] & 0x7f)) << 24
+	binCode += int32((p[1] & 0xff)) << 16
+	binCode += int32((p[2] & 0xff)) << 8
+	binCode += int32((p[3] & 0xff))
+	return int64(binCode) & 0x7FFFFFFF
+}
+
+// QR generates a byte slice containing the a QR code encoded as a
+// PNG with level Q error correction.
+func (o oath) QR(t Type, label string) ([]byte, error) {
+	u := o.URL(t, label)
+	code, err := qr.Encode(u, qr.Q)
+	if err != nil {
+		return nil, err
+	}
+	return code.PNG(), nil
 }
