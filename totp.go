@@ -14,7 +14,7 @@ import (
 )
 
 type TOTP struct {
-	*oath
+	*OATH
 	step uint64
 }
 
@@ -23,7 +23,7 @@ func (otp *TOTP) Type() Type {
 }
 
 func (otp *TOTP) otp(counter uint64) string {
-	return otp.oath.OTP(counter)
+	return otp.OATH.OTP(counter)
 }
 
 func (otp *TOTP) OTP() string {
@@ -31,7 +31,7 @@ func (otp *TOTP) OTP() string {
 }
 
 func (otp *TOTP) URL(label string) string {
-	return otp.oath.URL(otp.Type(), label)
+	return otp.OATH.URL(otp.Type(), label)
 }
 
 func (otp *TOTP) SetProvider(provider string) {
@@ -53,7 +53,7 @@ func NewTOTP(key []byte, start uint64, step uint64, digits int, algo crypto.Hash
 	}
 
 	return &TOTP{
-		oath: &oath{
+		OATH: &OATH{
 			key:     key,
 			counter: start,
 			size:    digits,
@@ -147,5 +147,5 @@ func totpFromURL(u *url.URL) (*TOTP, string, error) {
 }
 
 func (otp *TOTP) QR(label string) ([]byte, error) {
-	return otp.oath.QR(otp.Type(), label)
+	return otp.OATH.QR(otp.Type(), label)
 }

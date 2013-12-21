@@ -13,8 +13,8 @@ import (
 
 const defaultSize = 6
 
-// oath provides a baseline struct for the two OATH algorithms.
-type oath struct {
+// OATH provides a baseline structure for the two OATH algorithms.
+type OATH struct {
 	key      []byte
 	counter  uint64
 	size     int
@@ -23,27 +23,27 @@ type oath struct {
 	provider string
 }
 
-func (o oath) Size() int {
+func (o OATH) Size() int {
 	return o.size
 }
 
-func (o oath) Counter() uint64 {
+func (o OATH) Counter() uint64 {
 	return o.counter
 }
 
-func (o oath) SetCounter(counter uint64) {
+func (o OATH) SetCounter(counter uint64) {
 	o.counter = counter
 }
 
-func (o oath) Key() []byte {
+func (o OATH) Key() []byte {
 	return o.key[:]
 }
 
-func (o oath) Hash() func() hash.Hash {
+func (o OATH) Hash() func() hash.Hash {
 	return o.hash
 }
 
-func (o oath) URL(t Type, label string) string {
+func (o OATH) URL(t Type, label string) string {
 	secret := base32.StdEncoding.EncodeToString(o.key)
 	u := url.URL{}
 	v := url.Values{}
@@ -96,7 +96,7 @@ var digits = []int64{
 // The top-level type should provide a counter; for example, HOTP
 // will provide the counter directly while TOTP will provide the
 // time-stepped counter.
-func (o oath) OTP(counter uint64) string {
+func (o OATH) OTP(counter uint64) string {
 	var ctr [8]byte
 	binary.BigEndian.PutUint64(ctr[:], counter)
 
@@ -132,7 +132,7 @@ func truncate(in []byte) int64 {
 
 // QR generates a byte slice containing the a QR code encoded as a
 // PNG with level Q error correction.
-func (o oath) QR(t Type, label string) ([]byte, error) {
+func (o OATH) QR(t Type, label string) ([]byte, error) {
 	u := o.URL(t, label)
 	code, err := qr.Encode(u, qr.Q)
 	if err != nil {

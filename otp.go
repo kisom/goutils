@@ -13,6 +13,7 @@ type Type uint
 const (
 	OATH_HOTP = iota
 	OATH_TOTP
+	YUBIKEY
 )
 
 // PRNG is an io.Reader that provides a cryptographically secure
@@ -47,24 +48,20 @@ type OTP interface {
 	// the hash function used by the OTP
 	Hash() func() hash.Hash
 
-	// URL generates a Google Authenticator url (or perhaps some other url)
-	URL(string) string
-
-	// QR outputs a byte slice containing a PNG-encoded QR code
-	// of the URL.
-	QR(string) ([]byte, error)
-
 	// Returns the type of this OTP.
 	Type() Type
 }
 
-func OTPString(otp OTP) string {
+func otpString(otp OTP) string {
 	var typeName string
 	switch otp.Type() {
 	case OATH_HOTP:
 		typeName = "OATH-HOTP"
 	case OATH_TOTP:
 		typeName = "OATH-TOTP"
+	case YUBIKEY:
+		return fmt.Sprintf("YubiKey with %d byte public identity",
+			len(otp.(*YubiKey).Public()))
 	}
 	return fmt.Sprintf("%s, %d", typeName, otp.Size())
 }

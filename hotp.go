@@ -10,7 +10,7 @@ import (
 )
 
 type HOTP struct {
-	*oath
+	*OATH
 }
 
 func (otp *HOTP) Type() Type {
@@ -19,7 +19,7 @@ func (otp *HOTP) Type() Type {
 
 func NewHOTP(key []byte, counter uint64, digits int) *HOTP {
 	return &HOTP{
-		oath: &oath{
+		OATH: &OATH{
 			key:     key,
 			counter: counter,
 			size:    digits,
@@ -30,13 +30,13 @@ func NewHOTP(key []byte, counter uint64, digits int) *HOTP {
 }
 
 func (otp *HOTP) OTP() string {
-	code := otp.oath.OTP(otp.counter)
+	code := otp.OATH.OTP(otp.counter)
 	otp.counter++
 	return code
 }
 
 func (otp *HOTP) URL(label string) string {
-	return otp.oath.URL(otp.Type(), label)
+	return otp.OATH.URL(otp.Type(), label)
 }
 
 func (otp *HOTP) SetProvider(provider string) {
@@ -87,5 +87,5 @@ func hotpFromURL(u *url.URL) (*HOTP, string, error) {
 }
 
 func (otp *HOTP) QR(label string) ([]byte, error) {
-	return otp.oath.QR(otp.Type(), label)
+	return otp.OATH.QR(otp.Type(), label)
 }
