@@ -99,6 +99,14 @@ func GenerateGoogleTOTP() *TOTP {
 	return NewTOTP(key, 0, 30, 6, crypto.SHA1)
 }
 
+func NewGoogleTOTP(secret string) (*TOTP, error) {
+	key, err := base32.StdEncoding.DecodeString(secret)
+	if err != nil {
+		return nil, err
+	}
+	return NewTOTP(key, 0, 30, 6, crypto.SHA1), nil
+}
+
 func totpFromURL(u *url.URL) (*TOTP, string, error) {
 	label := u.Path[1:]
 	v := u.Query()
