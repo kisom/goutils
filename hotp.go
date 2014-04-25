@@ -9,14 +9,18 @@ import (
 	"strconv"
 )
 
+// HOTP represents an RFC-4226 Hash-based One Time Password instance.
 type HOTP struct {
 	*OATH
 }
 
+// Type returns OATH_HOTP.
 func (otp *HOTP) Type() Type {
 	return OATH_HOTP
 }
 
+// NewHOTP takes the key, the initial counter value, and the number
+// of digits (typically 6 or 8) and returns a new HOTP instance.
 func NewHOTP(key []byte, counter uint64, digits int) *HOTP {
 	return &HOTP{
 		OATH: &OATH{
@@ -29,20 +33,25 @@ func NewHOTP(key []byte, counter uint64, digits int) *HOTP {
 	}
 }
 
+// OTP returns the next OTP and increments the counter.
 func (otp *HOTP) OTP() string {
 	code := otp.OATH.OTP(otp.counter)
 	otp.counter++
 	return code
 }
 
+// URL returns an HOTP URL (i.e. for putting in a QR code).
 func (otp *HOTP) URL(label string) string {
 	return otp.OATH.URL(otp.Type(), label)
 }
 
+// SetProvider sets up the provider component of the OTP URL.
 func (otp *HOTP) SetProvider(provider string) {
 	otp.provider = provider
 }
 
+// GenerateGoogleHOTP generates a new HOTP instance as used by
+// Google Authenticator.
 func GenerateGoogleHOTP() *HOTP {
 	key := make([]byte, sha1.Size)
 	if _, err := io.ReadFull(PRNG, key); err != nil {
@@ -86,6 +95,7 @@ func hotpFromURL(u *url.URL) (*HOTP, string, error) {
 	return otp, label, nil
 }
 
+// QR generates a new QR code for the HOTP.
 func (otp *HOTP) QR(label string) ([]byte, error) {
 	return otp.OATH.QR(otp.Type(), label)
 }

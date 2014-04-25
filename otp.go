@@ -66,6 +66,7 @@ func otpString(otp OTP) string {
 	return fmt.Sprintf("%s, %d", typeName, otp.Size())
 }
 
+// FromURL constructs a new OTP token from a URL string.
 func FromURL(URL string) (OTP, string, error) {
 	u, err := url.Parse(URL)
 	if err != nil {

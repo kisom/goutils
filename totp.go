@@ -13,11 +13,13 @@ import (
 	"time"
 )
 
+// TOTP represents an RFC 6238 Time-based One-Time Password instance.
 type TOTP struct {
 	*OATH
 	step uint64
 }
 
+// Type returns OATH_TOTP.
 func (otp *TOTP) Type() Type {
 	return OATH_TOTP
 }
@@ -26,14 +28,17 @@ func (otp *TOTP) otp(counter uint64) string {
 	return otp.OATH.OTP(counter)
 }
 
+// OTP returns the OTP for the current timestep.
 func (otp *TOTP) OTP() string {
 	return otp.otp(otp.OTPCounter())
 }
 
+// URL returns a TOTP URL (i.e. for putting in a QR code).
 func (otp *TOTP) URL(label string) string {
 	return otp.OATH.URL(otp.Type(), label)
 }
 
+// SetProvider sets up the provider component of the OTP URL.
 func (otp *TOTP) SetProvider(provider string) {
 	otp.provider = provider
 }
@@ -42,10 +47,14 @@ func (otp *TOTP) otpCounter(t uint64) uint64 {
 	return (t - otp.counter) / otp.step
 }
 
+// OTPCounter returns the current time value for the OTP.
 func (otp *TOTP) OTPCounter() uint64 {
 	return otp.otpCounter(uint64(time.Now().Unix()))
 }
 
+// NewOTP takes a new key, a starting time, a step, the number of
+// digits of output (typically 6 or 8) and the hash algorithm to
+// use, and builds a new OTP.
 func NewTOTP(key []byte, start uint64, step uint64, digits int, algo crypto.Hash) *TOTP {
 	h := hashFromAlgo(algo)
 	if h == nil {
@@ -65,16 +74,9 @@ func NewTOTP(key []byte, start uint64, step uint64, digits int, algo crypto.Hash
 
 }
 
+// NewTOTPSHA1 will build a new TOTP using SHA-1.
 func NewTOTPSHA1(key []byte, start uint64, step uint64, digits int) *TOTP {
 	return NewTOTP(key, start, step, digits, crypto.SHA1)
-}
-
-func NewTOTPSHA256(key []byte, start uint64, step uint64, digits int) *TOTP {
-	return NewTOTP(key, start, step, digits, crypto.SHA256)
-}
-
-func NewTOTPSHA512(key []byte, start uint64, step uint64, digits int) *TOTP {
-	return NewTOTP(key, start, step, digits, crypto.SHA512)
 }
 
 func hashFromAlgo(algo crypto.Hash) func() hash.Hash {
@@ -99,6 +101,8 @@ func GenerateGoogleTOTP() *TOTP {
 	return NewTOTP(key, 0, 30, 6, crypto.SHA1)
 }
 
+// NewGoogleTOTP takes a secret as a base32-encoded string and
+// returns an appropriate Google Authenticator TOTP instance.
 func NewGoogleTOTP(secret string) (*TOTP, error) {
 	key, err := base32.StdEncoding.DecodeString(secret)
 	if err != nil {
@@ -154,6 +158,7 @@ func totpFromURL(u *url.URL) (*TOTP, string, error) {
 	return otp, label, nil
 }
 
+// QR generates a new TOTP QR code.
 func (otp *TOTP) QR(label string) ([]byte, error) {
 	return otp.OATH.QR(otp.Type(), label)
 }

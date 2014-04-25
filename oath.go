@@ -23,26 +23,33 @@ type OATH struct {
 	provider string
 }
 
+// Size returns the output size (in characters) of the password.
 func (o OATH) Size() int {
 	return o.size
 }
 
+// Counter returns the OATH token's counter.
 func (o OATH) Counter() uint64 {
 	return o.counter
 }
 
+// SetCounter updates the OATH token's counter to a new value.
 func (o OATH) SetCounter(counter uint64) {
 	o.counter = counter
 }
 
+// Key returns the token's secret key.
 func (o OATH) Key() []byte {
 	return o.key[:]
 }
 
+// Hash returns the token's hash function.
 func (o OATH) Hash() func() hash.Hash {
 	return o.hash
 }
 
+// URL constructs a URL appropriate for the token (i.e. for use in a
+// QR code).
 func (o OATH) URL(t Type, label string) string {
 	secret := base32.StdEncoding.EncodeToString(o.key)
 	u := url.URL{}
