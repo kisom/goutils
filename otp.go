@@ -58,9 +58,8 @@ func otpString(otp OTP) string {
 		typeName = "OATH-HOTP"
 	case OATH_TOTP:
 		typeName = "OATH-TOTP"
-	case YUBIKEY:
-		return fmt.Sprintf("YubiKey with %d byte public identity",
-			len(otp.(*YubiKey).Public()))
+	default:
+		typeName = "UNKNOWN"
 	}
 	return fmt.Sprintf("%s, %d", typeName, otp.Size())
 }
