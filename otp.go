@@ -13,7 +13,6 @@ type Type uint
 const (
 	OATH_HOTP = iota
 	OATH_TOTP
-	YUBIKEY
 )
 
 // PRNG is an io.Reader that provides a cryptographically secure
