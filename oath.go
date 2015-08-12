@@ -1,7 +1,6 @@
 package twofactor
 
 import (
-	"code.google.com/p/rsc/qr"
 	"crypto"
 	"crypto/hmac"
 	"encoding/base32"
@@ -9,6 +8,8 @@ import (
 	"fmt"
 	"hash"
 	"net/url"
+
+	"_code.google.com/p/rsc/qr"
 )
 
 const defaultSize = 6
