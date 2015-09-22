@@ -99,7 +99,7 @@ func New(domain string, level Level) *Logger {
 
 // NewWriters returns a new logger that writes to the w io.WriteCloser for
 // Notice and below and to the e io.WriteCloser for levels above Notice. If e is nil, w will be used.
-func NewWriters(domain string, level Level, w, e io.WriteCloser) *Logger {
+func NewFromWriters(domain string, level Level, w, e io.WriteCloser) *Logger {
 	if e == nil {
 		e = w
 	}
@@ -118,7 +118,7 @@ func NewWriters(domain string, level Level, w, e io.WriteCloser) *Logger {
 // NewFile returns a new logger that opens the files for writing. If
 // multiplex is true, output will be multiplexed to standard output
 // and standard error as well.
-func NewFile(domain string, level Level, outFile, errFile string, multiplex bool) (*Logger, error) {
+func NewFromFile(domain string, level Level, outFile, errFile string, multiplex bool) (*Logger, error) {
 	l := &Logger{
 		domain: domain,
 		level:  level,

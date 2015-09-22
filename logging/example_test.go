@@ -29,3 +29,16 @@ func Example() {
 	log.Notice("fare thee well")
 	olog.Print("all good journeys must come to an end")
 }
+
+func ExampleNewFromFile() {
+	log, err := logging.NewFromFile("file logger", logging.LevelNotice,
+		"example.log", "example.err", true)
+	if err != nil {
+		log.Fatalf("failed to open logger: %v", err)
+	}
+
+	log.Notice("hello, world")
+	log.Notice("some more things happening")
+	log.Warning("something suspicious has happened")
+	log.Alert("pick up that can, Citizen!")
+}
