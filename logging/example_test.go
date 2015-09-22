@@ -3,7 +3,7 @@ package logging_test
 import "github.com/kisom/goutils/logging"
 
 var log = logging.Init()
-var olog = logging.New("subsystem #42", logging.LevelNotice)
+var olog, _ = logging.New("subsystem #42", logging.LevelNotice)
 
 func Example() {
 	log.Notice("Hello, world.")

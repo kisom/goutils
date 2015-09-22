@@ -64,7 +64,7 @@ var levelPrefix = [...]string{
 var DateFormat = "2006-01-02T15:03:04-0700"
 
 func (l *Logger) outputf(level Level, format string, v []interface{}) {
-	if !logConfig.registered[l.domain] {
+	if !l.Enabled() {
 		return
 	}
 
@@ -81,7 +81,7 @@ func (l *Logger) outputf(level Level, format string, v []interface{}) {
 }
 
 func (l *Logger) output(level Level, v []interface{}) {
-	if !logConfig.registered[l.domain] {
+	if !l.Enabled() {
 		return
 	}
 
