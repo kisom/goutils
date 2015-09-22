@@ -46,13 +46,6 @@ func main() {
 		}
 	}
 
-	if end < start {
-		fmt.Println("[!] end < start, swapping values")
-		tmp := end
-		end = start
-		start = tmp
-	}
-
 	file, err := os.Open(flag.Arg(0))
 	die.If(err)
 	defer file.Close()
@@ -65,6 +58,17 @@ func main() {
 		lines = append(lines, scanner.Text())
 	}
 
+	if end == 0 {
+		end = len(lines) - 1
+	}
+
+	if end < start {
+		fmt.Println("[!] end < start, swapping values")
+		tmp := end
+		end = start
+		start = tmp
+	}
+
 	maxLine := fmt.Sprintf("%d", len(lines))
 	fmtStr := fmt.Sprintf("%%0%dd: %%s", len(maxLine))
 
@@ -72,12 +76,14 @@ func main() {
 		if n == 0 {
 			return false
 		}
+
 		if n > end {
 			return true
 		}
 		return false
 	}
 
+	fmt.Println(start)
 	fmtStr += "\n"
 	for i := start; !endFunc(i); i++ {
 		fmt.Printf(fmtStr, i, lines[i])

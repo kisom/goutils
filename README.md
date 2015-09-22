@@ -10,8 +10,10 @@ Contents:
 	cmd/
 		certchain/	Display the certificate chain from a
 				TLS connection.
+                certdump/       Dump certificate information.
 		csrpubdump/	Dump the public key from an X.509
 				certificate request.
+                fragment/       Print a fragment of a file.
 		readchain/	Print the common name for the certificates
 				in a bundle.
 		stealchain/	Dump the verified chain from a TLS
