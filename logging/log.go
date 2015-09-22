@@ -124,20 +124,22 @@ func NewFromFile(domain string, level Level, outFile, errFile string, multiplex 
 		level:  level,
 	}
 
-	var err error
-	l.out, err = os.OpenFile(outFile, os.O_APPEND|os.O_CREATE, 0644)
+	outf, err := os.OpenFile(outFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return nil, err
 	}
 
-	l.err, err = os.OpenFile(errFile, os.O_APPEND|os.O_CREATE, 0644)
+	errf, err := os.OpenFile(errFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return nil, err
 	}
 
 	if multiplex {
-		l.out = mwc.MultiWriteCloser(l.out, os.Stdout)
-		l.err = mwc.MultiWriteCloser(l.err, os.Stderr)
+		l.out = mwc.MultiWriteCloser(outf, os.Stdout)
+		l.err = mwc.MultiWriteCloser(errf, os.Stderr)
+	} else {
+		l.out = outf
+		l.err = errf
 	}
 
 	Enable(domain)
