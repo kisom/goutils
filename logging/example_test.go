@@ -1,22 +1,20 @@
-package main
+package logging
 
-import "github.com/kisom/goutils/logging"
+var log = Init()
+var olog = New("subsystem #42", LevelNotice)
 
-var log = logging.Init()
-var olog = logging.New("subsystem #42", logging.LevelNotice)
-
-func main() {
+func Example() {
 	log.Notice("Hello, world.")
 	log.Warning("this program is about to end")
 
 	olog.Print("now online")
-	logging.Suppress("olog")
+	Suppress("olog")
 	olog.Print("extraneous information")
 
-	logging.Enable("olog")
+	Enable("olog")
 	olog.Print("relevant now")
 
-	logging.SuppressAll()
+	SuppressAll()
 	log.Alert("screaming into the void")
 	olog.Critical("can anyone hear me?")
 
@@ -25,7 +23,7 @@ func main() {
 	log.Suppress()
 	log.Warning("but not for long")
 
-	logging.EnableAll()
+	EnableAll()
 	log.Notice("fare thee well")
 	olog.Print("all good journeys must come to an end")
 }
