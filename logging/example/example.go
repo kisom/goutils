@@ -8,12 +8,16 @@ import (
 )
 
 var log = logging.Init()
-var olog = logging.New("subsystem #42", logging.LevelNotice)
+var olog, _ = logging.New("subsystem #42", logging.LevelNotice)
 
 func main() {
 	exampleNewWriters()
 	log.Notice("Hello, world.")
 	log.Warning("this program is about to end")
+
+	log.SetLevel(logging.LevelDebug)
+	log.Debug("hello world")
+	log.SetLevel(logging.LevelNotice)
 
 	olog.Print("now online")
 	logging.Suppress("olog")
@@ -41,7 +45,7 @@ func exampleNewWriters() {
 	o := testio.NewBufCloser(nil)
 	e := testio.NewBufCloser(nil)
 
-	wlog := logging.NewFromWriters("writers", logging.DefaultLevel, o, e)
+	wlog, _ := logging.NewFromWriters("writers", logging.DefaultLevel, o, e)
 	wlog.Notice("hello, world")
 	wlog.Notice("some more things happening")
 	wlog.Warning("something suspicious has happened")

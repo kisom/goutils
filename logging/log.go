@@ -1,8 +1,15 @@
-// Package logging is an adaptation of the CFSSL logging library. It
-// operates on domains, which are components for which logging can be
-// selectively enabled or disabled. It also differentiates between
-// normal messages (which are sent to standard output) and errors,
-// which are sent to standard error.
+// Package logging provides domain-based logging in the same style as
+// sylog. Domains are some name for which logging can be selectively
+// enabled or disabled. Logging also differentiates between normal
+// messages (which are sent to standard output) and errors, which are
+// sent to standard error; debug messages will also include the file
+// and line number.
+//
+// Domains are intended for identifying logging subystems. A domain
+// can be suppressed with Suppress, and re-enabled with Enable. There
+// are prefixed versions of these as well.
+//
+// This package was adapted from the CFSSL logging code.
 package logging
 
 import (
@@ -159,6 +166,10 @@ func NewFromWriters(domain string, level Level, w, e io.WriteCloser) (l *Logger,
 		return l, true
 	}
 
+	if w == nil {
+		w = os.Stdout
+	}
+
 	if e == nil {
 		e = w
 	}
@@ -179,19 +190,19 @@ func NewFromWriters(domain string, level Level, w, e io.WriteCloser) (l *Logger,
 // NewFile returns a new logger that opens the files for writing. If
 // multiplex is true, output will be multiplexed to standard output
 // and standard error as well.
-func NewFromFile(domain string, level Level, outFile, errFile string, multiplex bool) (*Logger, error) {
+func NewFromFile(domain string, level Level, outFile, errFile string, multiplex bool, flags int) (*Logger, error) {
 	l := &Logger{
 		domain: domain,
 		level:  level,
 		lock:   new(sync.Mutex),
 	}
 
-	outf, err := os.OpenFile(outFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	outf, err := os.OpenFile(outFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY|flags, 0644)
 	if err != nil {
 		return nil, err
 	}
 
-	errf, err := os.OpenFile(errFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	errf, err := os.OpenFile(errFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY|flags, 0644)
 	if err != nil {
 		return nil, err
 	}

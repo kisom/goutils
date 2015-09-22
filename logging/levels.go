@@ -3,6 +3,7 @@ package logging
 import (
 	"fmt"
 	"os"
+	"runtime"
 	"time"
 )
 
@@ -43,6 +44,24 @@ const (
 	LevelFatal
 )
 
+// Cheap integer to fixed-width decimal ASCII.  Give a negative width
+// to avoid zero-padding. (From log/log.go in the standard library).
+func itoa(i int, wid int) string {
+	// Assemble decimal in reverse order.
+	var b [20]byte
+	bp := len(b) - 1
+	for i >= 10 || wid > 1 {
+		wid--
+		q := i / 10
+		b[bp] = byte('0' + i - q*10)
+		bp--
+		i = q
+	}
+	// i < 10
+	b[bp] = byte('0' + i)
+	return string(b[bp:])
+}
+
 func writeToOut(level Level) bool {
 	if level < LevelWarning {
 		return true
@@ -69,9 +88,17 @@ func (l *Logger) outputf(level Level, format string, v []interface{}) {
 	}
 
 	if level >= l.level {
+		domain := l.domain
+		if level == LevelDebug {
+			_, file, line, ok := runtime.Caller(2)
+			if ok {
+				domain += " " + file + ":" + itoa(line, -1)
+			}
+		}
+
 		format = fmt.Sprintf("%s %s: %s%s\n",
 			time.Now().Format(DateFormat),
-			l.domain, levelPrefix[level], format)
+			domain, levelPrefix[level], format)
 		if writeToOut(level) {
 			fmt.Fprintf(l.out, format, v...)
 		} else {
@@ -86,9 +113,17 @@ func (l *Logger) output(level Level, v []interface{}) {
 	}
 
 	if level >= l.level {
+		domain := l.domain
+		if level == LevelDebug {
+			_, file, line, ok := runtime.Caller(2)
+			if ok {
+				domain += " " + file + ":" + itoa(line, -1)
+			}
+		}
+
 		format := fmt.Sprintf("%s %s: %s",
 			time.Now().Format(DateFormat),
-			l.domain, levelPrefix[level])
+			domain, levelPrefix[level])
 		if writeToOut(level) {
 			fmt.Fprintf(l.out, format)
 			fmt.Fprintln(l.out, v...)
@@ -179,7 +214,8 @@ func (l *Logger) Info(v ...interface{}) {
 }
 
 // Debugf logs a formatted message at the "debug" level. The arguments
-// are handled in the same manner as fmt.Printf.
+// are handled in the same manner as fmt.Printf. Note that debug
+// logging will print the current
 func (l *Logger) Debugf(format string, v ...interface{}) {
 	l.outputf(LevelDebug, format, v)
 }
