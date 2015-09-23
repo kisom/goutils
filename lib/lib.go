@@ -54,3 +54,22 @@ func CheckFatal(err error, format string, a ...interface{}) {
 
 	Err(ExitFailure, err, format, a...)
 }
+
+// Itoa provides cheap integer to fixed-width decimal ASCII.  Give a
+// negative width to avoid zero-padding. Adapted from the 'itoa'
+// function in the log/log.go file in the standard library.
+func Itoa(i int, wid int) string {
+	// Assemble decimal in reverse order.
+	var b [20]byte
+	bp := len(b) - 1
+	for i >= 10 || wid > 1 {
+		wid--
+		q := i / 10
+		b[bp] = byte('0' + i - q*10)
+		bp--
+		i = q
+	}
+	// i < 10
+	b[bp] = byte('0' + i)
+	return string(b[bp:])
+}
