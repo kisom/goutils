@@ -9,6 +9,19 @@
 // can be suppressed with Suppress, and re-enabled with Enable. There
 // are prefixed versions of these as well.
 //
+// Packages (e.g. those meant to be imported by programs) using the
+// loggers here should observe a few etiquette guides:
+//
+// 1. A package should never suppress or enable other loggers except
+// via an exported function that should be called by the end user.
+//
+// 2. A package should never call the global `SetLevel`; this is
+// reserved for the end user.
+//
+// 3. Packages should use consistent, sane domains: preferably,
+// related packages should use an unsurprising common prefix in their
+// domains.
+//
 // This package was adapted from the CFSSL logging code.
 package logging
 
@@ -28,6 +41,16 @@ var logConfig = struct {
 }{
 	registered: map[string]*Logger{},
 	lock:       new(sync.Mutex),
+}
+
+// SetLevel sets the logging level for all loggers.
+func SetLevel(level Level) {
+	logConfig.lock.Lock()
+	defer logConfig.lock.Unlock()
+
+	for _, l := range logConfig.registered {
+		l.SetLevel(level)
+	}
 }
 
 // DefaultLevel defaults to the notice level of logging.
