@@ -9,6 +9,12 @@ import (
 
 var progname = filepath.Base(os.Args[0])
 
+// ProgName returns what lib thinks the program name is, namely the
+// basename of of argv0.
+func ProgName() string {
+	return progname
+}
+
 // Warnx displays a formatted error message to standard error, à la
 // warnx(3).
 func Warnx(format string, a ...interface{}) (int, error) {

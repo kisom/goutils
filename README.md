@@ -14,6 +14,7 @@ Contents:
         csrpubdump/ Dump the public key from an X.509
                     certificate request.
         fragment/   Print a fragment of a file.
+        jlp/        JSON linter/prettifier.
         pembody/    Print the body of a PEM certificate.
         showimp/    List the external (e.g. non-stdlib and outside the
                     current working directory) imports for a Go file.
