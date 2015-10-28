@@ -63,7 +63,7 @@ func main() {
 	}
 
 	if end < start {
-		fmt.Println("[!] end < start, swapping values")
+		fmt.Fprintln(os.Stderr, "[!] end < start, swapping values")
 		tmp := end
 		end = start
 		start = tmp
@@ -83,7 +83,6 @@ func main() {
 		return false
 	}
 
-	fmt.Println(start)
 	fmtStr += "\n"
 	for i := start; !endFunc(i); i++ {
 		fmt.Printf(fmtStr, i, lines[i])
