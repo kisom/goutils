@@ -22,6 +22,7 @@ Contents:
                     in a bundle.
         stealchain/ Dump the verified chain from a TLS
                     connection.
+        tlskeypair/ Check whether a TLS certificate and key file match.
     
 Each program should have a small README in the directory with more information.
 
