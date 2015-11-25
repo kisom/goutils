@@ -13,14 +13,17 @@ import (
 
 func usage() {
 	progname := filepath.Base(os.Args[0])
-	fmt.Printf(`Usage: %s file start [end]
+	fmt.Printf(`Usage: %s [-nl] file start [end]
 
 	Print a fragment of a file starting a line 'start' and ending
 	at line 'end', or EOF if no end is specified.
+
+	The -nl flag will suppress printing of line numbers.
 `, progname)
 }
 
 func main() {
+	quiet := flag.Bool("nl", false, "No line-numbering.")
 	flag.Parse()
 
 	if flag.NArg() < 2 || flag.NArg() > 3 {
@@ -69,8 +72,12 @@ func main() {
 		start = tmp
 	}
 
-	maxLine := fmt.Sprintf("%d", len(lines))
-	fmtStr := fmt.Sprintf("%%0%dd: %%s", len(maxLine))
+	var fmtStr string
+
+	if !*quiet {
+		maxLine := fmt.Sprintf("%d", len(lines))
+		fmtStr = fmt.Sprintf("%%0%dd: %%s", len(maxLine))
+	}
 
 	endFunc := func(n int) bool {
 		if n == 0 {
@@ -85,6 +92,10 @@ func main() {
 
 	fmtStr += "\n"
 	for i := start; !endFunc(i); i++ {
-		fmt.Printf(fmtStr, i, lines[i])
+		if *quiet {
+			fmt.Println(lines[i])
+		} else {
+			fmt.Printf(fmtStr, i, lines[i])
+		}
 	}
 }
