@@ -153,18 +153,19 @@ func displayCert(cert *x509.Certificate) {
 
 	validNames := make([]string, 0, len(cert.DNSNames)+len(cert.EmailAddresses)+len(cert.IPAddresses))
 	for i := range cert.DNSNames {
-		validNames = append(validNames, cert.DNSNames[i])
+		validNames = append(validNames, "dns:"+cert.DNSNames[i])
 	}
 
 	for i := range cert.EmailAddresses {
-		validNames = append(validNames, cert.EmailAddresses[i])
+		validNames = append(validNames, "email:"+cert.EmailAddresses[i])
 	}
 
 	for i := range cert.IPAddresses {
-		validNames = append(validNames, cert.IPAddresses[i].String())
+		validNames = append(validNames, "ip:"+cert.IPAddresses[i].String())
 	}
 
-	wrapPrint("SANs: "+strings.Join(validNames, ", "), 1)
+	sans := fmt.Sprintf("SANs (%d): %s\n", len(validNames), strings.Join(validNames, ", "))
+	wrapPrint(sans, 1)
 }
 
 func displayAllCerts(in []byte, leafOnly bool) {
