@@ -166,6 +166,20 @@ func displayCert(cert *x509.Certificate) {
 
 	sans := fmt.Sprintf("SANs (%d): %s\n", len(validNames), strings.Join(validNames, ", "))
 	wrapPrint(sans, 1)
+
+	l := len(cert.IssuingCertificateURL)
+	if l != 0 {
+		var aia string
+		if l == 1 {
+			aia = "AIA"
+		} else {
+			aia = "AIAs"
+		}
+		wrapPrint(fmt.Sprintf("%d %s:", l, aia), 1)
+		for _, url := range cert.IssuingCertificateURL {
+			wrapPrint(url, 2)
+		}
+	}
 }
 
 func displayAllCerts(in []byte, leafOnly bool) {
