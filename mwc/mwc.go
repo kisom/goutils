@@ -33,7 +33,7 @@ func (t *mwc) Close() error {
 	return nil
 }
 
-// MultiWriteClose creates a WriteCloser that duplicates its writes to
+// MultiWriteCloser creates a WriteCloser that duplicates its writes to
 // all the provided writers, similar to the Unix tee(1) command.
 func MultiWriteCloser(wc ...io.WriteCloser) io.WriteCloser {
 	wcs := make([]io.WriteCloser, len(wc))

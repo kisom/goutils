@@ -13,7 +13,8 @@ import (
 
 // following two lifted from CFSSL, (replace-regexp "\(.+\): \(.+\),"
 // "\2: \1,")
-var KeyUsage = map[x509.KeyUsage]string{
+
+var keyUsage = map[x509.KeyUsage]string{
 	x509.KeyUsageDigitalSignature:  "digital signature",
 	x509.KeyUsageContentCommitment: "content committment",
 	x509.KeyUsageKeyEncipherment:   "key encipherment",
@@ -25,7 +26,7 @@ var KeyUsage = map[x509.KeyUsage]string{
 	x509.KeyUsageDecipherOnly:      "decipher only",
 }
 
-var ExtKeyUsages = map[x509.ExtKeyUsage]string{
+var extKeyUsages = map[x509.ExtKeyUsage]string{
 	x509.ExtKeyUsageAny:                        "any",
 	x509.ExtKeyUsageServerAuth:                 "server auth",
 	x509.ExtKeyUsageClientAuth:                 "client auth",

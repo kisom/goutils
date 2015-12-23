@@ -74,7 +74,7 @@ func displayName(name pkix.Name) string {
 func keyUsages(ku x509.KeyUsage) string {
 	var uses []string
 
-	for u, s := range KeyUsage {
+	for u, s := range keyUsage {
 		if (ku & u) != 0 {
 			uses = append(uses, s)
 		}
@@ -86,7 +86,7 @@ func keyUsages(ku x509.KeyUsage) string {
 func extUsage(ext []x509.ExtKeyUsage) string {
 	ns := make([]string, 0, len(ext))
 	for i := range ext {
-		ns = append(ns, ExtKeyUsages[ext[i]])
+		ns = append(ns, extKeyUsages[ext[i]])
 	}
 
 	return strings.Join(ns, ", ")

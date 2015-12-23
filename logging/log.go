@@ -174,7 +174,7 @@ func New(domain string, level Level) (l *Logger, registered bool) {
 	return l, false
 }
 
-// NewWriters returns a new logger that writes to the w io.WriteCloser
+// NewFromWriters returns a new logger that writes to the w io.WriteCloser
 // for Notice and below and to the e io.WriteCloser for levels above
 // Notice. If e is nil, w will be used. If a logger with the same
 // domain exists, the logger will set its level to level and return
@@ -210,7 +210,7 @@ func NewFromWriters(domain string, level Level, w, e io.WriteCloser) (l *Logger,
 	return l, false
 }
 
-// NewFile returns a new logger that opens the files for writing. If
+// NewFromFile returns a new logger that opens the files for writing. If
 // multiplex is true, output will be multiplexed to standard output
 // and standard error as well.
 func NewFromFile(domain string, level Level, outFile, errFile string, multiplex bool, flags int) (*Logger, error) {

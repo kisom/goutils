@@ -80,6 +80,7 @@ var levelPrefix = [...]string{
 	LevelFatal:    "[FATAL] ",
 }
 
+// DateFormat contains the default date format string used by the logger.
 var DateFormat = "2006-01-02T15:03:04-0700"
 
 func (l *Logger) outputf(level Level, format string, v []interface{}) {
