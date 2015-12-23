@@ -185,8 +185,11 @@ func displayCert(cert *x509.Certificate) {
 func displayAllCerts(in []byte, leafOnly bool) {
 	certs, err := helpers.ParseCertificatesPEM(in)
 	if err != nil {
-		Warn(TranslateCFSSLError(err), "failed to parse certificates")
-		return
+		certs, _, err = helpers.ParseCertificatesDER(in, "")
+		if err != nil {
+			Warn(TranslateCFSSLError(err), "failed to parse certificates")
+			return
+		}
 	}
 
 	if len(certs) == 0 {
