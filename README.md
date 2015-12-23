@@ -11,6 +11,8 @@ Contents:
         certchain/  Display the certificate chain from a
                     TLS connection.
         certdump/   Dump certificate information.
+	clustersh/  Run commands or transfer files across multiple
+                    servers via SSH.
         csrpubdump/ Dump the public key from an X.509
                     certificate request.
         fragment/   Print a fragment of a file.
@@ -23,6 +25,11 @@ Contents:
         stealchain/ Dump the verified chain from a TLS
                     connection.
         tlskeypair/ Check whether a TLS certificate and key file match.
+    lib/            Commonly-useful functions for writing Go programs.
+    logging/        A logging library.
+    mwc/            MultiwriteCloser implementation.
+    sbuf/           A byte buffer that can be wiped.
+
     
 Each program should have a small README in the directory with more information.
 

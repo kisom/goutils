@@ -2,7 +2,8 @@ fragment
 
 This is a program to print a fragment of a file. It takes a filename,
 a starting line (lines are numbered starting at 1) and an optional
-end line or offset.
+end line or offset. It has one flag, `-nl`, which causes line numbers
+not to be printed.
 
 For example, compare the output to `nl -ba fragment.go`:
 
