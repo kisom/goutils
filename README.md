@@ -11,14 +11,14 @@ Contents:
         certchain/  Display the certificate chain from a
                     TLS connection.
         certdump/   Dump certificate information.
-	certverify/ Verify a TLS X.509 certificate.
-	clustersh/  Run commands or transfer files across multiple
+        certverify/ Verify a TLS X.509 certificate.
+        clustersh/  Run commands or transfer files across multiple
                     servers via SSH.
         csrpubdump/ Dump the public key from an X.509
                     certificate request.
         fragment/   Print a fragment of a file.
         jlp/        JSON linter/prettifier.
-	pem2bin/    Dump the binary body of a PEM-encoded block.
+        pem2bin/    Dump the binary body of a PEM-encoded block.
         pembody/    Print the body of a PEM certificate.
         showimp/    List the external (e.g. non-stdlib and outside the
                     current working directory) imports for a Go file.
