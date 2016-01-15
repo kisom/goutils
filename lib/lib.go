@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 var progname = filepath.Base(os.Args[0])
@@ -80,4 +81,33 @@ func Itoa(i int, wid int) string {
 	// i < 10
 	b[bp] = byte('0' + i)
 	return string(b[bp:])
+}
+
+var (
+	dayDuration  = 24 * time.Hour
+	yearDuration = (365 * dayDuration) + (6 * time.Hour)
+)
+
+func Duration(d time.Duration) string {
+	var s string
+	if d >= yearDuration {
+		years := d / yearDuration
+		s += fmt.Sprintf("%dy", years)
+		d -= (years * yearDuration)
+	}
+
+	if d >= dayDuration {
+		days := d / dayDuration
+		s += fmt.Sprintf("%dd", days)
+	}
+
+	if s != "" {
+		return s
+	}
+
+	d %= 1 * time.Second
+	hours := d / time.Hour
+	d -= (hours * time.Hour)
+	s += fmt.Sprintf("%dh%s", hours, d)
+	return s
 }

@@ -6,19 +6,38 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"time"
 
 	"github.com/cloudflare/cfssl/helpers"
+	"github.com/cloudflare/cfssl/revoke"
 	"github.com/kisom/die"
 	"github.com/kisom/goutils/lib"
 )
 
+func printRevocation(cert *x509.Certificate) {
+	remaining := cert.NotAfter.Sub(time.Now())
+	fmt.Printf("certificate expires in %s.\n", lib.Duration(remaining))
+
+	revoked, ok := revoke.VerifyCertificate(cert)
+	if !ok {
+		fmt.Fprintf(os.Stderr, "[!] the revocation check failed (failed to determine whether certificate\nwas revoked)")
+		return
+	}
+
+	if revoked {
+		fmt.Fprintf(os.Stderr, "[!] the certificate has been revoked\n")
+		return
+	}
+}
+
 func main() {
 	var caFile, intFile string
-	var forceIntermediateBundle, verbose bool
+	var forceIntermediateBundle, revexp, verbose bool
 	flag.StringVar(&caFile, "ca", "", "CA certificate `bundle`")
 	flag.StringVar(&intFile, "i", "", "intermediate `bundle`")
 	flag.BoolVar(&forceIntermediateBundle, "f", false,
 		"force the use of the intermediate bundle, ignoring any intermediates bundled with certificate")
+	flag.BoolVar(&revexp, "r", false, "print revocation and expiry information")
 	flag.BoolVar(&verbose, "v", false, "verbose")
 	flag.Parse()
 
@@ -85,5 +104,9 @@ func main() {
 
 	if verbose {
 		fmt.Println("OK")
+	}
+
+	if revexp {
+		printRevocation(cert)
 	}
 }

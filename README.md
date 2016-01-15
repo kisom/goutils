@@ -11,7 +11,8 @@ Contents:
         certchain/  Display the certificate chain from a
                     TLS connection.
         certdump/   Dump certificate information.
-        certverify/ Verify a TLS X.509 certificate.
+        certverify/ Verify a TLS X.509 certificate, optionally printing
+		    the time to expiry and checking for revocations.
         clustersh/  Run commands or transfer files across multiple
                     servers via SSH.
         csrpubdump/ Dump the public key from an X.509
