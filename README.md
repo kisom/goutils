@@ -18,6 +18,7 @@ Contents:
                     certificate request.
         fragment/   Print a fragment of a file.
         jlp/        JSON linter/prettifier.
+	pem2bin/    Dump the binary body of a PEM-encoded block.
         pembody/    Print the body of a PEM certificate.
         showimp/    List the external (e.g. non-stdlib and outside the
                     current working directory) imports for a Go file.
