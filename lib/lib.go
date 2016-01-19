@@ -122,7 +122,7 @@ type FileTime struct {
 	Accessed time.Time
 }
 
-func timeSpecToTime(ts unix.TimeSpec) time.Time {
+func timeSpecToTime(ts unix.Timespec) time.Time {
 	return time.Unix(ts.Sec, ts.Nsec)
 }
 
