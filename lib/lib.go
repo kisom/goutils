@@ -114,10 +114,10 @@ func Duration(d time.Duration) string {
 	return s
 }
 
-// FileTime contains the created, modified, and accessed timestamps
+// FileTime contains the changed, modified, and accessed timestamps
 // for a file.
 type FileTime struct {
-	Created  time.Time
+	Changed  time.Time
 	Modified time.Time
 	Accessed time.Time
 }
@@ -136,7 +136,7 @@ func LoadFileTime(path string) (FileTime, error) {
 		return ft, err
 	}
 
-	ft.Created = timeSpecToTime(st.Ctim)
+	ft.Changed = timeSpecToTime(st.Ctim)
 	ft.Modified = timeSpecToTime(st.Mtim)
 	ft.Accessed = timeSpecToTime(st.Atim)
 	return ft, nil
