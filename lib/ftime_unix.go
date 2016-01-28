@@ -17,7 +17,8 @@ type FileTime struct {
 }
 
 func timeSpecToTime(ts unix.Timespec) time.Time {
-	return time.Unix(ts.Sec, ts.Nsec)
+	// The casts to int64 are needed because on 386, these are int32s.
+	return time.Unix(int64(ts.Sec), int64(ts.Nsec))
 }
 
 // LoadFileTime returns a FileTime associated with the file.
