@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/dsa"
 	"crypto/ecdsa"
 	"crypto/elliptic"
@@ -214,12 +215,17 @@ func main() {
 	flag.BoolVar(&leafOnly, "l", false, "only show the leaf certificate")
 	flag.Parse()
 
-	if flag.NArg() == 0 || (flag.NArg() == 1 && flag.Arg(1) == "-") {
+	if flag.NArg() == 0 || (flag.NArg() == 1 && flag.Arg(0) == "-") {
 		certs, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
 			Warn(err, "couldn't read certificates from standard input")
 			os.Exit(1)
 		}
+
+		// This is needed for getting certs from JSON/jq.
+		certs = bytes.TrimSpace(certs)
+		certs = bytes.Replace(certs, []byte(`\n`), []byte{0xa}, -1)
+		certs = bytes.Trim(certs, `"`)
 		displayAllCerts(certs, leafOnly)
 	} else {
 		for _, filename := range flag.Args() {
