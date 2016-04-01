@@ -1,75 +1,43 @@
 package main
 
 import (
-	"fmt"
+	"os"
+	"time"
 
 	"github.com/kisom/goutils/logging"
-	"github.com/kisom/testio"
 )
 
-var log = logging.Init()
-var olog, _ = logging.New("subsystem #42", logging.LevelNotice)
+var log = logging.NewConsole()
+var olog = logging.NewConsole()
 
 func main() {
-	exampleNewWriters()
-	log.Notice("Hello, world.")
-	log.Warning("this program is about to end")
+	log.Info("example", "Hello, world.", nil)
+	log.Warn("example", "this program is about to end", nil)
 
-	log.SetLevel(logging.LevelDebug)
-	log.Debug("hello world")
-	log.SetLevel(logging.LevelNotice)
+	log.Critical("example", "screaming into the void", nil)
+	olog.Critical("other", "can anyone hear me?", nil)
 
-	olog.Print("now online")
-	logging.Suppress("olog")
-	olog.Print("extraneous information")
+	log.Warn("example", "but not for long", nil)
 
-	logging.Enable("olog")
-	olog.Print("relevant now")
+	log.Info("example", "fare thee well", nil)
+	olog.Info("other", "all good journeys must come to an end",
+		map[string]string{"when": time.Now().String()})
 
-	logging.SuppressAll()
-	log.Alert("screaming into the void")
-	olog.Critical("can anyone hear me?")
-
-	log.Enable()
-	log.Notice("i'm baaack")
-	log.Suppress()
-	log.Warning("but not for long")
-
-	logging.EnableAll()
-	log.Notice("fare thee well")
-	olog.Print("all good journeys must come to an end")
+	log.Info("example", "filelog test", nil)
 	exampleNewFromFile()
-}
-
-func exampleNewWriters() {
-	o := testio.NewBufCloser(nil)
-	e := testio.NewBufCloser(nil)
-
-	wlog, _ := logging.NewFromWriters("writers", logging.DefaultLevel, o, e)
-	wlog.Notice("hello, world")
-	wlog.Notice("some more things happening")
-	wlog.Warning("something suspicious has happened")
-	wlog.Alert("pick up that can, Citizen!")
-
-	fmt.Println("--- BEGIN OUT ---")
-	fmt.Printf("%s", o.Bytes())
-	fmt.Println("--- END OUT ---")
-
-	fmt.Println("--- BEGIN ERR ---")
-	fmt.Printf("%s", e.Bytes())
-	fmt.Println("--- END ERR ---")
+	os.Remove("example.log")
+	os.Remove("example.err")
 }
 
 func exampleNewFromFile() {
-	flog, err := logging.NewFromFile("file logger", logging.LevelNotice,
-		"example.log", "example.err", true)
+	flog, err := logging.NewSplitFile("example.log", "example.err", true)
 	if err != nil {
-		log.Fatalf("failed to open logger: %v", err)
+		log.Fatal("filelog", "failed to open logger",
+			map[string]string{"error": err.Error()})
 	}
-	defer flog.Close()
 
-	flog.Notice("hello, world")
-	flog.Notice("some more things happening")
-	flog.Warning("something suspicious has happened")
-	flog.Alert("pick up that can, Citizen!")
+	flog.Info("filelog", "hello, world", nil)
+	flog.Info("filelog", "some more things happening", nil)
+	flog.Warn("filelog", "something suspicious has happened", nil)
+	flog.Critical("filelog", "pick up that can, Citizen!", nil)
 }

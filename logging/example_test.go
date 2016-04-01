@@ -1,44 +1,37 @@
 package logging_test
 
-import "github.com/kisom/goutils/logging"
+import (
+	"time"
 
-var log = logging.Init()
-var olog, _ = logging.New("subsystem #42", logging.LevelNotice)
+	"github.com/kisom/goutils/logging"
+)
+
+var log = logging.NewConsole()
+var olog = logging.NewConsole()
 
 func Example() {
-	log.Notice("Hello, world.")
-	log.Warning("this program is about to end")
+	log.Info("example", "Hello, world.", nil)
+	log.Warn("example", "this program is about to end", nil)
 
-	olog.Print("now online")
-	logging.Suppress("olog")
-	olog.Print("extraneous information")
+	log.Critical("example", "screaming into the void", nil)
+	olog.Critical("other", "can anyone hear me?", nil)
 
-	logging.Enable("olog")
-	olog.Print("relevant now")
+	log.Warn("example", "but not for long", nil)
 
-	logging.SuppressAll()
-	log.Alert("screaming into the void")
-	olog.Critical("can anyone hear me?")
-
-	log.Enable()
-	log.Notice("i'm baaack")
-	log.Suppress()
-	log.Warning("but not for long")
-
-	logging.EnableAll()
-	log.Notice("fare thee well")
-	olog.Print("all good journeys must come to an end")
+	log.Info("example", "fare thee well", nil)
+	olog.Info("example", "all good journeys must come to an end",
+		map[string]string{"when": time.Now().String()})
 }
 
 func ExampleNewFromFile() {
-	log, err := logging.NewFromFile("file logger", logging.LevelNotice,
-		"example.log", "example.err", true)
+	flog, err := logging.NewSplitFile("example.log", "example.err", true)
 	if err != nil {
-		log.Fatalf("failed to open logger: %v", err)
+		log.Fatal("filelog", "failed to open logger",
+			map[string]string{"error": err.Error()})
 	}
 
-	log.Notice("hello, world")
-	log.Notice("some more things happening")
-	log.Warning("something suspicious has happened")
-	log.Alert("pick up that can, Citizen!")
+	flog.Info("filelog", "hello, world", nil)
+	flog.Info("filelog", "some more things happening", nil)
+	flog.Warn("filelog", "something suspicious has happened", nil)
+	flog.Critical("filelog", "pick up that can, Citizen!", nil)
 }
