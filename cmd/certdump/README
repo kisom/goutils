@@ -7,6 +7,12 @@ at least one certificate, and dumps the certificates found in those
 files. If the -l flag is given, it is assumed the file is a bundle and
 only the leaf certificate will be shown.
 
+Certificates may also be passed on standard input; no arguments, or a
+single "-" argument, inform certdump that it should read certificates
+from standard input. This allows chaining, à la
+
+	cfssl bundle -domain example.net | jq .bundle | certdump
+
 Example (kyleisom.pem and tyrfingr.pem are the bundled certificates
 for two of my sites):
 
@@ -131,3 +137,8 @@ Details:
 	Extended usages: server auth, client auth
 	Basic constraints: valid
 	SANs: *.tyrfingr.is, tyrfingr.is
+
+This same result could be had with
+
+$ cfssl bundle -domain kyleisom.net | jq .bundle | certdump
+
