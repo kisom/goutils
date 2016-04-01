@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"os"
 
 	"github.com/kisom/goutils/die"
@@ -39,7 +40,11 @@ func main() {
 	}
 
 	for _, site := range flag.Args() {
-		conn, err := tls.Dial("tcp", site+":443", cfg)
+		_, _, err := net.SplitHostPort(site)
+		if err != nil {
+			site += ":443"
+		}
+		conn, err := tls.Dial("tcp", site, cfg)
 		if err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)

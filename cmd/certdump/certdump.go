@@ -10,6 +10,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/cloudflare/cfssl/helpers"
@@ -213,14 +214,23 @@ func main() {
 	flag.BoolVar(&leafOnly, "l", false, "only show the leaf certificate")
 	flag.Parse()
 
-	for _, filename := range flag.Args() {
-		fmt.Printf("--%s ---\n", filename)
-		in, err := ioutil.ReadFile(filename)
+	if flag.NArg() == 0 || (flag.NArg() == 1 && flag.Arg(1) == "-") {
+		certs, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
-			Warn(err, "couldn't read certificate")
-			continue
+			Warn(err, "couldn't read certificates from standard input")
+			os.Exit(1)
 		}
+		displayAllCerts(certs, leafOnly)
+	} else {
+		for _, filename := range flag.Args() {
+			fmt.Printf("--%s ---\n", filename)
+			in, err := ioutil.ReadFile(filename)
+			if err != nil {
+				Warn(err, "couldn't read certificate")
+				continue
+			}
 
-		displayAllCerts(in, leafOnly)
+			displayAllCerts(in, leafOnly)
+		}
 	}
 }
