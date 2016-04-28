@@ -3,6 +3,9 @@
 //
 // The T variants operating on *testing.T values; instead of killing
 // the program, they call the Fatal method.
+//
+// If GOTRACEBACK is set to enable coredumps, assertions will generate
+// coredumps.
 package assert
 
 import (
@@ -20,15 +23,25 @@ func die(what string, a ...string) {
 	_, file, line, ok := runtime.Caller(2)
 	if !ok {
 		panic(what)
+	}
+
+	if os.Getenv("GOTRACEBACK") == "crash" {
+		s := strings.Join(a, ", ")
+		if len(s) > 0 {
+			s = ": " + s
+		}
+		panic(what + s)
 	} else {
 		fmt.Fprintf(os.Stderr, "%s", what)
 		if len(a) > 0 {
 			s := strings.Join(a, ", ")
-			fmt.Fprintln(os.Stderr, ":"+s)
+			fmt.Fprintln(os.Stderr, ": "+s)
 		} else {
 			fmt.Fprintf(os.Stderr, "\n")
 		}
+
 		fmt.Fprintf(os.Stderr, "\t%s line %d\n", file, line)
+
 		os.Exit(1)
 	}
 }
