@@ -13,7 +13,7 @@ var progname = filepath.Base(os.Args[0])
 // ProgName returns what lib thinks the program name is, namely the
 // basename of of argv0.
 //
-// It is similar to the Linux __progname.
+// It is similar to the Linux __progname function.
 func ProgName() string {
 	return progname
 }
@@ -53,15 +53,6 @@ func Err(exit int, err error, format string, a ...interface{}) {
 	a = append(a, err)
 	fmt.Fprintf(os.Stderr, format, a...)
 	os.Exit(exit)
-}
-
-// CheckFatal calls Err if err isn't nil.
-func CheckFatal(err error, format string, a ...interface{}) {
-	if err == nil {
-		return
-	}
-
-	Err(ExitFailure, err, format, a...)
 }
 
 // Itoa provides cheap integer to fixed-width decimal ASCII.  Give a
