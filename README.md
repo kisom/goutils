@@ -39,6 +39,7 @@ Contents:
 	testutil/       Various utility functions useful during testing.
 
     
-Each program should have a small README in the directory with more information.
+Each program should have a small README in the directory with more
+information.
 
 All code here is licensed under the MIT license.
