@@ -55,6 +55,59 @@ func (w *BrokenWriter) Reset() {
 	w.current = 0
 }
 
+// Close is provided to satisfy the Closer interface.
+func (w *BrokenWriter) Close() error {
+	w.Reset()
+	return nil
+}
+
+// SilentBrokenWriter implements an io.Writer that fails after a
+// certain number of bytes. However, this failure is silent: it just
+// reports fewer bytes written than p.  It doesn't actually store any
+// data, and is used to verify that io.Writer implementations properly
+// return errors on short writes.
+type SilentBrokenWriter struct {
+	current, limit int
+}
+
+// NewSilentBrokenWriter creates a new SilentBrokenWriter that can store only
+// limit bytes.
+func NewSilentBrokenWriter(limit int) *SilentBrokenWriter {
+	return &SilentBrokenWriter{limit: limit}
+}
+
+// Write will write the byte slice to the SilentBrokenWriter, failing if the
+// maximum number of bytes has been reached.
+func (w *SilentBrokenWriter) Write(p []byte) (int, error) {
+	if (len(p) + w.current) <= w.limit {
+		w.current += len(p)
+	} else {
+		spill := (len(p) + w.current) - w.limit
+		w.current = w.limit
+		return len(p) - spill, nil
+	}
+
+	return len(p), nil
+}
+
+// Extend increases the byte limit to allow more data to be written.
+func (w *SilentBrokenWriter) Extend(n int) {
+	w.limit += n
+}
+
+// Reset clears the limit and bytes in the SilentBrokenWriter. Extend needs
+// to be called to allow data to be written.
+func (w *SilentBrokenWriter) Reset() {
+	w.limit = 0
+	w.current = 0
+}
+
+// Close is provided to satisfy the Closer interface.
+func (w *SilentBrokenWriter) Close() error {
+	w.Reset()
+	return nil
+}
+
 // BrokenReadWriter implements a broken reader and writer, backed by a
 // bytes.Buffer.
 type BrokenReadWriter struct {
@@ -258,4 +311,54 @@ func (bc *BufferConn) ReadClient(p []byte) (int, error) {
 // an io.Closer.
 func (bc *BufferConn) Close() error {
 	return nil
+}
+
+// BrokenCloser is a BufCloser that fails to close.
+type BrokenCloser struct {
+	buf *bytes.Buffer
+}
+
+// Write writes the data to the BrokenCloser.
+func (buf *BrokenCloser) Write(p []byte) (int, error) {
+	return buf.buf.Write(p)
+}
+
+// Read reads data from the BrokenCloser.
+func (buf *BrokenCloser) Read(p []byte) (int, error) {
+	return buf.buf.Read(p)
+}
+
+// Close is a stub function to satisfy the io.Closer interface.
+func (buf *BrokenCloser) Close() error {
+	return errors.New("testio: broken closer is broken")
+}
+
+// Reset clears the internal buffer.
+func (buf *BrokenCloser) Reset() {
+	buf.buf.Reset()
+}
+
+// Bytes returns the contents of the buffer as a byte slice.
+func (buf *BrokenCloser) Bytes() []byte {
+	return buf.buf.Bytes()
+}
+
+// NewBrokenCloser creates and initializes a new BrokenCloser using buf as
+// its initial contents. It is intended to prepare a BrokenCloser to read
+// existing data. It can also be used to size the internal buffer for
+// writing. To do that, buf should have the desired capacity but a
+// length of zero.
+func NewBrokenCloser(buf []byte) *BrokenCloser {
+	bc := new(BrokenCloser)
+	bc.buf = bytes.NewBuffer(buf)
+	return bc
+}
+
+// NewBrokenCloserString creates and initializes a new Buffer using
+// string s as its initial contents. It is intended to prepare a
+// buffer to read an existing string.
+func NewBrokenCloserString(s string) *BrokenCloser {
+	buf := new(BrokenCloser)
+	buf.buf = bytes.NewBufferString(s)
+	return buf
 }
