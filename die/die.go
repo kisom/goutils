@@ -20,3 +20,10 @@ func With(fstr string, args ...interface{}) {
 	fmt.Fprintf(os.Stderr, out, args...)
 	os.Exit(1)
 }
+
+// When prints the error to stderr and exits if cond is true.
+func When(cond bool, fstr string, args ...interface{}) {
+	if cond {
+		With(fstr, args...)
+	}
+}
