@@ -19,13 +19,28 @@ import (
 var (
 	gopath  string
 	project string
+	debug   bool
 )
 
 var (
 	stdLibRegexp = regexp.MustCompile(`^\w+(/\w+)*$`)
 	sourceRegexp = regexp.MustCompile(`^[^.].*\.go$`)
-	log          = logging.Init()
+	log          = logging.NewConsole()
+	imports      = map[string]bool{}
+	fset         = &token.FileSet{}
 )
+
+func debugf(format string, args ...interface{}) {
+	if debug {
+		fmt.Printf(format, args...)
+	}
+}
+
+func debugln(args ...interface{}) {
+	if debug {
+		fmt.Println(args...)
+	}
+}
 
 func init() {
 	gopath = os.Getenv("GOPATH")
@@ -51,17 +66,12 @@ func init() {
 	project = wd[len(gopath):]
 }
 
-var (
-	imports = map[string]bool{}
-	fset    = &token.FileSet{}
-)
-
 func walkFile(path string, info os.FileInfo, err error) error {
 	if !sourceRegexp.MatchString(path) {
 		return nil
 	}
 
-	log.Debug(path)
+	debugln(path)
 
 	f, err := parser.ParseFile(fset, path, nil, parser.ImportsOnly)
 	if err != nil {
@@ -71,16 +81,16 @@ func walkFile(path string, info os.FileInfo, err error) error {
 	for _, importSpec := range f.Imports {
 		importPath := strings.Trim(importSpec.Path.Value, `"`)
 		if stdLibRegexp.MatchString(importPath) {
-			log.Debug("standard lib:", importPath)
+			debugln("standard lib:", importPath)
 			continue
 		} else if strings.HasPrefix(importPath, project) {
-			log.Debug("internal import:", importPath)
+			debugln("internal import:", importPath)
 			continue
 		} else if strings.HasPrefix(importPath, "golang.org/") {
-			log.Debug("extended lib:", importPath)
+			debugln("extended lib:", importPath)
 			continue
 		}
-		log.Debug("import:", importPath)
+		debugln("import:", importPath)
 		imports[importPath] = true
 	}
 
@@ -88,12 +98,9 @@ func walkFile(path string, info os.FileInfo, err error) error {
 }
 
 func main() {
-	verbose := flag.Bool("v", false, "log debugging information")
+	flag.BoolVar(&debug, "v", false, "log debugging information")
 	flag.Parse()
 
-	if *verbose {
-		log.SetLevel(logging.LevelDebug)
-	}
 	err := filepath.Walk(".", walkFile)
 	die.If(err)
 

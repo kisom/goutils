@@ -15,7 +15,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/kisom/die"
+	"github.com/kisom/goutils/die"
 )
 
 var validPEMs = map[string]bool{

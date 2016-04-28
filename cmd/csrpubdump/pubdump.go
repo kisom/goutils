@@ -10,7 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/kisom/die"
+	"github.com/kisom/goutils/die"
 )
 
 func main() {

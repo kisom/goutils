@@ -10,7 +10,7 @@ import (
 
 	"github.com/cloudflare/cfssl/helpers"
 	"github.com/cloudflare/cfssl/revoke"
-	"github.com/kisom/die"
+	"github.com/kisom/goutils/die"
 	"github.com/kisom/goutils/lib"
 )
 

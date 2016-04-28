@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/kisom/die"
+	"github.com/kisom/goutils/die"
 )
 
 func usage() {
