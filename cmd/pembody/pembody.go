@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/kisom/goutils/lib"
 )
@@ -15,7 +16,15 @@ func main() {
 		lib.Errx(lib.ExitFailure, "a single filename is required")
 	}
 
-	in, err := ioutil.ReadFile(flag.Arg(0))
+	var in []byte
+	var err error
+
+	path := flag.Arg(0)
+	if path == "-" {
+		in, err = ioutil.ReadAll(os.Stdin)
+	} else {
+		in, err = ioutil.ReadFile(flag.Arg(0))
+	}
 	if err != nil {
 		lib.Err(lib.ExitFailure, err, "couldn't read file")
 	}
