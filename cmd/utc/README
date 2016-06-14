@@ -1,0 +1,48 @@
+utc: convert times to UTC
+
+utc converts times to UTC. If no arguments are provided, prints the
+current time in UTC. If the only time provided is "-", reads
+newline-separated timestamps from standard input.
+
+Flags:
+
+	-f format	Go timezone format. See the Go documentation
+			(e.g. https://golang.org/pkg/time/#pkg-constants)
+			for an explanation of this format.
+	-z zone		Text form of the time zone; this can be in short
+			time zone abbreviation (e.g. MST) or a location
+			(e.g. America/Los_Angeles). This has no effect
+			when printing the current time.
+
+Examples (note that the examples are done in the America/Los_Angeles /
+PST8PDT time zone):
+
+	+ Getting the current time in UTC:
+	  $ utc
+	  2016-06-14 14:30 = 2016-06-14 21:30
+	+ Converting a local timestamp to UTC:
+	  $ utc '2016-06-14 21:30'
+	  2016-06-14 21:30 = 2016-06-15 04:30
+	+ Converting a local EST timestamp to UTC (on a machine set to
+  	  PST8PDT):
+	  $ utc -z EST '2016-06-14 21:30'  
+	  2016-06-14 21:30 = 2016-06-15 02:30
+	+ Converting timestamps in the form '14-06-2016 3:04PM':
+	  $ utc -f '02-01-2006 3:04PM' '14-06-2016 9:30PM'
+	  14-06-2016 9:30PM = 15-06-2016 4:30AM
+	+ Converting timestamps from standard input:
+	  $ printf "2016-06-14 14:42\n2016-06-13 11:01" | utc -
+	  2016-06-14 14:42 = 2016-06-14 21:42
+	  2016-06-13 11:01 = 2016-06-13 18:01
+	+ Converting a UTC timestamp to the local time zone:
+	  $ utc -u '2016-06-14 21:30'
+	  2016-06-14 21:30 = 2016-06-14 14:30
+	+ Converting a UTC timestamp to EST (on a machine set to
+	  PST8PDT):
+	  $ utc -u -z EST '2016-06-14 21:30'
+	  2016-06-14 21:30 = 2016-06-14 16:30
+
+
+
+	  
+	

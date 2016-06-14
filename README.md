@@ -29,6 +29,7 @@ Contents:
         stealchain/ Dump the verified chain from a TLS
                     connection.
         tlskeypair/ Check whether a TLS certificate and key file match.
+		utc/        Convert times to UTC.
     die/            Death of a program.
 	fileutil/       Common file functions.
     lib/            Commonly-useful functions for writing Go programs.
