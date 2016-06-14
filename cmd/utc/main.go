@@ -10,19 +10,22 @@ import (
 )
 
 var (
-	format    = "2006-01-02 15:04" // Format that will be used for times.
-	outFormat = format             // Output format.
-	tz        = "Local"            // String descriptor for timezone.
-	fromLoc   *time.Location       // Go time.Location for the named timezone.
-	toLoc     *time.Location       // Go time.Location for output timezone.
+	format                   = "2006-01-02 15:04" // Format that will be used for times.
+	outFormat                = format             // Output format.
+	tz                       = "Local"            // String descriptor for timezone.
+	fromLoc   *time.Location = time.Local         // Go time.Location for the named timezone.
+	toLoc     *time.Location = time.UTC           // Go time.Location for output timezone.
 )
 
 func usage(w io.Writer) {
-	fmt.Fprintf(w, `Usage: utc [-f format] [-u] [-h] [-z zone] [time(s)...]
+	fmt.Fprintf(w, `Usage: utc [-f format] [-h] [-o format] [-q] [-u] [-z zone] [time(s)...]
 
 utc converts times to UTC. If no arguments are provided, prints the
 current time in UTC. If the only time provided is "-", reads newline-
-separated timestamps from standard input.
+separated timestamps from standard input. If both the input and output
+timezones are the same (e.g., the local time zone is UTC), a warning
+message will be printed on standard error. This can be suppressed with
+the -q option.
 
 Flags:
 
@@ -37,6 +40,8 @@ Flags:
 	-o format	Go timestamp format for outputting times. Uses the
 			same format as the '-f' argument; it defaults to
 			the same value as the '-f' argument.
+
+	-q		Suppress the timezone check warning message.
 
 	-u		Timestamps are in UTC format and should be converted
 			to the timezone specified by the -z argument (which
@@ -80,23 +85,72 @@ PST8PDT time zone):
 	+ Using a different output format:
 	  $ utc -o '2006-01-02T15:03:04MST' '2016-06-14 21:30' 
 	  2016-06-14 21:30 = 2016-06-15T04:04:30UTC
+	+ Example of the warning message when running utc on a machine
+	  where the local time zone is UTC:
+	  $ utc
+	   
+	  ==================================================================
+	  Note: both input and output timezone offsets are the same --- this
+	  program may not do what you expect it to.
+	   
+	  (Converting from UTC (offset +0000) to UTC (offset +0000).)
+	  ==================================================================
+	  2016-06-14 23:44 = 2016-06-14 23:44
+	+ Example of the warning message when running utc on a machine
+	  where the local time zone is GMT:
+	  $ utc
+	   
+	  ==================================================================
+	  Note: both input and output timezone offsets are the same --- this
+	  program may not do what you expect it to.
+	   
+	  (Converting from GMT (offset +0000) to UTC (offset +0000).)
+	  ==================================================================
+	  2016-06-14 23:46 = 2016-06-14 23:46
 `, format, tz, tz)
 }
 
+func getZone(loc *time.Location) (string, int) {
+	return time.Now().In(loc).Zone()
+}
+
+func checkZones(quiet bool) {
+	if quiet {
+		return
+	}
+
+	toZone, toOff := getZone(toLoc)
+	fromZone, fromOff := getZone(fromLoc)
+
+	if toOff == fromOff {
+		fmt.Fprintf(os.Stderr, `
+==================================================================
+Note: both input and output timezone offsets are the same --- this
+program may not do what you expect it to.
+
+(Converting from %s (offset %+05d) to %s (offset %+05d).)
+==================================================================
+`, fromZone, fromOff, toZone, toOff)
+	}
+}
+
 func init() {
-	var help bool
-	var utc bool
+	var help, quiet, utc bool
 
 	flag.Usage = func() { usage(os.Stderr) }
 	flag.StringVar(&format, "f", format, "time format")
 	flag.BoolVar(&help, "h", false, "print usage information")
 	flag.StringVar(&outFormat, "o", outFormat, "output time format")
+	flag.BoolVar(&quiet, "q", false, "suppress zone check warning")
 	flag.BoolVar(&utc, "u", false, "timestamps are in UTC format")
 	flag.StringVar(&tz, "z", tz, "time zone to convert from; if blank, the local timezone is used")
 
 	flag.Parse()
 
 	if help {
+		if !utc {
+			checkZones(quiet)
+		}
 		usage(os.Stdout)
 		os.Exit(0)
 	}
@@ -118,8 +172,14 @@ func init() {
 			os.Exit(1)
 		}
 
+		if fromLoc == time.UTC {
+
+		}
+
 		toLoc = time.UTC
 	}
+
+	checkZones(quiet)
 }
 
 func showTime(t time.Time) {
