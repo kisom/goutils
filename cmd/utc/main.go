@@ -10,27 +10,33 @@ import (
 )
 
 var (
-	format  = "2006-01-02 15:04" // Format that will be used for times.
-	tz      = "Local"            // String descriptor for timezone.
-	fromLoc *time.Location       // Go time.Location for the named timezone.
-	toLoc   *time.Location       // Go time.Location for output timezone.
+	format    = "2006-01-02 15:04" // Format that will be used for times.
+	outFormat = format             // Output format.
+	tz        = "Local"            // String descriptor for timezone.
+	fromLoc   *time.Location       // Go time.Location for the named timezone.
+	toLoc     *time.Location       // Go time.Location for output timezone.
 )
 
 func usage(w io.Writer) {
 	fmt.Fprintf(w, `Usage: utc [-f format] [-u] [-h] [-z zone] [time(s)...]
 
 utc converts times to UTC. If no arguments are provided, prints the
-current time in UTC.
+current time in UTC. If the only time provided is "-", reads newline-
+separated timestamps from standard input.
 
 Flags:
 
-	-f format	Go timezone format. See the Go documentation
+	-f format	Go timestamp format for input times. See the Go docs
 			(e.g. https://golang.org/pkg/time/#pkg-constants)
 			for an explanation of this format.
 
 			Default value: %s
 
 	-h		Print this help message.
+
+	-o format	Go timestamp format for outputting times. Uses the
+			same format as the '-f' argument; it defaults to
+			the same value as the '-f' argument.
 
 	-u		Timestamps are in UTC format and should be converted
 			to the timezone specified by the -z argument (which
@@ -71,7 +77,9 @@ PST8PDT time zone):
 	  PST8PDT):
 	  $ utc -u -z EST '2016-06-14 21:30'
 	  2016-06-14 21:30 = 2016-06-14 16:30
-
+	+ Using a different output format:
+	  $ utc -o '2006-01-02T15:03:04MST' '2016-06-14 21:30' 
+	  2016-06-14 21:30 = 2016-06-15T04:04:30UTC
 `, format, tz, tz)
 }
 
@@ -82,6 +90,7 @@ func init() {
 	flag.Usage = func() { usage(os.Stderr) }
 	flag.StringVar(&format, "f", format, "time format")
 	flag.BoolVar(&help, "h", false, "print usage information")
+	flag.StringVar(&outFormat, "o", outFormat, "output time format")
 	flag.BoolVar(&utc, "u", false, "timestamps are in UTC format")
 	flag.StringVar(&tz, "z", tz, "time zone to convert from; if blank, the local timezone is used")
 
@@ -114,7 +123,7 @@ func init() {
 }
 
 func showTime(t time.Time) {
-	fmt.Printf("%s = %s\n", t.Format(format), t.In(toLoc).Format(format))
+	fmt.Printf("%s = %s\n", t.Format(format), t.In(toLoc).Format(outFormat))
 }
 
 func dumpTimes(times []string) bool {
