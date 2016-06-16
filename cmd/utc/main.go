@@ -11,7 +11,7 @@ import (
 
 var (
 	format                   = "2006-01-02 15:04" // Format that will be used for times.
-	outFormat                = format             // Output format.
+	outFormat                = format + " MST"    // Output format.
 	tz                       = "Local"            // String descriptor for timezone.
 	fromLoc   *time.Location = time.Local         // Go time.Location for the named timezone.
 	toLoc     *time.Location = time.UTC           // Go time.Location for output timezone.
@@ -21,11 +21,12 @@ func usage(w io.Writer) {
 	fmt.Fprintf(w, `Usage: utc [-f format] [-h] [-o format] [-q] [-u] [-z zone] [time(s)...]
 
 utc converts times to UTC. If no arguments are provided, prints the
-current time in UTC. If the only time provided is "-", reads newline-
-separated timestamps from standard input. If both the input and output
-timezones are the same (e.g., the local time zone is UTC), a warning
-message will be printed on standard error. This can be suppressed with
-the -q option.
+current time in UTC. If the only argument provided is "-", utc reads
+newline-separated timestamps from standard input. If the argument is
+"help", it will print an extended help message with examples.  If both
+the input and output timezones are the same (e.g., the local time zone
+is UTC), a warning message will be printed on standard error. This can
+be suppressed with the -q option.
 
 Flags:
 
@@ -37,9 +38,10 @@ Flags:
 
 	-h		Print this help message.
 
-	-o format	Go timestamp format for outputting times. Uses the
-			same format as the '-f' argument; it defaults to
-			the same value as the '-f' argument.
+	-o format	Go timestamp format for outputting times. It uses
+			the same format as the '-f' argument.
+
+			Default value: %s
 
 	-q		Suppress the timezone check warning message.
 
@@ -54,37 +56,42 @@ Flags:
 			printing the current time.
 
 			Default value: %s
+`, format, outFormat, tz, tz)
+}
 
+func usageExamples() {
+	usage(os.Stdout)
+	fmt.Println(`
 Examples (note that the examples are done in the America/Los_Angeles /
 PST8PDT time zone):
 
 	+ Getting the current time in UTC:
 	  $ utc
-	  2016-06-14 14:30 = 2016-06-14 21:30
+	  2016-06-14 14:30 PDT = 2016-06-14 21:30 UTC
 	+ Converting a local timestamp to UTC:
 	  $ utc '2016-06-14 21:30'
-	  2016-06-14 21:30 = 2016-06-15 04:30
+	  2016-06-14 21:30 PDT = 2016-06-15 04:30 UTC
 	+ Converting a local EST timestamp to UTC (on a machine set to
   	  PST8PDT):
 	  $ utc -z EST '2016-06-14 21:30'  
-	  2016-06-14 21:30 = 2016-06-15 02:30
+	  2016-06-14 21:30 EST = 2016-06-15 02:30 UTC
 	+ Converting timestamps in the form '14-06-2016 3:04PM':
 	  $ utc -f '02-01-2006 3:04PM' '14-06-2016 9:30PM'
-	  14-06-2016 9:30PM = 15-06-2016 4:30AM
+	  2016-06-14 21:30 PDT = 2016-06-15 04:30 UTC
 	+ Converting timestamps from standard input:
 	  $ printf "2016-06-14 14:42\n2016-06-13 11:01" | utc -
-	  2016-06-14 14:42 = 2016-06-14 21:42
-	  2016-06-13 11:01 = 2016-06-13 18:01
+	  2016-06-14 14:42 PDT = 2016-06-14 21:42 UTC
+	  2016-06-13 11:01 PDT = 2016-06-13 18:01 UTC
 	+ Converting a UTC timestamp to the local time zone:
 	  $ utc -u '2016-06-14 21:30'
-	  2016-06-14 21:30 = 2016-06-14 14:30
+	  2016-06-14 21:30 UTC = 2016-06-14 14:30 PDT
 	+ Converting a UTC timestamp to EST (on a machine set to
 	  PST8PDT):
 	  $ utc -u -z EST '2016-06-14 21:30'
-	  2016-06-14 21:30 = 2016-06-14 16:30
+	  2016-06-14 21:30 UTC = 2016-06-14 16:30 EST
 	+ Using a different output format:
-	  $ utc -o '2006-01-02T15:03:04MST' '2016-06-14 21:30' 
-	  2016-06-14 21:30 = 2016-06-15T04:04:30UTC
+	  $ utc -o '2006-01-02T15:03:04-0700' '2016-06-14 21:30' 
+	  2016-06-14T21:09:30-0700 = 2016-06-15T04:04:30+0000
 	+ Example of the warning message when running utc on a machine
 	  where the local time zone is UTC:
 	  $ utc
@@ -107,7 +114,7 @@ PST8PDT time zone):
 	  (Converting from GMT (offset +0000) to UTC (offset +0000).)
 	  ==================================================================
 	  2016-06-14 23:46 = 2016-06-14 23:46
-`, format, tz, tz)
+`)
 }
 
 func getZone(loc *time.Location) (string, int) {
@@ -183,7 +190,8 @@ func init() {
 }
 
 func showTime(t time.Time) {
-	fmt.Printf("%s = %s\n", t.Format(format), t.In(toLoc).Format(outFormat))
+	fmt.Printf("%s = %s\n", t.Format(outFormat),
+		t.In(toLoc).Format(outFormat))
 }
 
 func dumpTimes(times []string) bool {
@@ -218,6 +226,8 @@ func main() {
 			for s.Scan() {
 				times = append(times, s.Text())
 			}
+		} else if flag.Arg(0) == "help" {
+			usageExamples()
 		} else {
 			times = flag.Args()
 		}
