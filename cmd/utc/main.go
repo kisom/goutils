@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -14,11 +15,14 @@ var (
 	outFormat                = format + " MST"    // Output format.
 	tz                       = "Local"            // String descriptor for timezone.
 	fromLoc   *time.Location = time.Local         // Go time.Location for the named timezone.
+	fromUnix  bool                                // Input times are Unix timestamps.
 	toLoc     *time.Location = time.UTC           // Go time.Location for output timezone.
 )
 
 func usage(w io.Writer) {
-	fmt.Fprintf(w, `Usage: utc [-f format] [-h] [-o format] [-q] [-u] [-z zone] [time(s)...]
+	fmt.Fprintf(w, `Usage:	utc [-f format] [-o format] [-q] [-t] [-u] [-z zone] [time(s)...]
+	utc -h | utc help
+
 
 utc converts times to UTC. If no arguments are provided, prints the
 current time in UTC. If the only argument provided is "-", utc reads
@@ -38,25 +42,32 @@ Flags:
 
 	-h		Print this help message.
 
-	-o format	Go timestamp format for outputting times. It uses
-			the same format as the '-f' argument.
+	-o format       Go timestamp format for outputting times.
+			It uses the same format as the '-f' argument.
 
 			Default value: %s
 
 	-q		Suppress the timezone check warning message.
 
-	-u		Timestamps are in UTC format and should be converted
-			to the timezone specified by the -z argument (which
-			defaults to '%s'). Note that this isn't particularly
-			useful with no arguments.
+	-t              Input times are Unix timestamps. Use with
+			-u to convert the timestamp to the timezone
+			specified by the -z option (which defaults
+			to %s).
+
+	-u              Timestamps are in UTC format and should be
+			converted to the timezone specified by the
+			-z argument (which defaults to '%s'). Note
+			that this isn't particularly useful with
+			no arguments.
 
 	-z zone		Text form of the time zone; this can be in short
-			time zone abbreviation (e.g. MST) or a location
-			(e.g. America/Los_Angeles). This has no effect when
-			printing the current time.
+			time zone abbreviation (e.g. MST) or a
+			location (e.g. America/Los_Angeles). This
+			has no effect when printing the current
+			time.
 
 			Default value: %s
-`, format, outFormat, tz, tz)
+`, format, outFormat, tz, tz, tz)
 }
 
 func usageExamples() {
@@ -92,6 +103,15 @@ PST8PDT time zone):
 	+ Using a different output format:
 	  $ utc -o '2006-01-02T15:03:04-0700' '2016-06-14 21:30' 
 	  2016-06-14T21:09:30-0700 = 2016-06-15T04:04:30+0000
+	+ Converting a Unix timestamp to a UTC time:
+	  $ utc -t 1466052938
+	  2016-06-15 21:55 PDT = 2016-06-16 04:55 UTC
+	+ Converting a Unix timestamp to local time:
+	  $ utc -t -u 1466052938
+	  2016-06-16 04:55 UTC = 2016-06-15 21:55 PDT
+	+ Converting a Unix timestamp to EST:
+	  $ utc -t -u -z EST 1466052938
+	  2016-06-16 04:55 UTC = 2016-06-15 23:55 EST
 	+ Example of the warning message when running utc on a machine
 	  where the local time zone is UTC:
 	  $ utc
@@ -149,6 +169,7 @@ func init() {
 	flag.BoolVar(&help, "h", false, "print usage information")
 	flag.StringVar(&outFormat, "o", outFormat, "output time format")
 	flag.BoolVar(&quiet, "q", false, "suppress zone check warning")
+	flag.BoolVar(&fromUnix, "t", false, "input times are Unix timestamps")
 	flag.BoolVar(&utc, "u", false, "timestamps are in UTC format")
 	flag.StringVar(&tz, "z", tz, "time zone to convert from; if blank, the local timezone is used")
 
@@ -194,11 +215,26 @@ func showTime(t time.Time) {
 		t.In(toLoc).Format(outFormat))
 }
 
+func parseTime(in string) (time.Time, error) {
+	if !fromUnix {
+		return time.ParseInLocation(format, in, fromLoc)
+	}
+
+	var t time.Time
+	n, err := strconv.ParseInt(in, 10, 64)
+	if err != nil {
+		return t, err
+	}
+
+	t = time.Unix(n, 0).In(fromLoc)
+	return t, nil
+}
+
 func dumpTimes(times []string) bool {
 	var errored bool
 
 	for _, t := range times {
-		u, err := time.ParseInLocation(format, t, fromLoc)
+		u, err := parseTime(t)
 		if err != nil {
 			errored = true
 			fmt.Fprintf(os.Stderr, "Malformed time %s: %s\n", t, err)
