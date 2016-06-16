@@ -7,6 +7,9 @@ Note that for packaging purposes, the goutils-pkg repo should be used: it
 pins the library versions to working copies and vendors all depdencies. See
 https://github.com/kisom/goutils-pkg for more details.
 
+The goutils-pkg repo [1] has stable versions of the command line
+utilities here, along with a vendored snapshot of any dependencies.
+
 Contents:
 
     ahash/          Provides hashes from string algorithm specifiers.
@@ -62,3 +65,5 @@ Each program should have a small README in the directory with more
 information.
 
 All code here is licensed under the MIT license.
+
+[1] https://github.com/kisom/goutils-pkg/
