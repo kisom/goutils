@@ -10,7 +10,7 @@ import (
 	"github.com/kisom/goutils/lib"
 )
 
-func prettify(file string) error {
+func prettify(file string, validateOnly bool) error {
 	in, err := ioutil.ReadFile(file)
 	if err != nil {
 		lib.Warn(err, "ReadFile")
@@ -24,6 +24,10 @@ func prettify(file string) error {
 		return err
 	}
 
+	if validateOnly {
+		return nil
+	}
+
 	err = ioutil.WriteFile(file, buf.Bytes(), 0644)
 	if err != nil {
 		lib.Warn(err, "WriteFile")
@@ -32,7 +36,7 @@ func prettify(file string) error {
 	return err
 }
 
-func compact(file string) error {
+func compact(file string, validateOnly bool) error {
 	in, err := ioutil.ReadFile(file)
 	if err != nil {
 		lib.Warn(err, "ReadFile")
@@ -44,6 +48,10 @@ func compact(file string) error {
 	if err != nil {
 		lib.Warn(err, "%s", file)
 		return err
+	}
+
+	if validateOnly {
+		return nil
 	}
 
 	err = ioutil.WriteFile(file, buf.Bytes(), 0644)
@@ -63,6 +71,7 @@ func usage() {
 	Flags:
 	-c	Compact files.
 	-h	Print this help message.
+	-n	Don't prettify; only perform validation.
 `, progname, progname)
 
 }
@@ -72,8 +81,9 @@ func init() {
 }
 
 func main() {
-	var shouldCompact bool
+	var shouldCompact, validateOnly bool
 	flag.BoolVar(&shouldCompact, "c", false, "Compact files instead of prettifying.")
+	flag.BoolVar(&validateOnly, "n", false, "Don't write changes; only perform validation.")
 	flag.Parse()
 
 	action := prettify
@@ -83,7 +93,7 @@ func main() {
 
 	var errCount int
 	for _, fileName := range flag.Args() {
-		err := action(fileName)
+		err := action(fileName, validateOnly)
 		if err != nil {
 			errCount++
 		}
