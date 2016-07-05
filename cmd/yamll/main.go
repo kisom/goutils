@@ -42,6 +42,28 @@ func main() {
 		os.Exit(0)
 	}
 
+	if flag.NArg() == 1 && flag.Arg(0) == "-" {
+		path := "stdin"
+		in, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			errorf("%s FAILED: %s", path, err)
+			os.Exit(1)
+		}
+
+		var e empty
+		err = yaml.Unmarshal(in, &e)
+		if err != nil {
+			errorf("%s FAILED: %s", path, err)
+			os.Exit(1)
+		}
+
+		if !*quiet {
+			fmt.Printf("%s: OK\n", path)
+		}
+
+		os.Exit(0)
+	}
+
 	for _, path := range flag.Args() {
 		in, err := ioutil.ReadFile(path)
 		if err != nil {
