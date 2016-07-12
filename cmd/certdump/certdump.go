@@ -182,6 +182,18 @@ func displayCert(cert *x509.Certificate) {
 			wrapPrint(url, 2)
 		}
 	}
+
+	l = len(cert.OCSPServer)
+	if l > 0 {
+		title := "OCSP server"
+		if l > 1 {
+			title += "s"
+		}
+		wrapPrint(title+":\n", 1)
+		for _, ocspServer := range cert.OCSPServer {
+			wrapPrint(fmt.Sprintf("- %s\n", ocspServer), 2)
+		}
+	}
 }
 
 func displayAllCerts(in []byte, leafOnly bool) {
