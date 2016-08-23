@@ -7,14 +7,14 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-// FileExistsP returns true if the file exists.
-func FileExistsP(path string) bool {
+// FileDoesExist returns true if the file exists.
+func FileDoesExist(path string) bool {
 	_, err := os.Stat(path)
 	return !os.IsNotExist(err)
 }
 
-// DirectoryExistsP returns true if the file exists.
-func DirectoryExistsP(path string) bool {
+// DirectoryDoesExist returns true if the file exists.
+func DirectoryDoesExist(path string) bool {
 	fi, err := os.Stat(path)
 	if err != nil {
 		return false
