@@ -6,12 +6,21 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/kisom/goutils/lib"
 )
 
 func prettify(file string, validateOnly bool) error {
-	in, err := ioutil.ReadFile(file)
+	var in []byte
+	var err error
+
+	if file == "-" {
+		in, err = ioutil.ReadAll(os.Stdin)
+	} else {
+		in, err = ioutil.ReadFile(file)
+	}
+
 	if err != nil {
 		lib.Warn(err, "ReadFile")
 		return err
@@ -28,7 +37,12 @@ func prettify(file string, validateOnly bool) error {
 		return nil
 	}
 
-	err = ioutil.WriteFile(file, buf.Bytes(), 0644)
+	if file == "-" {
+		_, err = os.Stdout.Write(buf.Bytes())
+	} else {
+		err = ioutil.WriteFile(file, buf.Bytes(), 0644)
+	}
+
 	if err != nil {
 		lib.Warn(err, "WriteFile")
 	}
@@ -37,7 +51,15 @@ func prettify(file string, validateOnly bool) error {
 }
 
 func compact(file string, validateOnly bool) error {
-	in, err := ioutil.ReadFile(file)
+	var in []byte
+	var err error
+
+	if file == "-" {
+		in, err = ioutil.ReadAll(os.Stdin)
+	} else {
+		in, err = ioutil.ReadFile(file)
+	}
+
 	if err != nil {
 		lib.Warn(err, "ReadFile")
 		return err
@@ -54,7 +76,12 @@ func compact(file string, validateOnly bool) error {
 		return nil
 	}
 
-	err = ioutil.WriteFile(file, buf.Bytes(), 0644)
+	if file == "-" {
+		_, err = os.Stdout.Write(buf.Bytes())
+	} else {
+		err = ioutil.WriteFile(file, buf.Bytes(), 0644)
+	}
+
 	if err != nil {
 		lib.Warn(err, "WriteFile")
 	}
