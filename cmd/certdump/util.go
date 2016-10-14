@@ -1,9 +1,11 @@
 package main
 
 import (
+	"crypto/tls"
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"net"
 	"os"
 	"strings"
 
@@ -157,4 +159,49 @@ func dumpHex(in []byte) string {
 	}
 
 	return strings.Trim(s, ":")
+}
+
+// permissiveConfig returns a maximally-accepting TLS configuration;
+// the purpose is to look at the cert, not verify the security properties
+// of the connection.
+func permissiveConfig() *tls.Config {
+	return &tls.Config{
+		InsecureSkipVerify: true,
+	}
+}
+
+// verifyConfig returns a config that will verify the connection.
+func verifyConfig(hostname string) *tls.Config {
+	return &tls.Config{
+		ServerName: hostname,
+	}
+}
+
+type connInfo struct {
+	// The original URI provided.
+	URI string
+
+	// The hostname of the server.
+	Host string
+
+	// The port to connect on.
+	Port string
+
+	// The address to connect to.
+	Addr string
+}
+
+func getConnInfo(uri string) *connInfo {
+	ci := &connInfo{URI: uri}
+	ci.Host = uri[len("https://"):]
+
+	host, port, err := net.SplitHostPort(ci.Host)
+	if err != nil {
+		ci.Port = "443"
+	} else {
+		ci.Host = host
+		ci.Port = port
+	}
+	ci.Addr = net.JoinHostPort(ci.Host, ci.Port)
+	return ci
 }

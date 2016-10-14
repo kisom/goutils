@@ -6,6 +6,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rsa"
+	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"flag"
@@ -221,6 +222,55 @@ func displayAllCerts(in []byte, leafOnly bool) {
 	}
 }
 
+func displayAllCertsWeb(uri string, leafOnly bool) {
+	ci := getConnInfo(uri)
+	conn, err := tls.Dial("tcp", ci.Addr, permissiveConfig())
+	if err != nil {
+		Warn(err, "couldn't connect to %s", ci.Addr)
+		return
+	}
+	defer conn.Close()
+
+	state := conn.ConnectionState()
+	conn.Close()
+
+	conn, err = tls.Dial("tcp", ci.Addr, verifyConfig(ci.Host))
+	if err == nil {
+		err = conn.VerifyHostname(ci.Host)
+		if err == nil {
+			state = conn.ConnectionState()
+		}
+	} else {
+		Warn(err, "TLS verification error with server name %s", ci.Host)
+	}
+	conn.Close()
+
+	if len(state.PeerCertificates) == 0 {
+		Warnx("no certificates found")
+		return
+	}
+
+	if leafOnly {
+		displayCert(state.PeerCertificates[0])
+		return
+	}
+
+	if len(state.VerifiedChains) == 0 {
+		Warnx("no verified chains found; using peer chain")
+		for i := range state.PeerCertificates {
+			displayCert(state.PeerCertificates[i])
+		}
+	} else {
+		fmt.Println("TLS chain verified successfully.")
+		for i := range state.VerifiedChains {
+			fmt.Printf("--- Verified certificate chain %d ---\n", i+1)
+			for j := range state.VerifiedChains[i] {
+				displayCert(state.VerifiedChains[i][j])
+			}
+		}
+	}
+}
+
 func main() {
 	var leafOnly bool
 	flag.StringVar(&dateFormat, "s", oneTrueDateFormat, "date `format` in Go time format")
@@ -242,13 +292,17 @@ func main() {
 	} else {
 		for _, filename := range flag.Args() {
 			fmt.Printf("--%s ---\n", filename)
-			in, err := ioutil.ReadFile(filename)
-			if err != nil {
-				Warn(err, "couldn't read certificate")
-				continue
-			}
+			if strings.HasPrefix(filename, "https://") {
+				displayAllCertsWeb(filename, leafOnly)
+			} else {
+				in, err := ioutil.ReadFile(filename)
+				if err != nil {
+					Warn(err, "couldn't read certificate")
+					continue
+				}
 
-			displayAllCerts(in, leafOnly)
+				displayAllCerts(in, leafOnly)
+			}
 		}
 	}
 }
