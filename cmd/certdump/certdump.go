@@ -240,10 +240,10 @@ func displayAllCertsWeb(uri string, leafOnly bool) {
 		if err == nil {
 			state = conn.ConnectionState()
 		}
+		conn.Close()
 	} else {
 		Warn(err, "TLS verification error with server name %s", ci.Host)
 	}
-	conn.Close()
 
 	if len(state.PeerCertificates) == 0 {
 		Warnx("no certificates found")
