@@ -1,0 +1,8 @@
+atping: automated tcping
+Usage of atping:
+  -6	require IPv6
+  -p port
+    	port to connect to instead of 80
+  -t timeout
+    	connect deadline (default 3s)
+  -v	verbose mode: print server and protocol when connecting
