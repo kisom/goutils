@@ -11,6 +11,9 @@ Contents:
         certchain/  Display the certificate chain from a
                     TLS connection.
         certdump/   Dump certificate information.
+        certexpiry/ Print a list of certificate subjects and expiry times
+                    or warn about certificates expiring within a certain
+                    window.
         certverify/ Verify a TLS X.509 certificate, optionally printing
                     the time to expiry and checking for revocations.
         clustersh/  Run commands or transfer files across multiple
@@ -20,16 +23,16 @@ Contents:
         jlp/        JSON linter/prettifier.
         pem2bin/    Dump the binary body of a PEM-encoded block.
         pembody/    Print the body of a PEM certificate.
-		pemit/      Dump data to a PEM file.
+        pemit/      Dump data to a PEM file.
         showimp/    List the external (e.g. non-stdlib and outside the
                     current working directory) imports for a Go file.
         readchain/  Print the common name for the certificates
                     in a bundle.
-	    showimp     Display the external imports in a package.
+        showimp     Display the external imports in a package.
         stealchain/ Dump the verified chain from a TLS
                     connection.
         tlskeypair/ Check whether a TLS certificate and key file match.
-		utc/        Convert times to UTC.
+        utc/        Convert times to UTC.
     die/            Death of a program.
 	fileutil/       Common file functions.
     lib/            Commonly-useful functions for writing Go programs.

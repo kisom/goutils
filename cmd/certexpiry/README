@@ -1,0 +1,24 @@
+certexpiry
+
+Print a list of certificates and their expiry, or only warn about
+upcoming expiries.
+
+It takes a list of PEM-encoded certificates, and compares the NotAfter
+value to the window given by the -t flag (which defaults to 2160 hours,
+or 90 days). Alternatively, given the -q flag, it will only warn about
+certificates expiring in the window.
+
+Example, run on the cfssl-trust[1] CA bundle:
+
+$ certexpiry -q ca-bundle.crt              
+/GPKIRootCA/C=KR/O=Government of Korea/OU=GPKI/SN=93008982654396041992798201139454296355 expires on 2017-03-15 06:00:04 +0000 UTC (in 1633h0m44.686144136s)
+/CA DATEV BT 01/C=DE/O=DATEV eG/SN=139288328771231810070797444106717912243 expires on 2017-01-09 13:42:30 +0000 UTC (in 80h43m10.685385355s)
+/CA DATEV STD 01/C=DE/O=DATEV eG/SN=142389455970744957119921172249094394891 expires on 2017-01-09 13:42:30 +0000 UTC (in 80h43m10.685236793s)
+/CA DATEV INT 01/C=DE/O=DATEV eG/SN=169035066479776292612803392462688126470 expires on 2017-01-09 13:42:30 +0000 UTC (in 80h43m10.685208087s)
+$ certexpiry ca-bundle.crt | head -5
+/http://www.valicert.com//O=ValiCert, Inc./OU=ValiCert Class 3 Policy Validation Authority/L=ValiCert Validation Network/SN=1 expires on 2019-06-26 00:22:33 +0000 UTC (in 21619h22m44.060898709s)
+/QuoVadis Root CA 2/C=BM/O=QuoVadis Limited/SN=1289 expires on 2031-11-24 18:23:33 +0000 UTC (in 130453h23m44.060878817s)
+/C=US/O=VeriSign, Inc./OU=Class 3 Public Primary Certification Authority/SN=149843929435818692848040365716851702463 expires on 2028-08-01 23:59:59 +0000 UTC (in 101419h0m10.06087362s)
+/Equifax Secure Global eBusiness CA-1/C=US/O=Equifax Secure Inc./SN=1 expires on 2020-06-21 04:00:00 +0000 UTC (in 30287h0m11.060869101s)
+/thawte Primary Root CA/C=US/O=thawte, Inc./OU=Certification Services Division/OU=(c) 2006 thawte, Inc. - For authorized use only/SN=69529181992039203566298953787712940909 expires on 2036-07-16 23:59:59 +0000 UTC (in 171163h0m10.060864304s)
+
