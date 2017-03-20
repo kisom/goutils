@@ -9,7 +9,7 @@ import (
 	"hash"
 	"net/url"
 
-	"_code.google.com/p/rsc/qr"
+	"rsc.io/qr"
 )
 
 const defaultSize = 6
