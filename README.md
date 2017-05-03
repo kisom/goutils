@@ -8,6 +8,7 @@ Contents:
 
     assert/         Error handling, assertion-style.
     cmd/
+        atping/     Automated TCP ping, meant for putting in cronjobs.
         certchain/  Display the certificate chain from a
                     TLS connection.
         certdump/   Dump certificate information.
@@ -28,11 +29,13 @@ Contents:
                     current working directory) imports for a Go file.
         readchain/  Print the common name for the certificates
                     in a bundle.
+        renfnv/     Rename a file to base32-encoded 64-bit FNV-1a hash.
         showimp     Display the external imports in a package.
         stealchain/ Dump the verified chain from a TLS
                     connection.
         tlskeypair/ Check whether a TLS certificate and key file match.
         utc/        Convert times to UTC.
+        yamll/      A small YAML linter.
     die/            Death of a program.
 	fileutil/       Common file functions.
     lib/            Commonly-useful functions for writing Go programs.
