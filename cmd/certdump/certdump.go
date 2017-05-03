@@ -6,6 +6,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -116,7 +117,10 @@ func showBasicConstraints(cert *x509.Certificate) {
 
 const oneTrueDateFormat = "2006-01-02T15:04:05-0700"
 
-var dateFormat string
+var (
+	dateFormat string
+	showHash   bool // if true, print a SHA256 hash of the certificate's Raw field
+)
 
 func wrapPrint(text string, indent int) {
 	tabs := ""
@@ -129,6 +133,9 @@ func wrapPrint(text string, indent int) {
 
 func displayCert(cert *x509.Certificate) {
 	fmt.Println("CERTIFICATE")
+	if showHash {
+		fmt.Println(wrap(fmt.Sprintf("SHA256: %x", sha256.Sum256(cert.Raw)), 0))
+	}
 	fmt.Println(wrap("Subject: "+displayName(cert.Subject), 0))
 	fmt.Println(wrap("Issuer: "+displayName(cert.Issuer), 0))
 	fmt.Printf("\tSignature algorithm: %s / %s\n", sigAlgoPK(cert.SignatureAlgorithm),
@@ -273,6 +280,7 @@ func displayAllCertsWeb(uri string, leafOnly bool) {
 
 func main() {
 	var leafOnly bool
+	flag.BoolVar(&showHash, "d", false, "show hashes of raw DER contents")
 	flag.StringVar(&dateFormat, "s", oneTrueDateFormat, "date `format` in Go time format")
 	flag.BoolVar(&leafOnly, "l", false, "only show the leaf certificate")
 	flag.Parse()
