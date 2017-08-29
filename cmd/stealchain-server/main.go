@@ -55,6 +55,11 @@ func main() {
 
 		raddr := conn.RemoteAddr()
 		tconn := tls.Server(conn, cfg)
+		err = tconn.Handshake()
+		if err != nil {
+			fmt.Printf("[+] %v: failed to complete handshake: %v\n", raddr, err)
+			continue
+		}
 		cs := tconn.ConnectionState()
 		if len(cs.PeerCertificates) == 0 {
 			fmt.Printf("[+] %v: no chain presented\n", raddr)
