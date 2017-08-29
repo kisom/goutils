@@ -18,16 +18,34 @@ import (
 func main() {
 	cfg := &tls.Config{}
 
-	var sysRoot, listenAddr string
+	var sysRoot, listenAddr, certFile, keyFile string
 	var verify bool
 	flag.StringVar(&sysRoot, "ca", "", "provide an alternate CA bundle")
 	flag.StringVar(&listenAddr, "listen", ":443", "address to listen on")
+	flag.StringVar(&certFile, "cert", "", "server certificate to present to clients")
+	flag.StringVar(&keyFile, "key", "", "key for server certificate")
 	flag.BoolVar(&verify, "verify", false, "verify client certificates")
 	flag.Parse()
 
 	if verify {
 		cfg.ClientAuth = tls.RequireAndVerifyClientCert
+	} else {
+		cfg.ClientAuth = tls.RequestClientCert
 	}
+	if certFile == "" {
+		fmt.Println("[!] missing required flag -cert")
+		os.Exit(1)
+	}
+	if keyFile == "" {
+		fmt.Println("[!] missing required flag -key")
+		os.Exit(1)
+	}
+	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+	if err != nil {
+		fmt.Printf("[!] could not load server key pair: %v", err)
+		os.Exit(1)
+	}
+	cfg.Certificates = append(cfg.Certificates, cert)
 	if sysRoot != "" {
 		pemList, err := ioutil.ReadFile(sysRoot)
 		die.If(err)
