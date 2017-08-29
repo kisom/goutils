@@ -1,0 +1,17 @@
+stealchain-server
+
+This is a utility to extract the verified X.509 chain from a TLS
+connection initiated by another client. It listens on a port, and
+for each connection, it will dump the certificates that the peer
+actually sent (and not the verified chain that is built from this).
+
+It was written to assist in debugging issues with certificate chains.
+
+There are a few knobs:
+
+-listen specifies the address to listen on.
+
+-ca allows the trusted CA roots to be specified via a PEM bundle of
+root certificates.
+
+-verify requires that the client present a valid certificate chain.
