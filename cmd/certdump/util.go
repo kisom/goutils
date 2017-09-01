@@ -18,7 +18,7 @@ import (
 
 var keyUsage = map[x509.KeyUsage]string{
 	x509.KeyUsageDigitalSignature:  "digital signature",
-	x509.KeyUsageContentCommitment: "content committment",
+	x509.KeyUsageContentCommitment: "content commitment",
 	x509.KeyUsageKeyEncipherment:   "key encipherment",
 	x509.KeyUsageKeyAgreement:      "key agreement",
 	x509.KeyUsageDataEncipherment:  "data encipherment",
