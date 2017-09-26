@@ -31,6 +31,7 @@ Contents:
                     in a bundle.
         renfnv/     Rename a file to base32-encoded 64-bit FNV-1a hash.
         showimp     Display the external imports in a package.
+        ski         Display the SKI for PEM-encoded TLS material.
         stealchain/ Dump the verified chain from a TLS
                     connection.
         tlskeypair/ Check whether a TLS certificate and key file match.
