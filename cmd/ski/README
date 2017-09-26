@@ -1,0 +1,30 @@
+ski: print subject public key info
+
+Usage:
+	ski [-hm] files...
+
+Flags:
+	-h	Print a help message and exit.
+	-m	All SKIs should match.
+
+Examples:
+
+	Printing the SKI of a private key and certificate:
+
+	$ ski *
+	server.key  3A:AB:D1:B2:E5:7A:F2:5A:D5:8E:8B:7B:25:D9:41:90:F8:6B:A3:5E (RSA private key)
+	[ski] trailing data in PEM file
+	server.pem  3A:AB:D1:B2:E5:7A:F2:5A:D5:8E:8B:7B:25:D9:41:90:F8:6B:A3:5E (RSA certificate)
+
+	Making sure the SKIs match:
+
+	$ ski -m *
+	tyrfingr.key  3A:AB:D1:B2:E5:7A:F2:5A:D5:8E:8B:7B:25:D9:41:90:F8:6B:A3:5E (RSA private key)
+	[ski] trailing data in PEM file
+	tyrfingr.pem  3A:AB:D1:B2:E5:7A:F2:5A:D5:8E:8B:7B:25:D9:41:90:F8:6B:A3:5E (RSA certificate)
+
+	Making sure the SKIs match with a bad certificate:
+	$ ski -m server.key bad.pem
+	server.key  3A:AB:D1:B2:E5:7A:F2:5A:D5:8E:8B:7B:25:D9:41:90:F8:6B:A3:5E (RSA private key)
+	[ski] bad.pem: SKI mismatch (3A:AB:D1:B2:E5:7A:F2:5A:D5:8E:8B:7B:25:D9:41:90:F8:6B:A3:5E != 90:AF:6A:3A:94:5A:0B:D8:90:EA:12:56:73:DF:43:B4:3A:28:DA:E7)
+	bad.pem  90:AF:6A:3A:94:5A:0B:D8:90:EA:12:56:73:DF:43:B4:3A:28:DA:E7 (RSA certificate)
