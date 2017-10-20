@@ -49,6 +49,10 @@ func parse(path string) (public []byte, kt, ft string) {
 		lib.Warnx("trailing data in PEM file")
 	}
 
+	if p == nil {
+		die.With("no PEM data found")
+	}
+
 	data = p.Bytes
 
 	switch p.Type {
