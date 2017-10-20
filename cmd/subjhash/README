@@ -1,0 +1,20 @@
+subjhash
+
+This tool prints the SHA-256 hash of an X.509 certificate's subject
+info or issuer fields. It can also verify that the hashes of the
+subject are the same between two certificates.
+
+Usage: subjhash [-im] certs...
+
+Flags:
+	-i	Print hash of issuer field.
+	-m	Matching mode. This expects arguments to be in the form of
+		pairs of certificates (e.g. previous, new) whose subjects
+		will be compared. For example,
+
+			subjhash -m ca1.pem ca1-renewed.pem	\
+				ca2.pem ca2-renewed.pem
+
+		will exit with a non-zero status if the subject in the
+		ca1-renewed.pem certificate doesn't match the subject in the
+		ca.pem certificate; similarly for ca2.

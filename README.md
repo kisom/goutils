@@ -34,6 +34,7 @@ Contents:
         ski         Display the SKI for PEM-encoded TLS material.
         stealchain/ Dump the verified chain from a TLS
                     connection.
+        subjhash/   Print or match subject info from a certificate.
         tlskeypair/ Check whether a TLS certificate and key file match.
         utc/        Convert times to UTC.
         yamll/      A small YAML linter.

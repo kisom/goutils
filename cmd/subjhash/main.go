@@ -13,6 +13,10 @@ import (
 	"github.com/kisom/goutils/lib"
 )
 
+func init() {
+	flag.Usage = func() { usage(os.Stdout); os.Exit(1) }
+}
+
 func usage(w io.Writer) {
 	fmt.Fprintf(w, `Print hash of subject or issuer fields in certificates.
 

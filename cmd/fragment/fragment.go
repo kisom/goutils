@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -11,9 +12,13 @@ import (
 	"github.com/kisom/goutils/die"
 )
 
-func usage() {
+func init() {
+	flag.Usage = func() { usage(os.Stdout); os.Exit(1) }
+}
+
+func usage(w io.Writer) {
 	progname := filepath.Base(os.Args[0])
-	fmt.Printf(`Usage: %s [-nl] file start [end]
+	fmt.Fprintf(w, `Usage: %s [-nl] file start [end]
 
 	Print a fragment of a file starting a line 'start' and ending
 	at line 'end', or EOF if no end is specified.
@@ -27,7 +32,7 @@ func main() {
 	flag.Parse()
 
 	if flag.NArg() < 2 || flag.NArg() > 3 {
-		usage()
+		usage(os.Stderr)
 		os.Exit(1)
 	}
 
