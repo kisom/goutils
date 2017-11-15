@@ -19,6 +19,8 @@ Contents:
                     the time to expiry and checking for revocations.
         clustersh/  Run commands or transfer files across multiple
                     servers via SSH.
+        cruntar/    Untar an archive with hard links, copying instead of
+                    linking.
         csrpubdump/ Dump the public key from an X.509 certificate request.
         fragment/   Print a fragment of a file.
         jlp/        JSON linter/prettifier.
@@ -47,7 +49,7 @@ Contents:
 	testio/         Various I/O utilities useful during testing.
 	testutil/       Various utility functions useful during testing.
 
-    
+
 Each program should have a small README in the directory with more
 information.
 

@@ -1,0 +1,20 @@
+ChromeOS untar
+
+This is a tool that is intended to support untarring on SquashFS file
+systems. In particular, every time it encounters a hard link, it
+will just create a copy of the file.
+
+Usage: cruntar [-jmvpz] archive [dest]
+
+Flags:
+        -a      Shortcut for -m -p: preserve owners and file mode.
+        -j      The archive is compressed with bzip2.
+        -m      Preserve file modes.
+        -p      Preserve ownership.
+        -v      Print the name of each file as it is being processed.
+        -z      The archive is compressed with gzip.
+
+I wrote this after running into problems with untarring the
+gcc-arm-eabi-none toolchain. The shared storage in Termux under
+ChromeOS doesn't support hard links, so I opted to just make a copy
+rather than dealing with links and whatnot.
