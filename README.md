@@ -43,13 +43,14 @@ Contents:
         utc/        Convert times to UTC.
         yamll/      A small YAML linter.
     die/            Death of a program.
-	fileutil/       Common file functions.
+    fileutil/       Common file functions.
     lib/            Commonly-useful functions for writing Go programs.
     logging/        A logging library.
     mwc/            MultiwriteCloser implementation.
     sbuf/           A byte buffer that can be wiped.
-	testio/         Various I/O utilities useful during testing.
-	testutil/       Various utility functions useful during testing.
+    tee/            Emulate tee(1)'s functionality in io.Writers.
+    testio/         Various I/O utilities useful during testing.
+    testutil/       Various utility functions useful during testing.
 
 
 Each program should have a small README in the directory with more
