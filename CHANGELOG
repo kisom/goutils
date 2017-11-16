@@ -1,0 +1,19 @@
+Release 1.1.0 - 2017-11-16
+
++ A number of new command line utilities were added
+
+	+ atping
+	+ cruntar
+	+ renfnv
+        +
+	+ ski
+	+ subjhash
+	+ yamll
+
++ new package: ahash
+	+ package for loading hashes from an algorithm string
+
++ new certificate loading functions in the lib package
+
++ new package: tee
+	+ emulates tee(1)
