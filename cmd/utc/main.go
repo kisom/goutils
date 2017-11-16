@@ -14,9 +14,9 @@ var (
 	format                   = "2006-01-02 15:04" // Format that will be used for times.
 	outFormat                = format + " MST"    // Output format.
 	tz                       = "Local"            // String descriptor for timezone.
-	fromLoc   *time.Location = time.Local         // Go time.Location for the named timezone.
+	fromLoc    = time.Local         // Go time.Location for the named timezone.
 	fromUnix  bool                                // Input times are Unix timestamps.
-	toLoc     *time.Location = time.UTC           // Go time.Location for output timezone.
+	toLoc      = time.UTC           // Go time.Location for output timezone.
 )
 
 func usage(w io.Writer) {
@@ -84,7 +84,7 @@ PST8PDT time zone):
 	  2016-06-14 21:30 PDT = 2016-06-15 04:30 UTC
 	+ Converting a local EST timestamp to UTC (on a machine set to
   	  PST8PDT):
-	  $ utc -z EST '2016-06-14 21:30'  
+	  $ utc -z EST '2016-06-14 21:30'
 	  2016-06-14 21:30 EST = 2016-06-15 02:30 UTC
 	+ Converting timestamps in the form '14-06-2016 3:04PM':
 	  $ utc -f '02-01-2006 3:04PM' '14-06-2016 9:30PM'
@@ -101,7 +101,7 @@ PST8PDT time zone):
 	  $ utc -u -z EST '2016-06-14 21:30'
 	  2016-06-14 21:30 UTC = 2016-06-14 16:30 EST
 	+ Using a different output format:
-	  $ utc -o '2006-01-02T15:03:04-0700' '2016-06-14 21:30' 
+	  $ utc -o '2006-01-02T15:03:04-0700' '2016-06-14 21:30'
 	  2016-06-14T21:09:30-0700 = 2016-06-15T04:04:30+0000
 	+ Converting a Unix timestamp to a UTC time:
 	  $ utc -t 1466052938

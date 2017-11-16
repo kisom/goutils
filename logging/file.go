@@ -8,10 +8,17 @@ type File struct {
 	*LogWriter
 }
 
-func (fl *File) Close() {
-	fl.fo.Close()
+// Close calls close on the underlying log files.
+func (fl *File) Close() error {
+	if fl.fo != nil {
+		if err := fl.fo.Close(); err != nil {
+			return err
+		}
+		fl.fo = nil
+	}
+
 	if fl.fe != nil {
-		fl.fe.Close()
+		return fl.fe.Close()
 	}
 }
 

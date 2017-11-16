@@ -23,6 +23,7 @@ func (t *Tee) Write(p []byte) (int, error) {
 	return n, nil
 }
 
+// Close calls Close on the underlying file.
 func (t *Tee) Close() error {
 	return t.f.Close()
 }

@@ -228,7 +228,7 @@ func (lw *LogWriter) Fatal(actor, event string, attrs map[string]string) {
 	os.Exit(1)
 }
 
-// Fatal emits a message indicating that the system is in an unsuable
+// FatalCode emits a message indicating that the system is in an unsuable
 // state, and cannot continue to run. The program will exit with the
 // exit code speicfied in the exitcode argument.
 //
@@ -244,7 +244,7 @@ func (lw *LogWriter) FatalCode(exitcode int, actor, event string, attrs map[stri
 	os.Exit(exitcode)
 }
 
-// Fatal emits a message indicating that the system is in an unsuable
+// FatalNoDie emits a message indicating that the system is in an unsuable
 // state, and cannot continue to run. The program will not exit; it is
 // assumed that the caller has some final clean up to perform.
 //

@@ -29,6 +29,7 @@ const (
 	LevelFatal
 )
 
+// DefaultLevel is the default logging level when none is provided.
 const DefaultLevel = LevelInfo
 
 // Cheap integer to fixed-width decimal ASCII.  Give a negative width
