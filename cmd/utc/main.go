@@ -11,12 +11,12 @@ import (
 )
 
 var (
-	format                   = "2006-01-02 15:04" // Format that will be used for times.
-	outFormat                = format + " MST"    // Output format.
-	tz                       = "Local"            // String descriptor for timezone.
-	fromLoc    = time.Local         // Go time.Location for the named timezone.
-	fromUnix  bool                                // Input times are Unix timestamps.
-	toLoc      = time.UTC           // Go time.Location for output timezone.
+	format    = "2006-01-02 15:04" // Format that will be used for times.
+	outFormat = format + " MST"    // Output format.
+	tz        = "Local"            // String descriptor for timezone.
+	fromLoc   = time.Local         // Go time.Location for the named timezone.
+	fromUnix  bool                 // Input times are Unix timestamps.
+	toLoc     = time.UTC           // Go time.Location for output timezone.
 )
 
 func usage(w io.Writer) {
