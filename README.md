@@ -6,6 +6,7 @@ of these in superfluous repositories of their own, I'm putting them here.
 
 Contents:
 
+    ahash/          Provides hashes from string algorithm specifiers.
     assert/         Error handling, assertion-style.
     cmd/
         atping/     Automated TCP ping, meant for putting in cronjobs.
@@ -32,6 +33,7 @@ Contents:
         readchain/  Print the common name for the certificates
                     in a bundle.
         renfnv/     Rename a file to base32-encoded 64-bit FNV-1a hash.
+        rhash/      Compute the digest of remote files.
         showimp     Display the external imports in a package.
         ski         Display the SKI for PEM-encoded TLS material.
         stealchain/ Dump the verified chain from a TLS

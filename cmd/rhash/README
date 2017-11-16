@@ -1,0 +1,22 @@
+rhash: remote hashing tool
+
+Usage: rhash [-a algo] [-h] [-l set] urls...
+Compute the hash over each URL.
+
+Flags:
+	-a algo		Specify the hash algorithm to use; the default is sha256.
+	-h		Print this help message.
+	-l set		List the hash functions under set. Set can be one of all,
+			secure to list only cryptographic hash functions, or
+			insecure to list only non-cryptographic hash functions.
+	
+Examples:
+	Compute the SHA256 digest of the LICENSE in this repository:
+
+	$ rhash https://raw.githubusercontent.com/kisom/goutils/7391da8567952f69990194ead2842d21df217c89/LICENSE
+	LICENSE: sha256=620bfadeb698df6c6db73908689a29371a9d4cff32b08c48a5c4307946093980
+
+	Compute the SHA-1 digest of the LICENSE in this repository:
+
+	$ rhash -a sha1 https://raw.githubusercontent.com/kisom/goutils/7391da8567952f69990194ead2842d21df217c89/LICENSE
+	LICENSE: sha1=83c6e2e410715058ed6e7c1572176122c024e367
