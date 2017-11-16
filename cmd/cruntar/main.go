@@ -16,8 +16,8 @@ import (
 
 var (
 	preserveOwners bool
-	preserveMode bool
-	verbose bool
+	preserveMode   bool
+	verbose        bool
 )
 
 func setupFile(hdr *tar.Header, file *os.File) error {
@@ -30,7 +30,7 @@ func setupFile(hdr *tar.Header, file *os.File) error {
 			return err
 		}
 	}
-	
+
 	if preserveOwners {
 		fmt.Printf("\tchown %d:%d\n", hdr.Uid, hdr.Gid)
 		err := file.Chown(hdr.Uid, hdr.Gid)
@@ -227,7 +227,7 @@ func main() {
 		usage(os.Stdout)
 		os.Exit(0)
 	}
-	
+
 	if archive {
 		preserveMode = true
 		preserveOwners = true

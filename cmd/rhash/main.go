@@ -54,7 +54,7 @@ func main() {
 	flag.BoolVar(&help, "h", false, "print a help message")
 	flag.StringVar(&list, "l", "", "list known hash algorithms (one of all, secure, insecure)")
 	flag.Parse()
-	
+
 	if help {
 		usage(os.Stdout)
 	}

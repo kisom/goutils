@@ -7,7 +7,7 @@ import (
 
 // Tee emulates the Unix tee(1) command.
 type Tee struct {
-	f *os.File
+	f       *os.File
 	Verbose bool
 }
 
@@ -36,12 +36,11 @@ func NewOut(logFile string) (*Tee, error) {
 	}
 
 	f, err := os.Create(logFile)
-	if err !=nil {
+	if err != nil {
 		return nil, err
 	}
 	return &Tee{f: f}, nil
 }
-
 
 // Printf formats according to a format specifier and writes to the
 // tee instance.
@@ -51,7 +50,7 @@ func (t *Tee) Printf(format string, args ...interface{}) (int, error) {
 	if err != nil {
 		return n, err
 	}
-	
+
 	if t.f == nil {
 		return n, err
 	}
@@ -73,7 +72,7 @@ var globalTee = &Tee{}
 // Open will attempt to open the logFile for the global tee instance.
 func Open(logFile string) error {
 	f, err := os.Create(logFile)
-	if err !=nil {
+	if err != nil {
 		return err
 	}
 	globalTee.f = f

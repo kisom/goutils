@@ -56,7 +56,7 @@ var sliceFunctions = map[string]func([]byte) []byte{
 type Hash struct {
 	hash.Hash
 	secure bool
-	algo string
+	algo   string
 }
 
 // HashAlgo returns the name of the underlying hash algorithm.
@@ -127,19 +127,19 @@ var secureHashes = map[string]func() hash.Hash{
 	"blake2b-512": blakeFunc(blake2b.New512),
 }
 
-func newHash32(f func () hash.Hash32) func () hash.Hash {
+func newHash32(f func() hash.Hash32) func() hash.Hash {
 	return func() hash.Hash {
 		return f()
 	}
 }
 
-func newHash64(f func () hash.Hash64) func () hash.Hash {
+func newHash64(f func() hash.Hash64) func() hash.Hash {
 	return func() hash.Hash {
 		return f()
 	}
 }
 
-func newCRC64(tab uint64) func () hash.Hash {
+func newCRC64(tab uint64) func() hash.Hash {
 	return newHash64(
 		func() hash.Hash64 {
 			return crc64.New(crc64.MakeTable(tab))

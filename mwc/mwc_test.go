@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/kisom/goutils/testio"
 	"github.com/kisom/goutils/assert"
+	"github.com/kisom/goutils/testio"
 )
 
 func TestMWC(t *testing.T) {
@@ -39,7 +39,7 @@ func TestMWCShort(t *testing.T) {
 
 	mwc = MultiWriteCloser(buf1, buf2, buf4)
 	_, err = mwc.Write([]byte("hello, world"))
-	assert.ErrorT(t, err, "expected a short write error", "but no error occurred")			
+	assert.ErrorT(t, err, "expected a short write error", "but no error occurred")
 }
 
 func TestMWCClose(t *testing.T) {

@@ -92,7 +92,7 @@ Options:
 }
 
 func init() {
-	flag.Usage = func () { usage(os.Stdout) }
+	flag.Usage = func() { usage(os.Stdout) }
 }
 
 func main() {
