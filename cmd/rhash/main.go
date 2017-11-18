@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -14,20 +13,6 @@ import (
 	"github.com/kisom/goutils/die"
 	"github.com/kisom/goutils/lib"
 )
-
-func fetch(remote string) ([]byte, error) {
-	resp, err := http.Get(remote)
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	return body, nil
-}
 
 func usage(w io.Writer) {
 	fmt.Fprintf(w, `Usage: %s [-a algo] [-h] [-l set] urls...
@@ -91,13 +76,19 @@ func main() {
 			continue
 		}
 
-		body, err := fetch(remote)
+		resp, err := http.Get(remote)
 		if err != nil {
 			lib.Warn(err, "fetching %s", remote)
 			continue
 		}
 
-		sum, err := ahash.Sum(algo, body)
+		if err != nil {
+			lib.Warn(err, "fetching %s", remote)
+			continue
+		}
+
+		sum, err := ahash.SumReader(algo, resp.Body)
+		resp.Body.Close()
 		if err != nil {
 			lib.Err(lib.ExitFailure, err, "while hashing data")
 		}
