@@ -21,7 +21,7 @@ type Logger interface {
 	Status() error
 
 	// Close gives the Logger the opportunity to perform any cleanup.
-	Close()
+	Close() error
 
 	// Log messages consist of four components:
 	//
@@ -276,4 +276,4 @@ func (lw *LogWriter) SetLevel(l Level) {
 }
 
 // Close is a no-op that satisfies the Logger interface.
-func (lw *LogWriter) Close() {}
+func (lw *LogWriter) Close() error { return nil }

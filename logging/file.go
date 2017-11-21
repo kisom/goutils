@@ -20,6 +20,8 @@ func (fl *File) Close() error {
 	if fl.fe != nil {
 		return fl.fe.Close()
 	}
+
+	return nil
 }
 
 // NewFile creates a new Logger that writes all logs to the file
