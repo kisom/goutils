@@ -5,11 +5,11 @@ go:
   - 1.9
   - 1.8
 script: 
-  - go get golang.org/x/tools/cmd/vet
+  - go get github.com/golang/lint/golint
   - go get golang.org/x/tools/cmd/cover
   - go get github.com/kisom/goutils/... 
   - go test -cover github.com/kisom/goutils/... 
-  - go vet github.com/kisom/goutils/... 
+  - go lint github.com/kisom/goutils/... 
 notifications:
   email:
     recipients:
