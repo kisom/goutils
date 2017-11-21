@@ -97,7 +97,7 @@ func TestHash32(t *testing.T) {
 	h.Write(data)
 	sum, ok = h.Sum32()
 	assert.BoolT(t, ok, algo+" should be able to return a Sum32")
-	assert.BoolT(t, expected != sum, fmt.Sprintf("%s returned %d but shouldn't have", algo, sum, expected))
+	assert.BoolT(t, expected != sum, fmt.Sprintf("%s returned %d but shouldn't have", algo, sum))
 }
 
 func TestHash64(t *testing.T) {
@@ -129,7 +129,7 @@ func TestHash64(t *testing.T) {
 	h.Write(data)
 	sum, ok = h.Sum64()
 	assert.BoolT(t, ok, algo+" should be able to return a Sum64")
-	assert.BoolT(t, expected != sum, fmt.Sprintf("%s returned %d but shouldn't have", algo, sum, expected))
+	assert.BoolT(t, expected != sum, fmt.Sprintf("%s returned %d but shouldn't have", algo, sum))
 }
 
 func TestListLengthSanity(t *testing.T) {
