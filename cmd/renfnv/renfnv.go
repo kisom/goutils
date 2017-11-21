@@ -46,7 +46,6 @@ func newName(path string) (string, error) {
 func move(dst, src string, force bool) (err error) {
 	if fileutil.FileDoesExist(dst) && !force {
 		return fmt.Errorf("%s exists (pass the -f flag to overwrite)", dst)
-		return nil
 	}
 	dstFile, err := os.Create(dst)
 	if err != nil {

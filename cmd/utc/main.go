@@ -72,7 +72,7 @@ Flags:
 
 func usageExamples() {
 	usage(os.Stdout)
-	fmt.Println(`
+	fmt.Printf(`
 Examples (note that the examples are done in the America/Los_Angeles /
 PST8PDT time zone):
 
@@ -134,6 +134,7 @@ PST8PDT time zone):
 	  (Converting from GMT (offset +0000) to UTC (offset +0000).)
 	  ==================================================================
 	  2016-06-14 23:46 = 2016-06-14 23:46
+
 `)
 }
 

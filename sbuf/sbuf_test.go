@@ -168,7 +168,7 @@ func TestRWByte(t *testing.T) {
 	}
 
 	if c != 42 {
-		t.Fatal("Expected 42, have %d", c)
+		t.Fatalf("Expected 42, have %d", c)
 	}
 
 	_, err = buf.ReadByte()
