@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/cloudflare/cfssl/helpers"
@@ -83,6 +84,7 @@ func keyUsages(ku x509.KeyUsage) string {
 			uses = append(uses, s)
 		}
 	}
+	sort.Strings(uses)
 
 	return strings.Join(uses, ", ")
 }
@@ -92,6 +94,7 @@ func extUsage(ext []x509.ExtKeyUsage) string {
 	for i := range ext {
 		ns = append(ns, extKeyUsages[ext[i]])
 	}
+	sort.Strings(ns)
 
 	return strings.Join(ns, ", ")
 }
