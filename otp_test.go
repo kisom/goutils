@@ -79,10 +79,7 @@ func TestBadURL(t *testing.T) {
 		"foo",
 		"otpauth:/foo/bar/baz",
 		"://",
-		"otpauth://hotp/secret=bar",
-		"otpauth://hotp/?secret=QUJDRA&algorithm=SHA256",
 		"otpauth://hotp/?digits=",
-		"otpauth://hotp/?secret=123",
 		"otpauth://hotp/?secret=MFRGGZDF&digits=ABCD",
 		"otpauth://hotp/?secret=MFRGGZDF&counter=ABCD",
 	}

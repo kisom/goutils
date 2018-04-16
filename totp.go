@@ -152,7 +152,8 @@ func totpFromURL(u *url.URL) (*TOTP, string, error) {
 
 	key, err := base32.StdEncoding.DecodeString(secret)
 	if err != nil {
-		return nil, "", err
+		// secret isn't base32 encoded
+		key = []byte(secret)
 	}
 	otp := NewTOTP(key, 0, period, digits, algo)
 	return otp, label, nil
