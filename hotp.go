@@ -88,7 +88,7 @@ func hotpFromURL(u *url.URL) (*HOTP, string, error) {
 		}
 	}
 
-	key, err := base32.StdEncoding.DecodeString(secret)
+	key, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(secret)
 	if err != nil {
 		// secret isn't base32 encoded
 		key = []byte(secret)
