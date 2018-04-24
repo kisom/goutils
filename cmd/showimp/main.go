@@ -67,6 +67,10 @@ func init() {
 }
 
 func walkFile(path string, info os.FileInfo, err error) error {
+	if ignores[path] {
+		return filepath.SkipDir
+	}
+
 	if !sourceRegexp.MatchString(path) {
 		return nil
 	}
@@ -97,9 +101,23 @@ func walkFile(path string, info os.FileInfo, err error) error {
 	return nil
 }
 
+var ignores = map[string]bool{}
+
 func main() {
+	var ignoreLine string
+	var noVendor bool
+	flag.StringVar(&ignoreLine, "i", "", "comma-separated list of directories to ignore")
+	flag.BoolVar(&noVendor, "nv", false, "ignore the vendor directory")
 	flag.BoolVar(&debug, "v", false, "log debugging information")
 	flag.Parse()
+
+	if noVendor {
+		ignores["vendor"] = true
+	}
+
+	for _, word := range strings.Split(ignoreLine, ",") {
+		ignores[strings.TrimSpace(word)] = true
+	}
 
 	err := filepath.Walk(".", walkFile)
 	die.If(err)
