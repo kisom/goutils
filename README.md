@@ -25,6 +25,8 @@ Contents:
         csrpubdump/ Dump the public key from an X.509 certificate request.
         fragment/   Print a fragment of a file.
         jlp/        JSON linter/prettifier.
+        kgz/        Custom gzip compressor / decompressor that handles 99%
+                    of my use cases.
         pem2bin/    Dump the binary body of a PEM-encoded block.
         pembody/    Print the body of a PEM certificate.
         pemit/      Dump data to a PEM file.

@@ -1,0 +1,23 @@
+kgz
+
+kgz is like gzip, but supports compressing and decompressing to a different
+directory than the source file is in.
+
+Usage: kgz [-l] source [target]
+
+If target is a directory, the basename of the sourcefile will be used
+as the target filename. Compression and decompression is selected
+based on whether the source filename ends in ".gz".
+
+Flags:
+	-l level	Compression level (0-9). Only meaninful when
+			compressing a file.
+
+
+
+
+
+
+
+
+
