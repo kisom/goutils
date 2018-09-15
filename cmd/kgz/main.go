@@ -113,7 +113,7 @@ func pathForUncompressing(source, dest string) (string, error) {
 
 	source = filepath.Base(source)
 	if !strings.HasSuffix(source, gzipExt) {
-		return "", errors.Errorf("%s is a not gzip-compressed file")
+		return "", errors.Errorf("%s is a not gzip-compressed file", source)
 	}
 	outFile := source[:len(source)-len(gzipExt)]
 	outFile = filepath.Join(dest, outFile)
@@ -127,7 +127,7 @@ func pathForCompressing(source, dest string) (string, error) {
 
 	source = filepath.Base(source)
 	if strings.HasSuffix(source, gzipExt) {
-		return "", errors.Errorf("%s is a gzip-compressed file")
+		return "", errors.Errorf("%s is a gzip-compressed file", source)
 	}
 
 	dest = filepath.Join(dest, source+gzipExt)
