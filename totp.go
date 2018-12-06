@@ -11,8 +11,11 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
+
+	"github.com/benbjohnson/clock"
 )
+
+var time clock.Clock
 
 // TOTP represents an RFC 6238 Time-based One-Time Password instance.
 type TOTP struct {

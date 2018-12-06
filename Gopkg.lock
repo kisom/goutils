@@ -3,6 +3,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/benbjohnson/clock"
+  packages = ["."]
+  revision = "7dc76406b6d3c05b5f71a86293cbcf3c4ea03b19"
+
+[[projects]]
+  branch = "master"
   name = "rsc.io/qr"
   packages = [
     ".",
@@ -14,6 +20,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b705d306da5a78e76b7ff289744770eef56328a4f0d1c615c1a233d056283651"
+  inputs-digest = "6f47334a8fcf2bb48e739e6181089e02bce6cc4d68888be311df3827db96f8ae"
   solver-name = "gps-cdcl"
   solver-version = 1
