@@ -4,6 +4,9 @@ import (
 	"crypto"
 	"fmt"
 	"testing"
+	"time"
+
+	"github.com/benbjohnson/clock"
 )
 
 var rfcTotpKey = []byte("12345678901234567890")
@@ -51,5 +54,30 @@ func TestTotpRFC(t *testing.T) {
 			fmt.Printf("\t  actual: %s\n", code)
 			t.FailNow()
 		}
+	}
+}
+
+func TestTOTPTime(t *testing.T) {
+	otp := GenerateGoogleTOTP()
+
+	testClock := clock.NewMock()
+	testClock.Add(2*time.Minute)
+	SetClock(testClock)
+
+	code := otp.OTP()
+
+	testClock.Add(-1 * time.Minute)
+	if newCode := otp.OTP(); newCode == code {
+		t.Errorf("twofactor: TOTP: previous code %s shouldn't match code %s", newCode, code)
+	}
+
+	testClock.Add(2 * time.Minute)
+	if newCode := otp.OTP(); newCode == code {
+		t.Errorf("twofactor: TOTP: future code %s shouldn't match code %s", newCode, code)
+	}
+
+	testClock.Add(-1 * time.Minute)
+	if newCode := otp.OTP(); newCode != code {
+		t.Errorf("twofactor: TOTP: current code %s shouldn't match code %s", newCode, code)
 	}
 }

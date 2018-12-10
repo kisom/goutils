@@ -15,7 +15,7 @@ import (
 	"github.com/benbjohnson/clock"
 )
 
-var time clock.Clock
+var timeSource = clock.New()
 
 // TOTP represents an RFC 6238 Time-based One-Time Password instance.
 type TOTP struct {
@@ -53,7 +53,7 @@ func (otp *TOTP) otpCounter(t uint64) uint64 {
 
 // OTPCounter returns the current time value for the OTP.
 func (otp *TOTP) OTPCounter() uint64 {
-	return otp.otpCounter(uint64(time.Now().Unix()))
+	return otp.otpCounter(uint64(timeSource.Now().Unix()))
 }
 
 // NewTOTP takes a new key, a starting time, a step, the number of
@@ -165,4 +165,8 @@ func totpFromURL(u *url.URL) (*TOTP, string, error) {
 // QR generates a new TOTP QR code.
 func (otp *TOTP) QR(label string) ([]byte, error) {
 	return otp.OATH.QR(otp.Type(), label)
+}
+
+func SetClock(c clock.Clock) {
+	timeSource = c
 }
