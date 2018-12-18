@@ -194,6 +194,11 @@ func (buf *BufCloser) Bytes() []byte {
 	return buf.buf.Bytes()
 }
 
+// Len returns the length of the buffer.
+func (buf *BufCloser) Len() int {
+	return buf.buf.Len()
+}
+
 // NewBufCloser creates and initializes a new BufCloser using buf as
 // its initial contents. It is intended to prepare a BufCloser to read
 // existing data. It can also be used to size the internal buffer for
