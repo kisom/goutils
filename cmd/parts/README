@@ -1,0 +1,9 @@
+parts: simple parts database for electronic components
+
+Usage:  parts [id] -- query the database for a part
+	parts [-c class] [id] [description] -- store a part in the database
+
+	Options:
+		-f path		Path to parts database (default is
+				/home/kyle/.parts.json).
+
