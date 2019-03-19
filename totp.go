@@ -56,7 +56,7 @@ func (otp *TOTP) OTPCounter() uint64 {
 	return otp.otpCounter(uint64(time.Now().Unix()))
 }
 
-// NewOTP takes a new key, a starting time, a step, the number of
+// NewTOTP takes a new key, a starting time, a step, the number of
 // digits of output (typically 6 or 8) and the hash algorithm to
 // use, and builds a new OTP.
 func NewTOTP(key []byte, start uint64, step uint64, digits int, algo crypto.Hash) *TOTP {
