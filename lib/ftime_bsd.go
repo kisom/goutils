@@ -1,4 +1,4 @@
-// +build freebsd darwin netbsd
+// +build freebsd darwin,386 netbsd
 
 package lib
 
