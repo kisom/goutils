@@ -1,4 +1,4 @@
-// +build unix linux openbsd
+// +build unix linux openbsd darwin,amd64
 
 package lib
 
