@@ -1,6 +1,11 @@
 // Package config implements a simple global configuration system that
 // supports a file with key=value pairs and environment variables. Note
 // that the config system is global.
+//
+// This package is intended to be used for small daemons: some configuration
+// file is optionally populated at program start, then this is used to
+// transparently look up configuration values from either that file or the
+// environment.
 package config
 
 import (
@@ -81,4 +86,25 @@ func GetDefault(key, def string) string {
 		return v
 	}
 	return def
+}
+
+// Require retrieves a value from either a configuration file or the
+// environment. If the key isn't present, it will call log.Fatal, printing
+// the missing key.
+func Require(key string) string {
+	if v, ok := vars[key]; ok {
+		return v
+	}
+
+	v, ok := os.LookupEnv(prefix + key)
+	if !ok {
+		var envMessage string
+		if prefix != "" {
+			envMessage = " (note: looked for the key " + prefix + key
+			envMessage += " in the local env)"
+		}
+		log.Fatalf("missing required configuration value %s%s", key, envMessage)
+	}
+
+	return v
 }
