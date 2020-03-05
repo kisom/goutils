@@ -10,7 +10,322 @@
       {
         "title": "COMPUTRONICS",
         "thumbnail": "./public/content/images/thumbnail.jpg",
-        "id": 0
+        "id": 0,
+        "diagramJson": {
+          "cells": [
+            {
+              "type": "tm.Process",
+              "size": {
+                "width": 100,
+                "height": 100
+              },
+              "position": {
+                "x": 235,
+                "y": 346
+              },
+              "angle": 0,
+              "id": "44f457bb-4c3c-45a4-8c49-1556afb6fe2a",
+              "z": 1,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".element-shape": {
+                  "class": "element-shape hasNoOpenThreats isInScope"
+                },
+                "text": {
+                  "text": "DOING THE\nTHING"
+                },
+                ".element-text": {
+                  "class": "element-text hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Actor",
+              "size": {
+                "width": 160,
+                "height": 80
+              },
+              "position": {
+                "x": 239,
+                "y": 31
+              },
+              "angle": 0,
+              "id": "f5cdeb80-8c89-4af1-8a5d-c23e9dda81dd",
+              "z": 2,
+              "hasOpenThreats": true,
+              "threats": [
+                {
+                  "status": "Open",
+                  "severity": "Medium",
+                  "title": "Creepering",
+                  "type": "Denial of service",
+                  "description": "Creeping and what not.",
+                  "mitigation": "Banishment."
+                }
+              ],
+              "attrs": {
+                ".element-shape": {
+                  "class": "element-shape hasOpenThreats isInScope"
+                },
+                "text": {
+                  "text": "the darkness"
+                },
+                ".element-text": {
+                  "class": "element-text hasOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Store",
+              "size": {
+                "width": 160,
+                "height": 80
+              },
+              "position": {
+                "x": 413,
+                "y": 368
+              },
+              "angle": 0,
+              "id": "0132401e-9bca-497d-8a04-7bfa64f9b548",
+              "z": 3,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".element-shape": {
+                  "class": "element-shape hasNoOpenThreats isInScope"
+                },
+                "text": {
+                  "text": "crown jewels"
+                },
+                ".element-text": {
+                  "class": "element-text hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Actor",
+              "size": {
+                "width": 160,
+                "height": 80
+              },
+              "position": {
+                "x": 384,
+                "y": 473
+              },
+              "angle": 0,
+              "id": "b2988659-754c-452d-9ef5-a2c766792a52",
+              "z": 4,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".element-shape": {
+                  "class": "element-shape hasNoOpenThreats isInScope"
+                },
+                "text": {
+                  "text": "civilians"
+                },
+                ".element-text": {
+                  "class": "element-text hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Actor",
+              "size": {
+                "width": 160,
+                "height": 80
+              },
+              "position": {
+                "x": 390,
+                "y": 251
+              },
+              "angle": 0,
+              "id": "45ed7d67-2d9f-4a7b-a5d2-a222beb1ba02",
+              "z": 5,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".element-shape": {
+                  "class": "element-shape hasNoOpenThreats isInScope"
+                },
+                "text": {
+                  "text": "captain america"
+                },
+                ".element-text": {
+                  "class": "element-text hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Boundary",
+              "smooth": true,
+              "source": {
+                "x": 70,
+                "y": 212
+              },
+              "target": {
+                "x": 773,
+                "y": 181
+              },
+              "vertices": [],
+              "id": "675f56fc-ec5a-48f1-83d8-e65bafee112c",
+              "z": 6,
+              "attrs": {}
+            },
+            {
+              "type": "tm.Flow",
+              "smooth": true,
+              "source": {
+                "id": "b2988659-754c-452d-9ef5-a2c766792a52"
+              },
+              "target": {
+                "id": "44f457bb-4c3c-45a4-8c49-1556afb6fe2a"
+              },
+              "vertices": [
+                {
+                  "x": 389,
+                  "y": 462
+                },
+                {
+                  "x": 375,
+                  "y": 459
+                },
+                {
+                  "x": 359,
+                  "y": 441
+                }
+              ],
+              "id": "a841a516-7f81-41c5-a5d4-832655f5e219",
+              "labels": [
+                {
+                  "position": 0.5,
+                  "attrs": {
+                    "text": {
+                      "text": "request",
+                      "font-weight": "400",
+                      "font-size": "small"
+                    }
+                  }
+                }
+              ],
+              "z": 7,
+              "hasOpenThreats": false,
+              "isPublicNetwork": true,
+              "isEncrypted": true,
+              "attrs": {
+                ".marker-target": {
+                  "class": "marker-target hasNoOpenThreats isInScope"
+                },
+                ".connection": {
+                  "class": "connection hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Flow",
+              "smooth": true,
+              "source": {
+                "id": "44f457bb-4c3c-45a4-8c49-1556afb6fe2a"
+              },
+              "target": {
+                "id": "0132401e-9bca-497d-8a04-7bfa64f9b548"
+              },
+              "vertices": [],
+              "id": "f4181dae-fcad-44c7-ad98-19b5bb1b9c84",
+              "labels": [
+                {
+                  "position": 0.5,
+                  "attrs": {
+                    "text": {
+                      "text": "cogitate",
+                      "font-weight": "400",
+                      "font-size": "small"
+                    }
+                  }
+                }
+              ],
+              "z": 8,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".marker-target": {
+                  "class": "marker-target hasNoOpenThreats isInScope"
+                },
+                ".connection": {
+                  "class": "connection hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Flow",
+              "smooth": true,
+              "source": {
+                "id": "45ed7d67-2d9f-4a7b-a5d2-a222beb1ba02"
+              },
+              "target": {
+                "id": "0132401e-9bca-497d-8a04-7bfa64f9b548"
+              },
+              "vertices": [],
+              "id": "01353067-ce16-4a19-abb7-ce47edc7e309",
+              "labels": [
+                {
+                  "position": 0.5,
+                  "attrs": {
+                    "text": {
+                      "text": "adjudicate",
+                      "font-weight": "400",
+                      "font-size": "small"
+                    }
+                  }
+                }
+              ],
+              "z": 9,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".marker-target": {
+                  "class": "marker-target hasNoOpenThreats isInScope"
+                },
+                ".connection": {
+                  "class": "connection hasNoOpenThreats isInScope"
+                }
+              }
+            },
+            {
+              "type": "tm.Flow",
+              "smooth": true,
+              "source": {
+                "id": "45ed7d67-2d9f-4a7b-a5d2-a222beb1ba02"
+              },
+              "target": {
+                "id": "44f457bb-4c3c-45a4-8c49-1556afb6fe2a"
+              },
+              "vertices": [],
+              "id": "5298f767-1675-4ba3-b450-e2a5aad62452",
+              "labels": [
+                {
+                  "position": 0.5,
+                  "attrs": {
+                    "text": {
+                      "text": "assimilate",
+                      "font-weight": "400",
+                      "font-size": "small"
+                    }
+                  }
+                }
+              ],
+              "z": 10,
+              "hasOpenThreats": false,
+              "attrs": {
+                ".marker-target": {
+                  "class": "marker-target hasNoOpenThreats isInScope"
+                },
+                ".connection": {
+                  "class": "connection hasNoOpenThreats isInScope"
+                }
+              }
+            }
+          ]
+        },
+        "size": {
+          "height": 590,
+          "width": 948.910888671875
+        }
       }
     ],
     "reviewer": "K"
