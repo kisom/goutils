@@ -6,6 +6,12 @@ language: go
 go:
   - tip
   - 1.9
+jobs:
+ exclude:
+  - go: 1.9
+    arch: amd64
+  - go: 1.9
+    arch: ppc64le
 script: 
   - go get golang.org/x/lint/golint
   - go get golang.org/x/tools/cmd/cover
