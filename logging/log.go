@@ -277,3 +277,60 @@ func (lw *LogWriter) SetLevel(l Level) {
 
 // Close is a no-op that satisfies the Logger interface.
 func (lw *LogWriter) Close() error { return nil }
+
+// Multi allows combining of loggers.
+type Multi struct {
+	loggers []Logger
+}
+
+func NewMulti(loggers ...Logger) *Multi {
+	return &Multi{loggers: loggers}
+}
+
+func (m *Multi) Debug(actor, event string, attrs map[string]string) {
+	for _, l := range m.loggers {
+		l.Debug(actor, event, attrs)
+	}
+}
+
+func (m *Multi) Info(actor, event string, attrs map[string]string) {
+	for _, l := range m.loggers {
+		l.Info(actor, event, attrs)
+	}
+}
+
+func (m *Multi) Warn(actor, event string, attrs map[string]string) {
+	for _, l := range m.loggers {
+		l.Warn(actor, event, attrs)
+	}
+}
+
+func (m *Multi) Error(actor, event string, attrs map[string]string) {
+	for _, l := range m.loggers {
+		l.Error(actor, event, attrs)
+	}
+}
+
+func (m *Multi) Critical(actor, event string, attrs map[string]string) {
+	for _, l := range m.loggers {
+		l.Critical(actor, event, attrs)
+	}
+}
+
+func (m *Multi) Fatal(actor, event string, attrs map[string]string) {
+	for _, l := range m.loggers {
+		l.Fatal(actor, event, attrs)
+	}
+}
+
+func (m *Multi) FatalCode(exitcode int, actor, event string, attrs map[string]string) {
+	for _, l := range m.loggers {
+		l.FatalCode(exitcode, actor, event, attrs)
+	}
+}
+
+func (m *Multi) FatalNoDie(actor, event string, attrs map[string]string) {
+	for _, l := range m.loggers {
+		l.FatalNoDie(actor, event, attrs)
+	}
+}
