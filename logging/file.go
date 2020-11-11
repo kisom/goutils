@@ -59,7 +59,7 @@ func NewSplitFile(outpath, errpath string, overwrite bool) (*File, error) {
 	if overwrite {
 		fl.fo, err = os.Create(outpath)
 	} else {
-		fl.fo, err = os.OpenFile(outpath, os.O_WRONLY|os.O_APPEND, 0644)
+		fl.fo, err = os.OpenFile(outpath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 	}
 
 	if err != nil {
@@ -69,7 +69,7 @@ func NewSplitFile(outpath, errpath string, overwrite bool) (*File, error) {
 	if overwrite {
 		fl.fe, err = os.Create(errpath)
 	} else {
-		fl.fe, err = os.OpenFile(errpath, os.O_WRONLY|os.O_APPEND, 0644)
+		fl.fe, err = os.OpenFile(errpath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 	}
 
 	if err != nil {
