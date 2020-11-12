@@ -287,6 +287,39 @@ func NewMulti(loggers ...Logger) *Multi {
 	return &Multi{loggers: loggers}
 }
 
+func (m *Multi) SetLevel(level Level) {
+	for _, l := range m.loggers {
+		l.SetLevel(level)
+	}
+}
+
+func (m *Multi) Good() bool {
+	good := true
+	for _, l := range m.loggers {
+		good = good && l.Good()
+	}
+
+	return good
+}
+
+func (m *Multi) Status() error {
+	for _, l := range m.loggers {
+		if err := l.Status(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Multi) Close() error {
+	for _, l := range m.loggers {
+		l.Close()
+	}
+
+	return nil
+}
+
 func (m *Multi) Debug(actor, event string, attrs map[string]string) {
 	for _, l := range m.loggers {
 		l.Debug(actor, event, attrs)

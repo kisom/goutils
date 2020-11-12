@@ -53,3 +53,12 @@ func TestDestroyLogFiles(t *testing.T) {
 	os.Remove("fw2.log")
 	os.Remove("fw2.err")
 }
+
+func TestMulti(t *testing.T) {
+	c1 := NewConsole()
+	c2 := NewConsole()
+	m := NewMulti(c1, c2)
+	if !m.Good() {
+		t.Fatal("failed to set up multi logger")
+	}
+}
