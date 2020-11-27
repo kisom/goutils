@@ -10,7 +10,7 @@ import (
 	"net"
 	"os"
 
-	"github.com/kisom/goutils/die"
+	"git.sr.ht/~kisom/goutils/die"
 )
 
 func main() {

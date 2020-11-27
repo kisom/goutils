@@ -9,8 +9,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/kisom/goutils/die"
-	"github.com/kisom/goutils/lib"
+	"git.sr.ht/~kisom/goutils/die"
+	"git.sr.ht/~kisom/goutils/lib"
 )
 
 func init() {

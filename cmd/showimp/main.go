@@ -12,8 +12,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/kisom/goutils/die"
-	"github.com/kisom/goutils/logging"
+	"git.sr.ht/~kisom/goutils/die"
+	"git.sr.ht/~kisom/goutils/logging"
 )
 
 var (

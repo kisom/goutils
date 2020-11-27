@@ -6,7 +6,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/kisom/goutils/die"
+	"git.sr.ht/~kisom/goutils/die"
 )
 
 func proxy(conn net.Conn, inside string) error {

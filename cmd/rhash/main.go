@@ -9,9 +9,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/kisom/goutils/ahash"
-	"github.com/kisom/goutils/die"
-	"github.com/kisom/goutils/lib"
+	"git.sr.ht/~kisom/goutils/ahash"
+	"git.sr.ht/~kisom/goutils/die"
+	"git.sr.ht/~kisom/goutils/lib"
 )
 
 func usage(w io.Writer) {

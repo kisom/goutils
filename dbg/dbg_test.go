@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kisom/goutils/testio"
+	"git.sr.ht/~kisom/goutils/testio"
 	"github.com/stretchr/testify/require"
 )
 

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/kisom/goutils/die"
+	"git.sr.ht/~kisom/goutils/die"
 )
 
 var hasPort = regexp.MustCompile(`:\d+$`)

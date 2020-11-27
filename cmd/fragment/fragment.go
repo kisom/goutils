@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/kisom/goutils/die"
+	"git.sr.ht/~kisom/goutils/die"
 )
 
 func init() {

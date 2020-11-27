@@ -11,8 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kisom/goutils/fileutil"
-	"github.com/kisom/goutils/lib"
+	"git.sr.ht/~kisom/goutils/fileutil"
+	"git.sr.ht/~kisom/goutils/lib"
 )
 
 func hashName(path, encodedHash string) string {

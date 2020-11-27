@@ -17,8 +17,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/kisom/goutils/die"
-	"github.com/kisom/goutils/lib"
+	"git.sr.ht/~kisom/goutils/die"
+	"git.sr.ht/~kisom/goutils/lib"
 )
 
 func usage(w io.Writer) {

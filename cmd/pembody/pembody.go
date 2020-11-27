@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/kisom/goutils/lib"
+	"git.sr.ht/~kisom/goutils/lib"
 )
 
 func main() {
