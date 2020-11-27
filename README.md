@@ -3,12 +3,6 @@ GOUTILS
 This is a collection of small utility code I've written in Go; the `cmd/`
 directory has a number of command-line utilities. Rather than keep all
 of these in superfluous repositories of their own, I'm putting them here.
-Note that for packaging purposes, the goutils-pkg repo should be used: it
-pins the library versions to working copies and vendors all depdencies. See
-https://github.com/kisom/goutils-pkg for more details.
-
-The goutils-pkg repo [1] has stable versions of the command line
-utilities here, along with a vendored snapshot of any dependencies.
 
 Contents:
 
@@ -65,5 +59,3 @@ Each program should have a small README in the directory with more
 information.
 
 All code here is licensed under the MIT license.
-
-[1] https://github.com/kisom/goutils-pkg/
