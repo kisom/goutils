@@ -1,5 +1,7 @@
 GOUTILS
 
+### Note: this repo is archived and not being maintained here anymore.
+
 This is a collection of small utility code I've written in Go; the `cmd/`
 directory has a number of command-line utilities. Rather than keep all
 of these in superfluous repositories of their own, I'm putting them here.
