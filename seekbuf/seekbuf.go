@@ -45,6 +45,7 @@ func (b *Buffer) Rewind() {
 
 // Close clears all the data out of the buffer and sets the read position to 0.
 func (b *Buffer) Close() error {
-	b.Clear()
+	b.data = nil
+	b.pos = 0
 	return nil
 }
