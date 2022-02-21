@@ -10,9 +10,12 @@ package config
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"strings"
+
+	"git.sr.ht/~kisom/goutils/config/iniconf"
 )
 
 // NB: Rather than define a singleton type, everything is defined at
@@ -62,6 +65,34 @@ func LoadFile(path string) error {
 
 	if err = scanner.Err(); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// LoadFileFor scans the ini file at path, loading the default section
+// and overriding any keys found under section. If strict is true, the
+// named section must exist (i.e. to catch typos in the section name).
+func LoadFileFor(path, section string, strict bool) error {
+	cmap, err := iniconf.ParseFile(path)
+	if err != nil {
+		return err
+	}
+
+	for key, value := range cmap[iniconf.DefaultSection] {
+		vars[key] = value
+	}
+
+	smap, ok := cmap[section]
+	if !ok {
+		if strict {
+			return fmt.Errorf("config: section '%s' wasn't found in the config file", section)
+		}
+		return nil
+	}
+
+	for key, value := range smap {
+		vars[key] = value
 	}
 
 	return nil
