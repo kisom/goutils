@@ -5,9 +5,15 @@ import (
 	"os"
 )
 
+type WriteStringCloser interface {
+	Write([]byte) (int, error)
+	WriteString(string) (int, error)
+	Close() error
+}
+
 // Tee emulates the Unix tee(1) command.
 type Tee struct {
-	f       *os.File
+	f       WriteStringCloser
 	Verbose bool
 }
 
