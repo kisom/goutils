@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "logging",
+    srcs = [
+        "console_logger.go",
+        "doc.go",
+        "file.go",
+        "levels.go",
+        "log.go",
+    ],
+    importpath = "git.wntrmute.dev/kyle/goutils/logging",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "logging_test",
+    srcs = [
+        "example_test.go",
+        "log_test.go",
+    ],
+    embed = [":logging"],
+    deps = ["@ht_sr_git_kisom_goutils//logging:go_default_library"],
+)

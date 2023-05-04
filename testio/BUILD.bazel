@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "testio",
+    srcs = ["testio.go"],
+    importpath = "git.wntrmute.dev/kyle/goutils/testio",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "testio_test",
+    srcs = ["testio_test.go"],
+    embed = [":testio"],
+)

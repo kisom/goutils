@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "certdump_lib",
+    srcs = [
+        "certdump.go",
+        "util.go",
+    ],
+    importpath = "git.wntrmute.dev/kyle/goutils/cmd/certdump",
+    visibility = ["//visibility:private"],
+    deps = [
+        "@com_github_cloudflare_cfssl//errors",
+        "@com_github_cloudflare_cfssl//helpers",
+        "@com_github_kr_text//:text",
+    ],
+)
+
+go_binary(
+    name = "certdump",
+    embed = [":certdump_lib"],
+    visibility = ["//visibility:public"],
+)

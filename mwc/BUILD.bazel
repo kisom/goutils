@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "mwc",
+    srcs = ["mwc.go"],
+    importpath = "git.wntrmute.dev/kyle/goutils/mwc",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "mwc_test",
+    srcs = ["mwc_test.go"],
+    embed = [":mwc"],
+    deps = [
+        "@ht_sr_git_kisom_goutils//assert:go_default_library",
+        "@ht_sr_git_kisom_goutils//testio:go_default_library",
+    ],
+)

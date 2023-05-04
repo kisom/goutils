@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "readchain_lib",
+    srcs = ["chain.go"],
+    importpath = "git.wntrmute.dev/kyle/goutils/cmd/readchain",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "readchain",
+    embed = [":readchain_lib"],
+    visibility = ["//visibility:public"],
+)

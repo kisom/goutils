@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@bazel_gazelle//:def.bzl", "gazelle")
+
+# gazelle:prefix git.wntrmute.dev/kyle/goutils
+gazelle(name = "gazelle")
+
+go_library(
+    name = "goutils",
+    srcs = ["doc.go"],
+    importpath = "git.wntrmute.dev/kyle/goutils",
+    visibility = ["//visibility:public"],
+)

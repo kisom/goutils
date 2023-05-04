@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "config",
+    srcs = [
+        "config.go",
+        "path_linux.go",
+    ],
+    importpath = "git.wntrmute.dev/kyle/goutils/config",
+    visibility = ["//visibility:public"],
+    deps = ["@ht_sr_git_kisom_goutils//config/iniconf:go_default_library"],
+)
+
+go_test(
+    name = "config_test",
+    srcs = [
+        "config_test.go",
+        "path_test.go",
+    ],
+    data = glob(["testdata/**"]),
+    embed = [":config"],
+)

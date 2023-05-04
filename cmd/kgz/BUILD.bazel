@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "kgz_lib",
+    srcs = ["main.go"],
+    importpath = "git.wntrmute.dev/kyle/goutils/cmd/kgz",
+    visibility = ["//visibility:private"],
+    deps = ["@com_github_pkg_errors//:errors"],
+)
+
+go_binary(
+    name = "kgz",
+    embed = [":kgz_lib"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "ahash",
+    srcs = ["ahash.go"],
+    importpath = "git.wntrmute.dev/kyle/goutils/ahash",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@ht_sr_git_kisom_goutils//assert:go_default_library",
+        "@org_golang_x_crypto//blake2b",
+        "@org_golang_x_crypto//blake2s",
+        "@org_golang_x_crypto//md4",
+        "@org_golang_x_crypto//ripemd160",
+        "@org_golang_x_crypto//sha3",
+    ],
+)
+
+go_test(
+    name = "ahash_test",
+    srcs = ["ahash_test.go"],
+    embed = [":ahash"],
+    deps = ["@ht_sr_git_kisom_goutils//assert:go_default_library"],
+)

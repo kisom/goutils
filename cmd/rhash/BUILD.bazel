@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "rhash_lib",
+    srcs = ["main.go"],
+    importpath = "git.wntrmute.dev/kyle/goutils/cmd/rhash",
+    visibility = ["//visibility:private"],
+    deps = [
+        "@ht_sr_git_kisom_goutils//ahash:go_default_library",
+        "@ht_sr_git_kisom_goutils//die:go_default_library",
+        "@ht_sr_git_kisom_goutils//lib:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "rhash",
+    embed = [":rhash_lib"],
+    visibility = ["//visibility:public"],
+)

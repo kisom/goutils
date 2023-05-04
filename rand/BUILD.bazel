@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "rand",
+    srcs = ["rand.go"],
+    importpath = "git.wntrmute.dev/kyle/goutils/rand",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "rand_test",
+    srcs = ["rand_test.go"],
+    embed = [":rand"],
+)

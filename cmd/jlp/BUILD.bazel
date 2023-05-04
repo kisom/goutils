@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "jlp_lib",
+    srcs = ["jlp.go"],
+    importpath = "git.wntrmute.dev/kyle/goutils/cmd/jlp",
+    visibility = ["//visibility:private"],
+    deps = ["@ht_sr_git_kisom_goutils//lib:go_default_library"],
+)
+
+go_binary(
+    name = "jlp",
+    embed = [":jlp_lib"],
+    visibility = ["//visibility:public"],
+)
