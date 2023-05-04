@@ -1,5 +1,6 @@
 // Package ahash provides support for hashing data with a selectable
-//  hash function.
+//
+//	hash function.
 package ahash
 
 import (
@@ -211,6 +212,17 @@ func SumReader(algo string, r io.Reader) ([]byte, error) {
 	}
 
 	return h.Sum(nil), nil
+}
+
+// SumLimitedReader reads n bytes of data from the io.reader and returns the
+// digest (not the hex digest) from the specified algorithm.
+func SumLimitedReader(algo string, r io.Reader, n int64) ([]byte, error) {
+	limit := &io.LimitedReader{
+		R: r,
+		N: n,
+	}
+
+	return SumReader(algo, limit)
 }
 
 var insecureHashList, secureHashList, hashList []string

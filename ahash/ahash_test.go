@@ -139,3 +139,19 @@ func TestListLengthSanity(t *testing.T) {
 
 	assert.BoolT(t, len(all) == len(secure)+len(insecure))
 }
+
+func TestSumLimitedReader(t *testing.T) {
+	data := bytes.NewBufferString("hello, world")
+	dataLen := data.Len()
+	extendedData := bytes.NewBufferString("hello, world! this is an extended message")
+	expected := "09ca7e4eaa6e8ae9c7d261167129184883644d07dfba7cbfbc4c8a2e08360d5b"
+
+	hash, err := SumReader("sha256", data)
+	assert.NoErrorT(t, err)
+	assert.BoolT(t, fmt.Sprintf("%x", hash) == expected, fmt.Sprintf("have hash %x, want %s", hash, expected))
+
+	extendedHash, err := SumLimitedReader("sha256", extendedData, int64(dataLen))
+	assert.NoErrorT(t, err)
+
+	assert.BoolT(t, bytes.Equal(hash, extendedHash), fmt.Sprintf("have hash %x, want %x", extendedHash, hash))
+}
