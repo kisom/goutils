@@ -9,7 +9,7 @@ go_library(
 
 go_test(
     name = "testio_test",
+    size = "small",
     srcs = ["testio_test.go"],
     embed = [":testio"],
-    size = "small",
 )

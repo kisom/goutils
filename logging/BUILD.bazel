@@ -15,10 +15,10 @@ go_library(
 
 go_test(
     name = "logging_test",
+    size = "small",
     srcs = [
         "example_test.go",
         "log_test.go",
     ],
     embed = [":logging"],
-    size = "small",
 )

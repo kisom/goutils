@@ -1,8 +1,16 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "seekbuf",
     srcs = ["seekbuf.go"],
     importpath = "git.wntrmute.dev/kyle/goutils/seekbuf",
     visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "seekbuf_test",
+    srcs = ["seekbuf_test.go"],
+    embed = [":seekbuf"],
+    deps = ["//assert"],
+    size = "small"
 )

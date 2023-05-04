@@ -1,3 +1,4 @@
+// seekbuf implements a read-seekable buffer.
 package seekbuf
 
 import "io"
@@ -40,7 +41,7 @@ func (b *Buffer) Seek(pos int) {
 
 // Rewind resets the read pointer to 0.
 func (b *Buffer) Rewind() {
-	b.pos = 0
+	b.Seek(0)
 }
 
 // Close clears all the data out of the buffer and sets the read position to 0.
@@ -48,4 +49,9 @@ func (b *Buffer) Close() error {
 	b.data = nil
 	b.pos = 0
 	return nil
+}
+
+// Len returns the length of data remaining to be read.
+func (b *Buffer) Len() int {
+	return len(b.data[b.pos:])
 }
