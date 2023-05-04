@@ -112,5 +112,6 @@ go_test(
     name = "lib_test",
     srcs = ["lib_test.go"],
     embed = [":lib"],
-    deps = ["@ht_sr_git_kisom_goutils//assert:go_default_library"],
+    deps = ["//assert"],
+    size = "small",
 )

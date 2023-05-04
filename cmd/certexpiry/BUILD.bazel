@@ -6,9 +6,9 @@ go_library(
     importpath = "git.wntrmute.dev/kyle/goutils/cmd/certexpiry",
     visibility = ["//visibility:private"],
     deps = [
+        "//die",
+        "//lib",
         "@com_github_cloudflare_cfssl//helpers",
-        "@ht_sr_git_kisom_goutils//die:go_default_library",
-        "@ht_sr_git_kisom_goutils//lib:go_default_library",
     ],
 )
 

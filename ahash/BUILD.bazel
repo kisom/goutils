@@ -6,7 +6,7 @@ go_library(
     importpath = "git.wntrmute.dev/kyle/goutils/ahash",
     visibility = ["//visibility:public"],
     deps = [
-        "@ht_sr_git_kisom_goutils//assert:go_default_library",
+        "//assert",
         "@org_golang_x_crypto//blake2b",
         "@org_golang_x_crypto//blake2s",
         "@org_golang_x_crypto//md4",
@@ -17,7 +17,8 @@ go_library(
 
 go_test(
     name = "ahash_test",
+    size = "small",
     srcs = ["ahash_test.go"],
     embed = [":ahash"],
-    deps = ["@ht_sr_git_kisom_goutils//assert:go_default_library"],
+    deps = ["//assert"],
 )

@@ -304,8 +304,8 @@ def go_dependencies():
     go_repository(
         name = "org_golang_x_crypto",
         importpath = "golang.org/x/crypto",
-        sum = "h1:xYJJ3S178yv++9zXV/hnr29plCAGO9vAFG9dorqaFQc=",
-        version = "v0.0.0-20201124201722-c8d3bf9c5392",
+        sum = "h1:4yd7jl+vXjalO5ztz6Vc1VADv+S/80LGJmyl1ROJ2AI=",
+        version = "v0.0.0-20201012173705-84dcc777aaee",
     )
     go_repository(
         name = "org_golang_x_lint",
@@ -322,8 +322,8 @@ def go_dependencies():
     go_repository(
         name = "org_golang_x_sys",
         importpath = "golang.org/x/sys",
-        sum = "h1:f1CIuDlJhwANEC2MM87MBEVMr3jl5bifgsfj90XAF9c=",
-        version = "v0.0.0-20201126233918-771906719818",
+        sum = "h1:+Nyd8tzPX9R7BWHguqsrbFdRx3WQ/1ib8I44HXV5yTA=",
+        version = "v0.0.0-20200930185726-fdedc70b468f",
     )
     go_repository(
         name = "org_golang_x_term",

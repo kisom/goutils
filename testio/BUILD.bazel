@@ -11,4 +11,5 @@ go_test(
     name = "testio_test",
     srcs = ["testio_test.go"],
     embed = [":testio"],
+    size = "small",
 )

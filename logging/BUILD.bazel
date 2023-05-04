@@ -20,5 +20,5 @@ go_test(
         "log_test.go",
     ],
     embed = [":logging"],
-    deps = ["@ht_sr_git_kisom_goutils//logging:go_default_library"],
+    size = "small",
 )

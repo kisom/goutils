@@ -12,4 +12,5 @@ go_test(
     srcs = ["sbuf_test.go"],
     embed = [":sbuf"],
     deps = ["@org_golang_x_crypto//nacl/box"],
+    size = "small",
 )

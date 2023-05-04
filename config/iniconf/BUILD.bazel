@@ -9,6 +9,7 @@ go_library(
 
 go_test(
     name = "iniconf_test",
+    size = "small",
     srcs = ["iniconf_test.go"],
     data = glob(["testdata/**"]),
     embed = [":iniconf"],

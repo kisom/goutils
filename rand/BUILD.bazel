@@ -11,4 +11,5 @@ go_test(
     name = "rand_test",
     srcs = ["rand_test.go"],
     embed = [":rand"],
+    size = "small",
 )

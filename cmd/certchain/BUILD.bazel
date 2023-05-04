@@ -5,7 +5,7 @@ go_library(
     srcs = ["certchain.go"],
     importpath = "git.wntrmute.dev/kyle/goutils/cmd/certchain",
     visibility = ["//visibility:private"],
-    deps = ["@ht_sr_git_kisom_goutils//die:go_default_library"],
+    deps = ["//die"],
 )
 
 go_binary(

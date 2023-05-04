@@ -5,7 +5,7 @@ go_library(
     srcs = ["pembody.go"],
     importpath = "git.wntrmute.dev/kyle/goutils/cmd/pembody",
     visibility = ["//visibility:private"],
-    deps = ["@ht_sr_git_kisom_goutils//lib:go_default_library"],
+    deps = ["//lib"],
 )
 
 go_binary(
