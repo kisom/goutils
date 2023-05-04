@@ -1,0 +1,34 @@
+diskimg: write disk images
+
+Usage:
+	diskimg [-a algo] [-v] image device
+
+Flags:
+	-a algo		Select the hashing algorithm to use. The default
+			is 'sha256'. Specifying an algorithm of 'list'
+			will print the supported algorithms to standard
+			output and exit with error code 2.
+	-v		Enable verbose (debug) output.
+
+Examples:
+	
+	Copying images/server.img to /dev/sda:
+
+	$ sudo diskimg images/server.img /dev/sda
+
+	Write a bladerunner node image to /dev/sda:
+
+	$ sudo diskimg -v ~/code/bladerunner/packer/build/cm4-cnode-ubuntu-22.04.2.img /dev/sda
+	opening image /home/kyle/code/bladerunner/packer/build/cm4-cnode-ubuntu-22.04.2.img for read
+	/home/kyle/code/bladerunner/packer/build/cm4-cnode-ubuntu-22.04.2.img  416d4c8f890904167419e3d488d097e9c847273376b650546fdb1f6f9809c184
+	opening device /dev/sda for rw
+	writing /home/kyle/code/bladerunner/packer/build/cm4-cnode-ubuntu-22.04.2.img -> /dev/sda
+	wrote 4151312384 bytes to /dev/sda
+	syncing /dev/sda
+	verifying the image was written successfully
+	OK
+
+Motivation:
+
+	I wanted to write something like balena's Etcher, but commandline only.
+
