@@ -64,6 +64,7 @@ Contents:
     rand/	    Utilities for working with math/rand.
     sbuf/           A byte buffer that can be wiped.
     seekbuf/	    A read-seekable byte buffer.
+    syslog/	    Syslog-type logging.
     tee/            Emulate tee(1)'s functionality in io.Writers.
     testio/         Various I/O utilities useful during testing.
     testutil/       Various utility functions useful during testing.
