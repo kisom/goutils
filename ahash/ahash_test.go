@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"git.sr.ht/~kisom/goutils/assert"
+	"git.wntrmute.dev/kyle/goutils/assert"
 )
 
 func TestSecureHash(t *testing.T) {

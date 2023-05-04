@@ -15,7 +15,7 @@ import (
 	"os"
 	"strings"
 
-	"git.sr.ht/~kisom/goutils/config/iniconf"
+	"git.wntrmute.dev/kyle/goutils/config/iniconf"
 )
 
 // NB: Rather than define a singleton type, everything is defined at

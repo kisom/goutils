@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/cloudflare/cfssl/helpers"
-	"git.sr.ht/~kisom/goutils/die"
-	"git.sr.ht/~kisom/goutils/lib"
+	"git.wntrmute.dev/kyle/goutils/die"
+	"git.wntrmute.dev/kyle/goutils/lib"
 )
 
 var warnOnly bool

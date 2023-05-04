@@ -11,8 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"git.sr.ht/~kisom/goutils/fileutil"
-	"git.sr.ht/~kisom/goutils/lib"
+	"git.wntrmute.dev/kyle/goutils/fileutil"
+	"git.wntrmute.dev/kyle/goutils/lib"
 )
 
 func hashName(path, encodedHash string) string {

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"git.sr.ht/~kisom/goutils/lib"
+	"git.wntrmute.dev/kyle/goutils/lib"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"

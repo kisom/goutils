@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"testing"
 
-	"git.sr.ht/~kisom/goutils/assert"
-	"git.sr.ht/~kisom/goutils/testio"
+	"git.wntrmute.dev/kyle/goutils/assert"
+	"git.wntrmute.dev/kyle/goutils/testio"
 )
 
 func TestMWC(t *testing.T) {

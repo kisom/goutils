@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"git.sr.ht/~kisom/goutils/lib"
+	"git.wntrmute.dev/kyle/goutils/lib"
 )
 
 func prettify(file string, validateOnly bool) error {

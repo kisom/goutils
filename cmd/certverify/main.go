@@ -10,8 +10,8 @@ import (
 
 	"github.com/cloudflare/cfssl/helpers"
 	"github.com/cloudflare/cfssl/revoke"
-	"git.sr.ht/~kisom/goutils/die"
-	"git.sr.ht/~kisom/goutils/lib"
+	"git.wntrmute.dev/kyle/goutils/die"
+	"git.wntrmute.dev/kyle/goutils/lib"
 )
 
 func printRevocation(cert *x509.Certificate) {

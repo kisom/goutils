@@ -11,7 +11,7 @@ import (
 	"sort"
 	"strings"
 
-	"git.sr.ht/~kisom/goutils/die"
+	"git.wntrmute.dev/kyle/goutils/die"
 )
 
 const dbVersion = "1"

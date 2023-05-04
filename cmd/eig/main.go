@@ -4,7 +4,7 @@ import (
 	"flag"
 	"os"
 
-	"git.sr.ht/~kisom/goutils/die"
+	"git.wntrmute.dev/kyle/goutils/die"
 )
 
 // size of a kilobit in bytes

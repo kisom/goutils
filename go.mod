@@ -1,4 +1,4 @@
-module git.sr.ht/~kisom/goutils
+module git.wntrmute.dev/kyle/goutils
 
 go 1.13
 

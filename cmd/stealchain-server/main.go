@@ -12,7 +12,7 @@ import (
 	"net"
 	"os"
 
-	"git.sr.ht/~kisom/goutils/die"
+	"git.wntrmute.dev/kyle/goutils/die"
 )
 
 func main() {

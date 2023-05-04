@@ -17,7 +17,7 @@ import (
 	"io"
 	"sort"
 
-	"git.sr.ht/~kisom/goutils/assert"
+	"git.wntrmute.dev/kyle/goutils/assert"
 	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/blake2s"
 	"golang.org/x/crypto/md4"

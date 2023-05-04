@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"git.sr.ht/~kisom/goutils/die"
+	"git.wntrmute.dev/kyle/goutils/die"
 )
 
 func init() {

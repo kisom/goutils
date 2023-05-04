@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	"git.sr.ht/~kisom/goutils/logging"
+	"git.wntrmute.dev/kyle/goutils/logging"
 )
 
 var log = logging.NewConsole()

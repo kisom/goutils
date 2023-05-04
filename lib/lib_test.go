@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"git.sr.ht/~kisom/goutils/assert"
+	"git.wntrmute.dev/kyle/goutils/assert"
 )
 
 // some CA certs I found on my computerbox.
