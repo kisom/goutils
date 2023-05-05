@@ -6,8 +6,8 @@ go_library(
     importpath = "git.wntrmute.dev/kyle/goutils/cmd/showimp",
     visibility = ["//visibility:private"],
     deps = [
+        "//dbg",
         "//die",
-        "//logging",
     ],
 )
 

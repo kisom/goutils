@@ -13,3 +13,5 @@ require (
 	golang.org/x/sys v0.0.0-20220412211240-33da011f77ad
 	gopkg.in/yaml.v2 v2.4.0
 )
+
+require github.com/davecgh/go-spew v1.1.1

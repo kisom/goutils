@@ -5,7 +5,10 @@ go_library(
     srcs = ["main.go"],
     importpath = "git.wntrmute.dev/kyle/goutils/cmd/cruntar",
     visibility = ["//visibility:private"],
-    deps = ["//die"],
+    deps = [
+        "//die",
+        "//fileutil",
+    ],
 )
 
 go_binary(
