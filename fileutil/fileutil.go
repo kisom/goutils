@@ -3,6 +3,8 @@ package fileutil
 
 import (
 	"os"
+	"path/filepath"
+	"strings"
 
 	"golang.org/x/sys/unix"
 )
@@ -44,4 +46,11 @@ const (
 // for is valid.
 func Access(path string, mode int) error {
 	return unix.Access(path, uint32(mode))
+}
+
+// ValidateSymlink checks to make sure a symlink exists in some top-level
+// directory.
+func ValidateSymlink(symlink, topLevel string) bool {
+	target, err := filepath.EvalSymlinks(symlink)
+	return strings.HasPrefix(target, topLevel)
 }
