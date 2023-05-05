@@ -92,6 +92,13 @@ def go_dependencies():
         version = "v1.0.21",
     )
     go_repository(
+        name = "com_github_hashicorp_go_syslog",
+        importpath = "github.com/hashicorp/go-syslog",
+        sum = "h1:KaodqZuhUoZereWVIYmpUgZysurB1kBLX2j0MwMrUAE=",
+        version = "v1.0.0",
+    )
+
+    go_repository(
         name = "com_github_jessevdk_go_flags",
         importpath = "github.com/jessevdk/go-flags",
         sum = "h1:4IU2WS7AumrZ/40jfhf4QVDMsQwqA7VEHozFRrGARJA=",
@@ -304,8 +311,8 @@ def go_dependencies():
     go_repository(
         name = "org_golang_x_crypto",
         importpath = "golang.org/x/crypto",
-        sum = "h1:4yd7jl+vXjalO5ztz6Vc1VADv+S/80LGJmyl1ROJ2AI=",
-        version = "v0.0.0-20201012173705-84dcc777aaee",
+        sum = "h1:Qwe1rC8PSniVfAFPFJeyUkB+zcysC3RgJBAGk7eqBEU=",
+        version = "v0.0.0-20220314234659-1baeb1ce4c0b",
     )
     go_repository(
         name = "org_golang_x_lint",
@@ -316,26 +323,26 @@ def go_dependencies():
     go_repository(
         name = "org_golang_x_net",
         importpath = "golang.org/x/net",
-        sum = "h1:mUVeFHoDKis5nxCAzoAi7E8Ghb86EXh/RK6wtvJIqRY=",
-        version = "v0.0.0-20201010224723-4f7140c49acb",
+        sum = "h1:CIJ76btIcR3eFI5EgSo6k1qKw9KJexJuRLI9G7Hp5wE=",
+        version = "v0.0.0-20211112202133-69e39bad7dc2",
     )
     go_repository(
         name = "org_golang_x_sys",
         importpath = "golang.org/x/sys",
-        sum = "h1:+Nyd8tzPX9R7BWHguqsrbFdRx3WQ/1ib8I44HXV5yTA=",
-        version = "v0.0.0-20200930185726-fdedc70b468f",
+        sum = "h1:SrN+KX8Art/Sf4HNj6Zcz06G7VEz+7w9tdXTPOZ7+l4=",
+        version = "v0.0.0-20210615035016-665e8c7367d1",
     )
     go_repository(
         name = "org_golang_x_term",
         importpath = "golang.org/x/term",
-        sum = "h1:/ZHdbVpdR/jk3g30/d4yUL0JU9kksj8+F/bnQUVLGDM=",
-        version = "v0.0.0-20201117132131-f5c789dd3221",
+        sum = "h1:v+OssWQX+hTHEmOBgwxdZxK4zHq3yOs8F9J7mk0PY8E=",
+        version = "v0.0.0-20201126162022-7de9c90e9dd1",
     )
     go_repository(
         name = "org_golang_x_text",
         importpath = "golang.org/x/text",
-        sum = "h1:cokOdA+Jmi5PJGXLlLllQSgYigAEfHXJAERHVMaCc2k=",
-        version = "v0.3.3",
+        sum = "h1:aRYxNxv6iGQlyVaZmk6ZgYEDa+Jg18DxebPSrd6bg1M=",
+        version = "v0.3.6",
     )
     go_repository(
         name = "org_golang_x_tools",

@@ -7,3 +7,11 @@ go_library(
     visibility = ["//visibility:public"],
     deps = ["@com_github_hashicorp_go_syslog//:go-syslog"],
 )
+
+go_library(
+    name = "syslog",
+    srcs = ["logger.go"],
+    importpath = "git.wntrmute.dev/kyle/goutils/syslog",
+    visibility = ["//visibility:public"],
+    deps = ["@com_github_hashicorp_go_syslog//:go-syslog"],
+)

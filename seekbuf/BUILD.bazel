@@ -9,8 +9,8 @@ go_library(
 
 go_test(
     name = "seekbuf_test",
+    size = "small",
     srcs = ["seekbuf_test.go"],
     embed = [":seekbuf"],
     deps = ["//assert"],
-    size = "small"
 )
