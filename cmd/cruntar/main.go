@@ -92,6 +92,13 @@ func processFile(tfr *tar.Reader, hdr *tar.Header, top string) error {
 			return err
 		}
 	case tar.TypeSymlink:
+		path := linkTarget(hdr.Linkname, top)
+		if ok, err := filepath.Match(top+"/*", filepath.Clean(path)); !ok {
+			return fmt.Errorf("symlink %s isn't in %s", hdr.Linkname, top)
+		} else if err != nil {
+			return err
+		}
+
 		err := os.Symlink(linkTarget(hdr.Linkname, top), filePath)
 		if err != nil {
 			return err
