@@ -27,14 +27,14 @@ Contents:
         cruntar/    Untar an archive with hard links, copying instead of
                     linking.
         csrpubdump/ Dump the public key from an X.509 certificate request.
-	diskimg/    Write a disk image to a device.
-	eig/	    EEPROM image generator.
+        diskimg/    Write a disk image to a device.
+        eig/        EEPROM image generator.
         fragment/   Print a fragment of a file.
         jlp/        JSON linter/prettifier.
         kgz/        Custom gzip compressor / decompressor that handles 99%
                     of my use cases.
-	parts/	    Simple parts database management for my collection of
-		    electronic components.
+        parts/      Simple parts database management for my collection of
+                    electronic components.
         pem2bin/    Dump the binary body of a PEM-encoded block.
         pembody/    Print the body of a PEM certificate.
         pemit/      Dump data to a PEM file.
@@ -45,28 +45,28 @@ Contents:
         showimp/    List the external (e.g. non-stdlib and outside the
                     current working directory) imports for a Go file.
         ski         Display the SKI for PEM-encoded TLS material.
-	sprox/	    Simple TCP proxy.
-        stealchain/ Dump the verified chain from a TLS 
+        sprox/      Simple TCP proxy.
+        stealchain/ Dump the verified chain from a TLS
                     connection to a server.
-	stealchain- Dump the verified chain from a TLS 
-	  server/   connection from a client.
+        stealchain- Dump the verified chain from a TLS
+          server/   connection from a client.
         subjhash/   Print or match subject info from a certificate.
         tlskeypair/ Check whether a TLS certificate and key file match.
         utc/        Convert times to UTC.
         yamll/      A small YAML linter.
-    config/	    A simple global configuration system where configuration
-    		    data is pulled from a file or an environment variable
-		    transparently.
-    dbg/	    A debug printer.
+    config/         A simple global configuration system where configuration
+                    data is pulled from a file or an environment variable
+                    transparently.
+    dbg/            A debug printer.
     die/            Death of a program.
     fileutil/       Common file functions.
     lib/            Commonly-useful functions for writing Go programs.
     logging/        A logging library.
     mwc/            MultiwriteCloser implementation.
-    rand/	    Utilities for working with math/rand.
+    rand/           Utilities for working with math/rand.
     sbuf/           A byte buffer that can be wiped.
-    seekbuf/	    A read-seekable byte buffer.
-    syslog/	    Syslog-type logging.
+    seekbuf/        A read-seekable byte buffer.
+    syslog/         Syslog-type logging.
     tee/            Emulate tee(1)'s functionality in io.Writers.
     testio/         Various I/O utilities useful during testing.
     testutil/       Various utility functions useful during testing.
