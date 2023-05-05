@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	gsyslog "github.com/hashicorp/go-syslog"
 )
 
@@ -49,6 +50,12 @@ func (log *logger) println(p gsyslog.Priority, args ...interface{}) {
 
 	if log.l != nil {
 		log.l.WriteLevel(p, []byte(fmt.Sprintln(args...)))
+	}
+}
+
+func (log *logger) spew(args ...interface{}) {
+	if log.p == gsyslog.LOG_DEBUG {
+		spew.Dump(args...)
 	}
 }
 
@@ -250,6 +257,11 @@ func Fatal(args ...interface{}) {
 func Fatalf(format string, args ...interface{}) {
 	log.printf(gsyslog.LOG_ERR, format, args...)
 	os.Exit(1)
+}
+
+// Spew will pretty print the args if the logger is set to DEBUG priority.
+func Spew(args ...interface{}) {
+	log.spew(args...)
 }
 
 func ChangePriority(level string) error {
