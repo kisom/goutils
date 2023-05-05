@@ -89,7 +89,7 @@ func Duration(d time.Duration) string {
 	if d >= yearDuration {
 		years := d / yearDuration
 		s += fmt.Sprintf("%dy", years)
-		d -= (years * yearDuration)
+		d -= years * yearDuration
 	}
 
 	if d >= dayDuration {
@@ -103,7 +103,7 @@ func Duration(d time.Duration) string {
 
 	d %= 1 * time.Second
 	hours := d / time.Hour
-	d -= (hours * time.Hour)
+	d -= hours * time.Hour
 	s += fmt.Sprintf("%dh%s", hours, d)
 	return s
 }

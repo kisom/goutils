@@ -12,35 +12,22 @@ import (
 	"sort"
 	"strings"
 
+	"git.wntrmute.dev/kyle/goutils/dbg"
 	"git.wntrmute.dev/kyle/goutils/die"
-	"git.wntrmute.dev/kyle/goutils/logging"
 )
 
 var (
 	gopath  string
 	project string
-	debug   bool
 )
 
 var (
-	stdLibRegexp = regexp.MustCompile(`^\w+(/\w+)*$`)
-	sourceRegexp = regexp.MustCompile(`^[^.].*\.go$`)
-	log          = logging.NewConsole()
-	imports      = map[string]bool{}
+	debug        = dbg.New()
 	fset         = &token.FileSet{}
+	imports      = map[string]bool{}
+	sourceRegexp = regexp.MustCompile(`^[^.].*\.go$`)
+	stdLibRegexp = regexp.MustCompile(`^\w+(/\w+)*$`)
 )
-
-func debugf(format string, args ...interface{}) {
-	if debug {
-		fmt.Printf(format, args...)
-	}
-}
-
-func debugln(args ...interface{}) {
-	if debug {
-		fmt.Println(args...)
-	}
-}
 
 func init() {
 	gopath = os.Getenv("GOPATH")
@@ -75,7 +62,7 @@ func walkFile(path string, info os.FileInfo, err error) error {
 		return nil
 	}
 
-	debugln(path)
+	debug.Println(path)
 
 	f, err := parser.ParseFile(fset, path, nil, parser.ImportsOnly)
 	if err != nil {
@@ -85,16 +72,16 @@ func walkFile(path string, info os.FileInfo, err error) error {
 	for _, importSpec := range f.Imports {
 		importPath := strings.Trim(importSpec.Path.Value, `"`)
 		if stdLibRegexp.MatchString(importPath) {
-			debugln("standard lib:", importPath)
+			debug.Println("standard lib:", importPath)
 			continue
 		} else if strings.HasPrefix(importPath, project) {
-			debugln("internal import:", importPath)
+			debug.Println("internal import:", importPath)
 			continue
 		} else if strings.HasPrefix(importPath, "golang.org/") {
-			debugln("extended lib:", importPath)
+			debug.Println("extended lib:", importPath)
 			continue
 		}
-		debugln("import:", importPath)
+		debug.Println("import:", importPath)
 		imports[importPath] = true
 	}
 
@@ -108,7 +95,7 @@ func main() {
 	var noVendor bool
 	flag.StringVar(&ignoreLine, "i", "", "comma-separated list of directories to ignore")
 	flag.BoolVar(&noVendor, "nv", false, "ignore the vendor directory")
-	flag.BoolVar(&debug, "v", false, "log debugging information")
+	flag.BoolVar(&debug.Enabled, "v", false, "log debugging information")
 	flag.Parse()
 
 	if noVendor {

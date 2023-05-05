@@ -1,4 +1,4 @@
-// seekbuf implements a read-seekable buffer.
+// Package seekbuf implements a read-seekable buffer.
 package seekbuf
 
 import "io"

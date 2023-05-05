@@ -94,7 +94,7 @@ func NoError(err error, s ...string) {
 	}
 
 	if nil != err {
-		die(err.Error())
+		die(err.Error(), s...)
 	}
 }
 
@@ -170,5 +170,5 @@ func ErrorEqT(t *testing.T, expected, actual error) {
 		should = fmt.Sprintf("have '%s'", actual)
 	}
 
-	die(fmt.Sprintf("assert.Error2: expected '%s', but %s", expected, should))
+	t.Fatalf("assert.Error2: expected '%s', but %s", expected, should)
 }

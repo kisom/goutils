@@ -45,13 +45,6 @@ func sha512Slicer(bs []byte) []byte {
 	return sum[:]
 }
 
-var sliceFunctions = map[string]func([]byte) []byte{
-	"sha224": sha224Slicer,
-	"sha256": sha256Slicer,
-	"sha384": sha384Slicer,
-	"sha512": sha512Slicer,
-}
-
 // Hash represents a generic hash function that may or may not be secure. It
 // satisfies the hash.Hash interface.
 type Hash struct {

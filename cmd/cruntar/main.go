@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 
 	"git.wntrmute.dev/kyle/goutils/die"
+	"git.wntrmute.dev/kyle/goutils/fileutil"
 )
 
 var (
@@ -56,7 +57,7 @@ func processFile(tfr *tar.Reader, hdr *tar.Header, top string) error {
 	}
 	filePath := filepath.Clean(filepath.Join(top, hdr.Name))
 	switch hdr.Typeflag {
-	case tar.TypeReg, tar.TypeRegA:
+	case tar.TypeReg:
 		file, err := os.Create(filePath)
 		if err != nil {
 			return err
@@ -92,6 +93,10 @@ func processFile(tfr *tar.Reader, hdr *tar.Header, top string) error {
 			return err
 		}
 	case tar.TypeSymlink:
+		if !fileutil.ValidateSymlink(hdr.Linkname, top) {
+			return fmt.Errorf("symlink %s is outside the top-level %s",
+				hdr.Linkname, top)
+		}
 		path := linkTarget(hdr.Linkname, top)
 		if ok, err := filepath.Match(top+"/*", filepath.Clean(path)); !ok {
 			return fmt.Errorf("symlink %s isn't in %s", hdr.Linkname, top)

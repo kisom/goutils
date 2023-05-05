@@ -1,4 +1,4 @@
-// syslog is a syslog-type facility for logging.
+// Package syslog is a syslog-type facility for logging.
 package syslog
 
 import (
@@ -100,12 +100,12 @@ type Options struct {
 // DefaultOptions returns a sane set of defaults for syslog, using the program
 // name as the tag name. withSyslog controls whether logs should be sent to
 // syslog, too.
-func DefaultOptions(tag string, withSyslog bool) {
+func DefaultOptions(tag string, withSyslog bool) *Options {
 	if tag == "" {
 		tag = os.Args[0]
 	}
 
-	return &DefaultOptions{
+	return &Options{
 		Level:       "WARNING",
 		Tag:         tag,
 		Facility:    "daemon",
@@ -113,15 +113,15 @@ func DefaultOptions(tag string, withSyslog bool) {
 	}
 }
 
-// DefaultDefaultOptions returns a sane set of debug defaults for syslog,
+// DefaultDebugOptions returns a sane set of debug defaults for syslog,
 // using the program name as the tag name. withSyslog controls whether logs
 // should be sent to syslog, too.
-func DefaultDebugOptions(tag string, withSyslog bool) {
+func DefaultDebugOptions(tag string, withSyslog bool) *Options {
 	if tag == "" {
 		tag = os.Args[0]
 	}
 
-	return &DefaultOptions{
+	return &Options{
 		Level:       "DEBUG",
 		Facility:    "daemon",
 		WriteSyslog: withSyslog,
@@ -131,7 +131,7 @@ func DefaultDebugOptions(tag string, withSyslog bool) {
 func Setup(opts *Options) error {
 	priority, ok := priorities[opts.Level]
 	if !ok {
-		return fmt.Errorf("log: unknown priority %s", level)
+		return fmt.Errorf("log: unknown priority %s", opts.Level)
 	}
 
 	log.p = priority

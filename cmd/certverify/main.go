@@ -8,10 +8,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/cloudflare/cfssl/helpers"
-	"github.com/cloudflare/cfssl/revoke"
 	"git.wntrmute.dev/kyle/goutils/die"
 	"git.wntrmute.dev/kyle/goutils/lib"
+	"github.com/cloudflare/cfssl/helpers"
+	"github.com/cloudflare/cfssl/revoke"
 )
 
 func printRevocation(cert *x509.Certificate) {

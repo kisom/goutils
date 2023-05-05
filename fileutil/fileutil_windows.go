@@ -1,13 +1,12 @@
-//go:build !windows
-// +build !windows
+//go:build windows
+// +build windows
 
 // Package fileutil contains common file functions.
 package fileutil
 
 import (
+	"errors"
 	"os"
-
-	"golang.org/x/sys/unix"
 )
 
 // FileDoesExist returns true if the file exists.
@@ -27,24 +26,24 @@ func DirectoryDoesExist(path string) bool {
 }
 
 const (
-	// AccessExists checks whether the file exists.
-	AccessExists = unix.F_OK
+	// AccessExists checks whether the file exists. This is invalid outside of
+	// Unix systems.
+	AccessExists = 0
 
 	// AccessRead checks whether the user has read permissions on
-	// the file.
-	AccessRead = unix.R_OK
+	// the file. This is invalid outside of Unix systems.
+	AccessRead = 0
 
 	// AccessWrite checks whether the user has write permissions
-	// on the file.
-	AccessWrite = unix.W_OK
+	// on the file. This is invalid outside of Unix systems.
+	AccessWrite = 0
 
 	// AccessExec checks whether the user has executable
-	// permissions on the file.
-	AccessExec = unix.X_OK
+	// permissions on the file. This is invalid outside of Unix systems.
+	AccessExec = 0
 )
 
-// Access returns a boolean indicating whether the mode being checked
-// for is valid.
+// Access is a Unix-only call, and has no meaning on Windows.
 func Access(path string, mode int) error {
-	return unix.Access(path, uint32(mode))
+	return errors.New("fileutil: Access is meaningless on Windows")
 }
