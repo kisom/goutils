@@ -1,5 +1,5 @@
-//go:build ignore
-// +build ignore
+//go:build !linux
+// +build !linux
 
 package config
 

@@ -1,0 +1,31 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "certlib",
+    srcs = [
+        "certlib.go",
+        "der_helpers.go",
+        "ed25519.go",
+        "errors.go",
+        "helpers.go",
+    ],
+    importpath = "git.wntrmute.dev/kyle/goutils/certlib",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_cloudflare_cfssl//crypto/pkcs7",
+        "@com_github_cloudflare_cfssl//helpers/derhelpers",
+        "@com_github_google_certificate_transparency_go//:certificate-transparency-go",
+        "@com_github_google_certificate_transparency_go//tls",
+        "@com_github_google_certificate_transparency_go//x509",
+        "@org_golang_x_crypto//ocsp",
+        "@org_golang_x_crypto//pkcs12",
+    ],
+)
+
+go_test(
+    name = "certlib_test",
+    srcs = ["certlib_test.go"],
+    embed = [":certlib"],
+    deps = ["//assert"],
+    size = "small",
+)

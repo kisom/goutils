@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"git.wntrmute.dev/kyle/goutils/certlib"
 	"git.wntrmute.dev/kyle/goutils/die"
 	"git.wntrmute.dev/kyle/goutils/lib"
-	"github.com/cloudflare/cfssl/helpers"
 )
 
 var warnOnly bool
@@ -87,7 +87,7 @@ func main() {
 			continue
 		}
 
-		certs, err := helpers.ParseCertificatesPEM(in)
+		certs, err := certlib.ParseCertificatesPEM(in)
 		if err != nil {
 			lib.Warn(err, "while parsing certificates")
 			continue

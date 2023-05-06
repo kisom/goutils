@@ -3,13 +3,10 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"errors"
 	"fmt"
 	"net"
-	"os"
 	"strings"
 
-	cferr "github.com/cloudflare/cfssl/errors"
 	"github.com/kr/text"
 )
 
@@ -87,34 +84,6 @@ func sigAlgoHash(a x509.SignatureAlgorithm) string {
 	default:
 		return "unknown hash algorithm"
 	}
-}
-
-// TranslateCFSSLError turns a CFSSL error into a more readable string.
-func TranslateCFSSLError(err error) error {
-	if err == nil {
-		return nil
-	}
-
-	// printing errors as json is terrible
-	if cfsslError, ok := err.(*cferr.Error); ok {
-		err = errors.New(cfsslError.Message)
-	}
-	return err
-}
-
-// Warnx displays a formatted error message to standard error, à la
-// warnx(3).
-func Warnx(format string, a ...interface{}) (int, error) {
-	format += "\n"
-	return fmt.Fprintf(os.Stderr, format, a...)
-}
-
-// Warn displays a formatted error message to standard output,
-// appending the error string, à la warn(3).
-func Warn(err error, format string, a ...interface{}) (int, error) {
-	format += ": %v\n"
-	a = append(a, err)
-	return fmt.Fprintf(os.Stderr, format, a...)
 }
 
 const maxLine = 78

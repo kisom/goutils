@@ -8,14 +8,14 @@ import (
 	"os"
 	"time"
 
+	"git.wntrmute.dev/kyle/goutils/certlib"
+	"git.wntrmute.dev/kyle/goutils/certlib/revoke"
 	"git.wntrmute.dev/kyle/goutils/die"
 	"git.wntrmute.dev/kyle/goutils/lib"
-	"github.com/cloudflare/cfssl/helpers"
-	"github.com/cloudflare/cfssl/revoke"
 )
 
 func printRevocation(cert *x509.Certificate) {
-	remaining := cert.NotAfter.Sub(time.Now())
+	remaining := time.Until(cert.NotAfter)
 	fmt.Printf("certificate expires in %s.\n", lib.Duration(remaining))
 
 	revoked, ok := revoke.VerifyCertificate(cert)
@@ -47,7 +47,7 @@ func main() {
 		if verbose {
 			fmt.Println("[+] loading root certificates from", caFile)
 		}
-		roots, err = helpers.LoadPEMCertPool(caFile)
+		roots, err = certlib.LoadPEMCertPool(caFile)
 		die.If(err)
 	}
 
@@ -57,7 +57,7 @@ func main() {
 		if verbose {
 			fmt.Println("[+] loading intermediate certificates from", intFile)
 		}
-		ints, err = helpers.LoadPEMCertPool(caFile)
+		ints, err = certlib.LoadPEMCertPool(caFile)
 		die.If(err)
 	} else {
 		ints = x509.NewCertPool()
@@ -71,7 +71,7 @@ func main() {
 	fileData, err := ioutil.ReadFile(flag.Arg(0))
 	die.If(err)
 
-	chain, err := helpers.ParseCertificatesPEM(fileData)
+	chain, err := certlib.ParseCertificatesPEM(fileData)
 	die.If(err)
 	if verbose {
 		fmt.Printf("[+] %s has %d certificates\n", flag.Arg(0), len(chain))

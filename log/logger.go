@@ -1,5 +1,5 @@
 // Package syslog is a syslog-type facility for logging.
-package syslog
+package log
 
 import (
 	"fmt"

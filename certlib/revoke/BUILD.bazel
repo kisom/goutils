@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "revoke",
+    srcs = ["revoke.go"],
+    importpath = "git.wntrmute.dev/kyle/goutils/certlib/revoke",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//certlib",
+        "@com_github_cloudflare_cfssl//log",
+        "@org_golang_x_crypto//ocsp",
+    ],
+)

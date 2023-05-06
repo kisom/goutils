@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "lib",
@@ -106,12 +106,4 @@ go_library(
         ],
         "//conditions:default": [],
     }),
-)
-
-go_test(
-    name = "lib_test",
-    size = "small",
-    srcs = ["lib_test.go"],
-    embed = [":lib"],
-    deps = ["//assert"],
 )

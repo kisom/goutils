@@ -12,12 +12,13 @@ import (
 	"crypto/x509/pkix"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"sort"
 	"strings"
 
-	"github.com/cloudflare/cfssl/helpers"
+	"git.wntrmute.dev/kyle/goutils/certlib"
+	"git.wntrmute.dev/kyle/goutils/lib"
 )
 
 func certPublic(cert *x509.Certificate) string {
@@ -208,17 +209,17 @@ func displayCert(cert *x509.Certificate) {
 }
 
 func displayAllCerts(in []byte, leafOnly bool) {
-	certs, err := helpers.ParseCertificatesPEM(in)
+	certs, err := certlib.ParseCertificatesPEM(in)
 	if err != nil {
-		certs, _, err = helpers.ParseCertificatesDER(in, "")
+		certs, _, err = certlib.ParseCertificatesDER(in, "")
 		if err != nil {
-			Warn(TranslateCFSSLError(err), "failed to parse certificates")
+			lib.Warn(err, "failed to parse certificates")
 			return
 		}
 	}
 
 	if len(certs) == 0 {
-		Warnx("no certificates found")
+		lib.Warnx("no certificates found")
 		return
 	}
 
@@ -236,7 +237,7 @@ func displayAllCertsWeb(uri string, leafOnly bool) {
 	ci := getConnInfo(uri)
 	conn, err := tls.Dial("tcp", ci.Addr, permissiveConfig())
 	if err != nil {
-		Warn(err, "couldn't connect to %s", ci.Addr)
+		lib.Warn(err, "couldn't connect to %s", ci.Addr)
 		return
 	}
 	defer conn.Close()
@@ -252,11 +253,11 @@ func displayAllCertsWeb(uri string, leafOnly bool) {
 		}
 		conn.Close()
 	} else {
-		Warn(err, "TLS verification error with server name %s", ci.Host)
+		lib.Warn(err, "TLS verification error with server name %s", ci.Host)
 	}
 
 	if len(state.PeerCertificates) == 0 {
-		Warnx("no certificates found")
+		lib.Warnx("no certificates found")
 		return
 	}
 
@@ -266,7 +267,7 @@ func displayAllCertsWeb(uri string, leafOnly bool) {
 	}
 
 	if len(state.VerifiedChains) == 0 {
-		Warnx("no verified chains found; using peer chain")
+		lib.Warnx("no verified chains found; using peer chain")
 		for i := range state.PeerCertificates {
 			displayCert(state.PeerCertificates[i])
 		}
@@ -289,9 +290,9 @@ func main() {
 	flag.Parse()
 
 	if flag.NArg() == 0 || (flag.NArg() == 1 && flag.Arg(0) == "-") {
-		certs, err := ioutil.ReadAll(os.Stdin)
+		certs, err := io.ReadAll(os.Stdin)
 		if err != nil {
-			Warn(err, "couldn't read certificates from standard input")
+			lib.Warn(err, "couldn't read certificates from standard input")
 			os.Exit(1)
 		}
 
@@ -306,9 +307,9 @@ func main() {
 			if strings.HasPrefix(filename, "https://") {
 				displayAllCertsWeb(filename, leafOnly)
 			} else {
-				in, err := ioutil.ReadFile(filename)
+				in, err := os.ReadFile(filename)
 				if err != nil {
-					Warn(err, "couldn't read certificate")
+					lib.Warn(err, "couldn't read certificate")
 					continue
 				}
 

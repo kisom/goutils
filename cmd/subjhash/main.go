@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 
+	"git.wntrmute.dev/kyle/goutils/certlib"
 	"git.wntrmute.dev/kyle/goutils/die"
 	"git.wntrmute.dev/kyle/goutils/lib"
 )
@@ -57,7 +58,7 @@ func getSubjectInfoHash(cert *x509.Certificate, issuer bool) []byte {
 
 func printDigests(paths []string, issuer bool) {
 	for _, path := range paths {
-		cert, err := lib.LoadCertificate(path)
+		cert, err := certlib.LoadCertificate(path)
 		if err != nil {
 			lib.Warn(err, "failed to load certificate from %s", path)
 			continue
@@ -82,9 +83,9 @@ func matchDigests(paths []string, issuer bool) {
 		snd := paths[1]
 		paths = paths[2:]
 
-		fstCert, err := lib.LoadCertificate(fst)
+		fstCert, err := certlib.LoadCertificate(fst)
 		die.If(err)
-		sndCert, err := lib.LoadCertificate(snd)
+		sndCert, err := certlib.LoadCertificate(snd)
 		die.If(err)
 		if !bytes.Equal(getSubjectInfoHash(fstCert, issuer), getSubjectInfoHash(sndCert, issuer)) {
 			lib.Warnx("certificates don't match: %s and %s", fst, snd)

@@ -6,9 +6,9 @@ go_library(
     importpath = "git.wntrmute.dev/kyle/goutils/cmd/certverify",
     visibility = ["//visibility:private"],
     deps = [
+        "//certlib",
         "//die",
         "//lib",
-        "@com_github_cloudflare_cfssl//helpers",
         "@com_github_cloudflare_cfssl//revoke",
     ],
 )

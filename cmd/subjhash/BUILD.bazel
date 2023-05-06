@@ -6,6 +6,7 @@ go_library(
     importpath = "git.wntrmute.dev/kyle/goutils/cmd/subjhash",
     visibility = ["//visibility:private"],
     deps = [
+        "//certlib",
         "//die",
         "//lib",
     ],
