@@ -143,10 +143,12 @@ func Setup(opts *Options) error {
 
 	log.p = priority
 
-	var err error
-	log.l, err = gsyslog.NewLogger(priority, opts.Facility, opts.Tag)
-	if err != nil {
-		return err
+	if opts.WriteSyslog {
+		var err error
+		log.l, err = gsyslog.NewLogger(priority, opts.Facility, opts.Tag)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
