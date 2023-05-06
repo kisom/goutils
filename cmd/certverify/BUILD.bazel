@@ -7,9 +7,9 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//certlib",
+        "//certlib/revoke",
         "//die",
         "//lib",
-        "@com_github_cloudflare_cfssl//revoke",
     ],
 )
 

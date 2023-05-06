@@ -6,14 +6,13 @@ go_library(
         "certlib.go",
         "der_helpers.go",
         "ed25519.go",
-        "errors.go",
         "helpers.go",
     ],
     importpath = "git.wntrmute.dev/kyle/goutils/certlib",
     visibility = ["//visibility:public"],
     deps = [
-        "@com_github_cloudflare_cfssl//crypto/pkcs7",
-        "@com_github_cloudflare_cfssl//helpers/derhelpers",
+        "//certlib/certerr",
+        "//certlib/pkcs7",
         "@com_github_google_certificate_transparency_go//:certificate-transparency-go",
         "@com_github_google_certificate_transparency_go//tls",
         "@com_github_google_certificate_transparency_go//x509",
@@ -24,8 +23,8 @@ go_library(
 
 go_test(
     name = "certlib_test",
+    size = "small",
     srcs = ["certlib_test.go"],
     embed = [":certlib"],
     deps = ["//assert"],
-    size = "small",
 )
