@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strings"
 
 	"git.wntrmute.dev/kyle/goutils/config/iniconf"
@@ -138,4 +139,15 @@ func Require(key string) string {
 	}
 
 	return v
+}
+
+// ListKeys returns a slice of the currently known keys.
+func ListKeys() []string {
+	keyList := []string{}
+	for k := range vars {
+		keyList = append(keyList, k)
+	}
+
+	sort.Strings(keyList)
+	return keyList
 }
