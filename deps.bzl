@@ -221,8 +221,8 @@ def go_dependencies():
     go_repository(
         name = "com_github_stretchr_objx",
         importpath = "github.com/stretchr/objx",
-        sum = "h1:2vfRuCMp5sSVIDSqO8oNnWJq7mPa6KVP3iPIwFBuy8A=",
-        version = "v0.1.1",
+        sum = "h1:4G4v2dO3VZwixGIRoQ5Lfboy6nUhCyYzaqnIAPPhYs4=",
+        version = "v0.1.0",
     )
     go_repository(
         name = "com_github_stretchr_testify",
@@ -301,12 +301,6 @@ def go_dependencies():
         importpath = "bitbucket.org/liamstask/goose",
         sum = "h1:bkb2NMGo3/Du52wvYj9Whth5KZfMV6d3O0Vbr3nz/UE=",
         version = "v0.0.0-20150115234039-8488cc47d90c",
-    )
-    go_repository(
-        name = "org_golang_google_appengine",
-        importpath = "google.golang.org/appengine",
-        sum = "h1:lMO5rYAqUxkmaj76jAkRUvt5JZgFymx/+Q5Mzfivuhc=",
-        version = "v1.6.6",
     )
     go_repository(
         name = "org_golang_x_crypto",
