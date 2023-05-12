@@ -27,6 +27,7 @@ Contents:
         cruntar/    Untar an archive with hard links, copying instead of
                     linking.
         csrpubdump/ Dump the public key from an X.509 certificate request.
+        data_sync/  Sync the user's homedir to external storage.
         diskimg/    Write a disk image to a device.
         eig/        EEPROM image generator.
         fragment/   Print a fragment of a file.
