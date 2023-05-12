@@ -1,12 +1,14 @@
 data_sync
 
-This is a tool I wrote primarily to sync my home directory to a backup drive plugged
-into my laptop. This system is provisioned by Ansible, and the goal is to be able to
-just copy my home directory back in the event of a failure without having lost a great
-deal of work. Specifically, I use a Framework laptop with the 1TB storage module,
-encrypted with LUKS, and run this twice daily (timed to correspond with my commute,
-though that's not really necessary). It started off as a shell script, then I decided
-to just write it as a program.
+This is a tool I wrote primarily to sync my home directory to a backup
+drive plugged into my laptop. This system is provisioned by Ansible,
+and the goal is to be able to just copy my home directory back in the
+event of a failure without having lost a great deal of work or to wait
+for ansible to finish installing the right backup software. Specifically,
+I use a Framework laptop with the 1TB storage module, encrypted with
+LUKS, and run this twice daily (timed to correspond with my commute,
+though that's not really necessary). It started off as a shell script,
+then I decided to just write it as a program.
 
 Usage: data_sync [-d path] [-l level] [-m path] [-nqsv]
                                   [-t path]
@@ -28,4 +30,3 @@ Usage: data_sync [-d path] [-l level] [-m path] [-nqsv]
 data_sync rsyncs the tree at the sync source directory (-d) to the sync target
 directory (-t); it checks the mount directory (-m) exists; the sync target
 target directory must exist on the mount directory.
-
