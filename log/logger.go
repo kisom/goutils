@@ -12,8 +12,9 @@ import (
 )
 
 type logger struct {
-	l gsyslog.Syslogger
-	p gsyslog.Priority
+	l            gsyslog.Syslogger
+	p            gsyslog.Priority
+	writeConsole bool
 }
 
 func (log *logger) printf(p gsyslog.Priority, format string, args ...interface{}) {
@@ -21,7 +22,7 @@ func (log *logger) printf(p gsyslog.Priority, format string, args ...interface{}
 		format += "\n"
 	}
 
-	if p <= log.p {
+	if p <= log.p && log.writeConsole {
 		fmt.Printf("%s [%s] ", prioritiev[p], timestamp())
 		fmt.Printf(format, args...)
 	}
@@ -32,7 +33,7 @@ func (log *logger) printf(p gsyslog.Priority, format string, args ...interface{}
 }
 
 func (log *logger) print(p gsyslog.Priority, args ...interface{}) {
-	if p <= log.p {
+	if p <= log.p && log.writeConsole {
 		fmt.Printf("%s [%s] ", prioritiev[p], timestamp())
 		fmt.Print(args...)
 	}
@@ -43,7 +44,7 @@ func (log *logger) print(p gsyslog.Priority, args ...interface{}) {
 }
 
 func (log *logger) println(p gsyslog.Priority, args ...interface{}) {
-	if p <= log.p {
+	if p <= log.p && log.writeConsole {
 		fmt.Printf("%s [%s] ", prioritiev[p], timestamp())
 		fmt.Println(args...)
 	}
@@ -98,10 +99,11 @@ func timestamp() string {
 }
 
 type Options struct {
-	Level       string
-	Tag         string
-	Facility    string
-	WriteSyslog bool
+	Level        string
+	Tag          string
+	Facility     string
+	WriteSyslog  bool
+	WriteConsole bool
 }
 
 // DefaultOptions returns a sane set of defaults for syslog, using the program
@@ -113,10 +115,11 @@ func DefaultOptions(tag string, withSyslog bool) *Options {
 	}
 
 	return &Options{
-		Level:       "WARNING",
-		Tag:         tag,
-		Facility:    "daemon",
-		WriteSyslog: withSyslog,
+		Level:        "WARNING",
+		Tag:          tag,
+		Facility:     "daemon",
+		WriteSyslog:  withSyslog,
+		WriteConsole: true,
 	}
 }
 
@@ -129,9 +132,11 @@ func DefaultDebugOptions(tag string, withSyslog bool) *Options {
 	}
 
 	return &Options{
-		Level:       "DEBUG",
-		Facility:    "daemon",
-		WriteSyslog: withSyslog,
+		Level:        "DEBUG",
+		Tag:          tag,
+		Facility:     "daemon",
+		WriteSyslog:  withSyslog,
+		WriteConsole: true,
 	}
 }
 
@@ -142,6 +147,10 @@ func Setup(opts *Options) error {
 	}
 
 	log.p = priority
+	log.writeConsole = opts.WriteConsole
+	if opts.WriteConsole {
+		fmt.Println("will write to console")
+	}
 
 	if opts.WriteSyslog {
 		var err error
@@ -259,6 +268,17 @@ func Fatal(args ...interface{}) {
 func Fatalf(format string, args ...interface{}) {
 	log.printf(gsyslog.LOG_ERR, format, args...)
 	os.Exit(1)
+}
+
+// FatalError will only execute if err != nil. If it does,
+// it will print the message (append the error) and exit
+// the program.
+func FatalError(err error, message string) {
+	if err == nil {
+		return
+	}
+
+	Fatal(fmt.Sprintf("%s: %s", message, err))
 }
 
 // Spew will pretty print the args if the logger is set to DEBUG priority.
