@@ -13,7 +13,7 @@ go_test(
     srcs = ["dbg_test.go"],
     embed = [":dbg"],
     deps = [
+        "//assert",
         "//testio",
-        "@com_github_stretchr_testify//require",
     ],
 )
