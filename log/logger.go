@@ -148,9 +148,6 @@ func Setup(opts *Options) error {
 
 	log.p = priority
 	log.writeConsole = opts.WriteConsole
-	if opts.WriteConsole {
-		fmt.Println("will write to console")
-	}
 
 	if opts.WriteSyslog {
 		var err error
