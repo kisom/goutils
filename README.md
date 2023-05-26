@@ -12,6 +12,7 @@ Contents:
 
     ahash/          Provides hashes from string algorithm specifiers.
     assert/         Error handling, assertion-style.
+    backoff/        Implementation of an intelligent backoff strategy.
     cmd/
         atping/     Automated TCP ping, meant for putting in cronjobs.
         certchain/  Display the certificate chain from a
