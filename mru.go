@@ -30,7 +30,7 @@ type Cache struct {
 // New must be used to create a new Cache.
 func New(cap int) *Cache {
 	return &Cache{
-		store:  map[string]*Item{},
+		store:  map[string]*item{},
 		access: newTimestamps(cap),
 		cap:    cap,
 		clock:  clock.New(),
@@ -39,11 +39,11 @@ func New(cap int) *Cache {
 }
 
 func (c *Cache) lock() {
-	m.mtx.lock()
+	c.mtx.Lock()
 }
 
 func (c *Cache) unlock() {
-	m.mtx.unlock()
+	c.mtx.Unlock()
 }
 
 // Len returns the number of items currently in the cache.
@@ -53,6 +53,10 @@ func (c *Cache) Len() int {
 
 // evict should remove the least-recently-used cache item.
 func (c *Cache) evict() {
+	if c.access.Len() == 0 {
+		return
+	}
+
 	k := c.access.K(0)
 	c.evictKey(k)
 }
@@ -79,8 +83,8 @@ func (c *Cache) sanityCheck() {
 // data structures are consistent. It is not normally required, and it
 // is primarily used in testing.
 func (c *Cache) ConsistencyCheck() error {
-	m.lock()
-	defer m.unlock()
+	c.lock()
+	defer c.unlock()
 	if err := c.access.ConsistencyCheck(); err != nil {
 		return err
 	}
@@ -111,8 +115,8 @@ func (c *Cache) ConsistencyCheck() error {
 
 // Store adds the value v to the cache under the k.
 func (c *Cache) Store(k string, v interface{}) {
-	m.lock()
-	defer m.unlock()
+	c.lock()
+	defer c.unlock()
 
 	c.sanityCheck()
 
@@ -124,7 +128,7 @@ func (c *Cache) Store(k string, v interface{}) {
 		c.evictKey(k)
 	}
 
-	itm := &Item{
+	itm := &item{
 		V:      v,
 		access: c.clock.Now().UnixNano(),
 	}
@@ -136,8 +140,8 @@ func (c *Cache) Store(k string, v interface{}) {
 // Get returns the value stored in the cache. If the item isn't present,
 // it will return false.
 func (c *Cache) Get(k string) (interface{}, bool) {
-	m.lock()
-	defer m.unlock()
+	c.lock()
+	defer c.unlock()
 
 	c.sanityCheck()
 

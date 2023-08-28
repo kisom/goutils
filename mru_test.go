@@ -20,6 +20,11 @@ func TestBasicCacheEviction(t *testing.T) {
 		t.Fatal("cache should have size 0")
 	}
 
+	c.evict()
+	if err := c.ConsistencyCheck(); err != nil {
+		t.Fatal(err)
+	}
+
 	c.Store("raven", 1)
 	if err := c.ConsistencyCheck(); err != nil {
 		t.Fatal(err)
