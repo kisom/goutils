@@ -55,3 +55,8 @@ func (b *Buffer) Close() error {
 func (b *Buffer) Len() int {
 	return len(b.data[b.pos:])
 }
+
+// Bytes returns the underlying bytes from the current position.
+func (b *Buffer) Bytes() []byte {
+	return b.data[b.pos:]
+}
