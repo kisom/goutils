@@ -1,0 +1,5 @@
+host
+
+This is a utility to display CNAME records and IPs for a hostname. It
+was born of my frustration in trying to figure out how to get the host(1)
+tool installed on Fedora.
