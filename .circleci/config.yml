@@ -2,22 +2,6 @@
 # See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
-commands:
-  setup-bazel:
-    description: |
-      Setup the Bazel build system used for building the repo
-    steps:
-      - run:
-          name: Add Bazel Apt repository
-          command: |
-            sudo apt install curl gnupg
-            curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg
-            sudo mv bazel.gpg /etc/apt/trusted.gpg.d/
-            echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
-      - run:
-          name: Install Bazel from Apt
-          command: sudo apt update && sudo apt install bazel
-
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
@@ -31,7 +15,6 @@ jobs:
     # See: https://circleci.com/docs/2.0/configuration-reference/#steps
     steps:
       - checkout
-      - setup-bazel
       - restore_cache:
           keys:
             - go-mod-v4-{{ checksum "go.sum" }}
@@ -44,10 +27,10 @@ jobs:
             - "/go/pkg/mod"
       - run:
           name: Run tests
-          command: bazel test //...
+          command: go test ./...
       - run:
           name: Run build
-          command: bazel build //...
+          command: go build ./...
       - store_test_results:
           path: /tmp/test-reports
 
