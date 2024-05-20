@@ -35,7 +35,7 @@ func main() {
 
 	for _, arg := range flag.Args() {
 		if err := lookupHost(arg); err != nil {
-			log.Println("%s: %s", arg, err)
+			log.Printf("%s: %s", arg, err)
 		}
 	}
 }

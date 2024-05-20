@@ -68,7 +68,7 @@ func showFile(path string) {
 func searchFile(path string, search *regexp.Regexp) error {
 	file, err := os.Open(path)
 	if err != nil {
-		errorf("%v")
+		errorf("%v", err)
 		return err
 	}
 	defer file.Close()
