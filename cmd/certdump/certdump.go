@@ -110,6 +110,14 @@ func showBasicConstraints(cert *x509.Certificate) {
 
 	if cert.IsCA {
 		fmt.Printf(", is a CA certificate")
+		if !cert.BasicConstraintsValid {
+			fmt.Printf(" (basic constraint failure)")
+		}
+	} else {
+		fmt.Printf("is not a CA certificate")
+		if cert.KeyUsage&x509.KeyUsageKeyEncipherment != 0 {
+			fmt.Printf(" (key encipherment usage enabled!)")
+		}
 	}
 
 	if (cert.MaxPathLen == 0 && cert.MaxPathLenZero) || (cert.MaxPathLen > 0) {
