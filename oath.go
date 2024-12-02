@@ -35,7 +35,7 @@ func (o OATH) Counter() uint64 {
 }
 
 // SetCounter updates the OATH token's counter to a new value.
-func (o OATH) SetCounter(counter uint64) {
+func (o *OATH) SetCounter(counter uint64) {
 	o.counter = counter
 }
 

@@ -44,7 +44,7 @@ var rfcTotpTests = []struct {
 
 func TestTotpRFC(t *testing.T) {
 	for _, tc := range rfcTotpTests {
-		otp := NewTOTP(rfcTotpKey[tc.Algo], 0, 30, 8, tc.Algo)
+		otp := NewTOTP(rfcTotpKey[tc.Algo], 0, rfcTotpStep, 8, tc.Algo)
 		if otp.otpCounter(tc.Time) != tc.T {
 			fmt.Printf("twofactor: invalid TOTP (t=%d, h=%d)\n", tc.Time, tc.Algo)
 			fmt.Printf("\texpected: %d\n", tc.T)

@@ -1,8 +1,10 @@
 package twofactor
 
-import "fmt"
-import "io"
-import "testing"
+import (
+	"fmt"
+	"io"
+	"testing"
+)
 
 func TestHOTPString(t *testing.T) {
 	hotp := NewHOTP(nil, 0, 6)
@@ -93,7 +95,7 @@ func TestPaddedURL(t *testing.T) {
 
 	for i := range urlList {
 		if o, id, err := FromURL(urlList[i]); err != nil {
-			fmt.Println("hotp: URL should have parsed successfully")
+			fmt.Println("hotp: URL should have parsed successfully (id=", id, ")")
 			fmt.Printf("\turl was: %s\n", urlList[i])
 			t.FailNow()
 			fmt.Printf("\t%s, %s\n", o.OTP(), id)
