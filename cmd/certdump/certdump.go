@@ -214,6 +214,17 @@ func displayCert(cert *x509.Certificate) {
 			wrapPrint(fmt.Sprintf("- %s\n", ocspServer), 2)
 		}
 	}
+
+	fmt.Println("SCTs:")
+	sctList, err := certlib.DumpSignedCertificateList(cert)
+	if err != nil {
+		lib.Warn(err, "failed to dump signed certificate list")
+	} else {
+		for _, sct := range sctList {
+			fmt.Printf("\t- %s\n", sct)
+		}
+	}
+
 }
 
 func displayAllCerts(in []byte, leafOnly bool) {
