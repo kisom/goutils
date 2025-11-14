@@ -1,5 +1,5 @@
-ca-signed
----------
+ca-signed: verify certificates against a CA
+-------------------------------------------
 
 Description
   ca-signed verifies whether one or more certificates are signed by a given
