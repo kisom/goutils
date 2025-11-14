@@ -69,15 +69,33 @@ func loadCertsFromBytes(data []byte) ([]*x509.Certificate, error) {
 }
 
 func makePoolFromBytes(data []byte) (*x509.CertPool, error) {
-	certs, err := loadCertsFromBytes(data)
-	if err != nil || len(certs) == 0 {
-		return nil, fmt.Errorf("failed to load CA certificates from embedded bytes")
-	}
-	pool := x509.NewCertPool()
-	for _, c := range certs {
-		pool.AddCert(c)
-	}
-	return pool, nil
+    certs, err := loadCertsFromBytes(data)
+    if err != nil || len(certs) == 0 {
+        return nil, fmt.Errorf("failed to load CA certificates from embedded bytes")
+    }
+    pool := x509.NewCertPool()
+    for _, c := range certs {
+        pool.AddCert(c)
+    }
+    return pool, nil
+}
+
+// isSelfSigned returns true if the given certificate is self-signed.
+// It checks that the subject and issuer match and that the certificate's
+// signature verifies against its own public key.
+func isSelfSigned(cert *x509.Certificate) bool {
+    if cert == nil {
+        return false
+    }
+    // Quick check: subject and issuer match
+    if cert.Subject.String() != cert.Issuer.String() {
+        return false
+    }
+    // Cryptographic check: the certificate is signed by itself
+    if err := cert.CheckSignatureFrom(cert); err != nil {
+        return false
+    }
+    return true
 }
 
 func verifyAgainstCA(caPool *x509.CertPool, path string) (ok bool, expiry string) {
@@ -141,15 +159,15 @@ func selftest() int {
 		expectOK bool
 	}
 
-	cases := []testCase{
-		{name: "ISRG Root X1 validates LE E7", caFile: "testdata/isrg-root-x1.pem", certFile: "testdata/le-e7.pem", expectOK: true},
-		{name: "ISRG Root X1 does NOT validate Google WR2", caFile: "testdata/isrg-root-x1.pem", certFile: "testdata/goog-wr2.pem", expectOK: false},
-		{name: "GTS R1 validates Google WR2", caFile: "testdata/gts-r1.pem", certFile: "testdata/goog-wr2.pem", expectOK: true},
-		{name: "GTS R1 does NOT validate LE E7", caFile: "testdata/gts-r1.pem", certFile: "testdata/le-e7.pem", expectOK: false},
-	}
+ cases := []testCase{
+        {name: "ISRG Root X1 validates LE E7", caFile: "testdata/isrg-root-x1.pem", certFile: "testdata/le-e7.pem", expectOK: true},
+        {name: "ISRG Root X1 does NOT validate Google WR2", caFile: "testdata/isrg-root-x1.pem", certFile: "testdata/goog-wr2.pem", expectOK: false},
+        {name: "GTS R1 validates Google WR2", caFile: "testdata/gts-r1.pem", certFile: "testdata/goog-wr2.pem", expectOK: true},
+        {name: "GTS R1 does NOT validate LE E7", caFile: "testdata/gts-r1.pem", certFile: "testdata/le-e7.pem", expectOK: false},
+    }
 
-	failures := 0
-	for _, tc := range cases {
+    failures := 0
+    for _, tc := range cases {
 		caBytes, err := embeddedTestdata.ReadFile(tc.caFile)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "selftest: failed to read embedded %s: %v\n", tc.caFile, err)
@@ -179,14 +197,38 @@ func selftest() int {
 				fmt.Printf("%s: INVALID (as expected)\n", tc.name)
 			}
 		}
-	}
+    }
 
-	if failures == 0 {
-		fmt.Println("selftest: PASS")
-		return 0
-	}
-	fmt.Fprintf(os.Stderr, "selftest: FAIL (%d failure(s))\n", failures)
-	return 1
+    // Verify that both embedded root CAs are detected as self-signed
+    roots := []string{"testdata/gts-r1.pem", "testdata/isrg-root-x1.pem"}
+    for _, root := range roots {
+        b, err := embeddedTestdata.ReadFile(root)
+        if err != nil {
+            fmt.Fprintf(os.Stderr, "selftest: failed to read embedded %s: %v\n", root, err)
+            failures++
+            continue
+        }
+        certs, err := loadCertsFromBytes(b)
+        if err != nil || len(certs) == 0 {
+            fmt.Fprintf(os.Stderr, "selftest: failed to parse cert(s) from %s: %v\n", root, err)
+            failures++
+            continue
+        }
+        leaf := certs[0]
+        if isSelfSigned(leaf) {
+            fmt.Printf("%s: SELF-SIGNED (as expected)\n", root)
+        } else {
+            fmt.Printf("%s: expected SELF-SIGNED, but was not detected as such\n", root)
+            failures++
+        }
+    }
+
+    if failures == 0 {
+        fmt.Println("selftest: PASS")
+        return 0
+    }
+    fmt.Fprintf(os.Stderr, "selftest: FAIL (%d failure(s))\n", failures)
+    return 1
 }
 
 func main() {
@@ -208,26 +250,38 @@ func main() {
 		os.Exit(1)
 	}
 
-	for _, certPath := range os.Args[2:] {
-		ok, exp := verifyAgainstCA(caPool, certPath)
-		name := filepath.Base(certPath)
-		if ok {
-			// Display with the requested format
-			// Example: file: OK (expires 2031-01-01)
-			// Ensure deterministic date formatting
-			// Note: no timezone displayed; date only as per example
-			// If exp ended up empty for some reason, recompute safely
-			if exp == "" {
-				if certs, err := loadCertsFromFile(certPath); err == nil && len(certs) > 0 {
-					exp = certs[0].NotAfter.Format("2006-01-02")
-				} else {
-					// fallback to the current date to avoid empty; though shouldn't happen
-					exp = time.Now().Format("2006-01-02")
-				}
-			}
-			fmt.Printf("%s: OK (expires %s)\n", name, exp)
-		} else {
-			fmt.Printf("%s: INVALID\n", name)
-		}
-	}
+    for _, certPath := range os.Args[2:] {
+        ok, exp := verifyAgainstCA(caPool, certPath)
+        name := filepath.Base(certPath)
+        // Load the leaf once for self-signed detection and potential expiry fallback
+        var leaf *x509.Certificate
+        if certs, err := loadCertsFromFile(certPath); err == nil && len(certs) > 0 {
+            leaf = certs[0]
+        }
+
+        // If the certificate is self-signed, prefer the SELF-SIGNED label
+        if isSelfSigned(leaf) {
+            fmt.Printf("%s: SELF-SIGNED\n", name)
+            continue
+        }
+
+        if ok {
+            // Display with the requested format
+            // Example: file: OK (expires 2031-01-01)
+            // Ensure deterministic date formatting
+            // Note: no timezone displayed; date only as per example
+            // If exp ended up empty for some reason, recompute safely
+            if exp == "" {
+                if leaf != nil {
+                    exp = leaf.NotAfter.Format("2006-01-02")
+                } else {
+                    // fallback to the current date to avoid empty; though shouldn't happen
+                    exp = time.Now().Format("2006-01-02")
+                }
+            }
+            fmt.Printf("%s: OK (expires %s)\n", name, exp)
+        } else {
+            fmt.Printf("%s: INVALID\n", name)
+        }
+    }
 }
