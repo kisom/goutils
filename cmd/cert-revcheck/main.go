@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"flag"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -109,7 +110,7 @@ func checkSite(hostport string) (string, error) {
 
 	state := conn.ConnectionState()
 	if len(state.PeerCertificates) == 0 {
-		return "UNKNOWN", fmt.Errorf("no peer certificates presented")
+		return "UNKNOWN", errors.New("no peer certificates presented")
 	}
 	return evaluateCert(state.PeerCertificates[0])
 }

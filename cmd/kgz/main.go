@@ -39,10 +39,6 @@ func compress(path, target string, level int) error {
 		return errors.Wrap(err, "compressing file")
 	}
 
-	if err != nil {
-		return errors.Wrap(err, "stat(2)ing destination file")
-	}
-
 	return nil
 }
 
