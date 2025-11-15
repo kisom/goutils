@@ -4,8 +4,8 @@
 package ahash
 
 import (
-	"crypto/md5"
-	"crypto/sha1"
+	"crypto/md5"  // #nosec G505
+	"crypto/sha1" // #nosec G501
 	"crypto/sha256"
 	"crypto/sha512"
 	"errors"
@@ -17,33 +17,14 @@ import (
 	"io"
 	"sort"
 
-	"git.wntrmute.dev/kyle/goutils/assert"
 	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/blake2s"
-	"golang.org/x/crypto/md4"
-	"golang.org/x/crypto/ripemd160"
+	"golang.org/x/crypto/md4"       // #nosec G506
+	"golang.org/x/crypto/ripemd160" // #nosec G507
 	"golang.org/x/crypto/sha3"
+
+	"git.wntrmute.dev/kyle/goutils/assert"
 )
-
-func sha224Slicer(bs []byte) []byte {
-	sum := sha256.Sum224(bs)
-	return sum[:]
-}
-
-func sha256Slicer(bs []byte) []byte {
-	sum := sha256.Sum256(bs)
-	return sum[:]
-}
-
-func sha384Slicer(bs []byte) []byte {
-	sum := sha512.Sum384(bs)
-	return sum[:]
-}
-
-func sha512Slicer(bs []byte) []byte {
-	sum := sha512.Sum512(bs)
-	return sum[:]
-}
 
 // Hash represents a generic hash function that may or may not be secure. It
 // satisfies the hash.Hash interface.
@@ -247,17 +228,17 @@ func init() {
 // HashList returns a sorted list of all the hash algorithms supported by the
 // package.
 func HashList() []string {
-	return hashList[:]
+	return hashList
 }
 
 // SecureHashList returns a sorted list of all the secure (cryptographic) hash
 // algorithms supported by the package.
 func SecureHashList() []string {
-	return secureHashList[:]
+	return secureHashList
 }
 
 // InsecureHashList returns a sorted list of all the insecure hash algorithms
 // supported by the package.
 func InsecureHashList() []string {
-	return insecureHashList[:]
+	return insecureHashList
 }

@@ -9,6 +9,7 @@
 package assert
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"runtime"
@@ -16,11 +17,13 @@ import (
 	"testing"
 )
 
+const callerSkip = 2
+
 // NoDebug can be set to true to cause all asserts to be ignored.
 var NoDebug bool
 
 func die(what string, a ...string) {
-	_, file, line, ok := runtime.Caller(2)
+	_, file, line, ok := runtime.Caller(callerSkip)
 	if !ok {
 		panic(what)
 	}
@@ -31,30 +34,32 @@ func die(what string, a ...string) {
 			s = ": " + s
 		}
 		panic(what + s)
-	} else {
-		fmt.Fprintf(os.Stderr, "%s", what)
-		if len(a) > 0 {
-			s := strings.Join(a, ", ")
-			fmt.Fprintln(os.Stderr, ": "+s)
-		} else {
-			fmt.Fprintf(os.Stderr, "\n")
-		}
-
-		fmt.Fprintf(os.Stderr, "\t%s line %d\n", file, line)
-
-		os.Exit(1)
 	}
+
+	fmt.Fprintf(os.Stderr, "%s", what)
+	if len(a) > 0 {
+		s := strings.Join(a, ", ")
+		fmt.Fprintln(os.Stderr, ": "+s)
+	} else {
+		fmt.Fprintf(os.Stderr, "\n")
+	}
+
+	fmt.Fprintf(os.Stderr, "\t%s line %d\n", file, line)
+
+	os.Exit(1)
 }
 
 // Bool asserts that cond is false.
 //
 // For example, this would replace
-//    if x < 0 {
-//            log.Fatal("x is subzero")
-//    }
+//
+//	if x < 0 {
+//	        log.Fatal("x is subzero")
+//	}
 //
 // The same assertion would be
-//    assert.Bool(x, "x is subzero")
+//
+//	assert.Bool(x, "x is subzero")
 func Bool(cond bool, s ...string) {
 	if NoDebug {
 		return
@@ -68,11 +73,12 @@ func Bool(cond bool, s ...string) {
 // Error asserts that err is not nil, e.g. that an error has occurred.
 //
 // For example,
-//     if err == nil {
-//             log.Fatal("call to <something> should have failed")
-//     }
-//     // becomes
-//     assert.Error(err, "call to <something> should have failed")
+//
+//	if err == nil {
+//	        log.Fatal("call to <something> should have failed")
+//	}
+//	// becomes
+//	assert.Error(err, "call to <something> should have failed")
 func Error(err error, s ...string) {
 	if NoDebug {
 		return
@@ -100,7 +106,7 @@ func NoError(err error, s ...string) {
 
 // ErrorEq asserts that the actual error is the expected error.
 func ErrorEq(expected, actual error) {
-	if NoDebug || (expected == actual) {
+	if NoDebug || (errors.Is(expected, actual)) {
 		return
 	}
 
@@ -155,7 +161,7 @@ func NoErrorT(t *testing.T, err error) {
 // ErrorEqT compares a pair of errors, calling Fatal on it if they
 // don't match.
 func ErrorEqT(t *testing.T, expected, actual error) {
-	if NoDebug || (expected == actual) {
+	if NoDebug || (errors.Is(expected, actual)) {
 		return
 	}
 

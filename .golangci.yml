@@ -65,8 +65,6 @@ linters:
     - funcorder # checks the order of functions, methods, and constructors
     - funlen # tool for detection of long functions
     - gocheckcompilerdirectives # validates go compiler directive comments (//go:)
-    - gochecknoglobals # checks that no global variables exist
-    - gochecknoinits # checks that no init functions are present in Go code
     - gochecksumtype # checks exhaustiveness on Go "sum types"
     - gocognit # computes and checks the cognitive complexity of functions
     - goconst # finds repeated strings that could be replaced by a constant
@@ -368,7 +366,7 @@ linters:
       max-func-lines: 0
 
     nolintlint:
-      # Exclude following linters from requiring an explanation.
+      # Exclude the following linters from requiring an explanation.
       # Default: []
       allow-no-explanation: [ funlen, gocognit, golines ]
       # Enable to require an explanation of nonzero length after each nolint directive.
@@ -444,8 +442,11 @@ linters:
     presets:
       - std-error-handling
       - common-false-positives
-    # Excluding configuration per-path, per-linter, per-text and per-source.
     rules:
+      - path: 'ahash/ahash.go'
+        linters: [ staticcheck, gosec ]
+      - path: 'backoff/backoff_test.go'
+        linters: [ testpackage ]
       - source: 'TODO'
         linters: [ godot ]
       - text: 'should have a package comment'

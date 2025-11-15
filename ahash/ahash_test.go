@@ -1,16 +1,18 @@
-package ahash
+package ahash_test
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"testing"
 
+	"git.wntrmute.dev/kyle/goutils/ahash"
 	"git.wntrmute.dev/kyle/goutils/assert"
 )
 
 func TestSecureHash(t *testing.T) {
 	algo := "sha256"
-	h, err := New(algo)
+	h, err := ahash.New(algo)
 	assert.NoErrorT(t, err)
 	assert.BoolT(t, h.IsSecure(), algo+" should be a secure hash")
 	assert.BoolT(t, h.HashAlgo() == algo, "hash returned the wrong HashAlgo")
@@ -19,28 +21,28 @@ func TestSecureHash(t *testing.T) {
 
 	var data []byte
 	var expected = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-	sum, err := Sum(algo, data)
+	sum, err := ahash.Sum(algo, data)
 	assert.NoErrorT(t, err)
-	assert.BoolT(t, fmt.Sprintf("%x", sum) == expected, fmt.Sprintf("expected hash %s but have %x", expected, sum))
+	assert.BoolT(t, hex.EncodeToString(sum) == expected, fmt.Sprintf("expected hash %s but have %x", expected, sum))
 
 	data = []byte("hello, world")
 	buf := bytes.NewBuffer(data)
 	expected = "09ca7e4eaa6e8ae9c7d261167129184883644d07dfba7cbfbc4c8a2e08360d5b"
-	sum, err = SumReader(algo, buf)
+	sum, err = ahash.SumReader(algo, buf)
 	assert.NoErrorT(t, err)
-	assert.BoolT(t, fmt.Sprintf("%x", sum) == expected, fmt.Sprintf("expected hash %s but have %x", expected, sum))
+	assert.BoolT(t, hex.EncodeToString(sum) == expected, fmt.Sprintf("expected hash %s but have %x", expected, sum))
 
 	data = []byte("hello world")
 	_, err = h.Write(data)
 	assert.NoErrorT(t, err)
 	unExpected := "09ca7e4eaa6e8ae9c7d261167129184883644d07dfba7cbfbc4c8a2e08360d5b"
 	sum = h.Sum(nil)
-	assert.BoolT(t, fmt.Sprintf("%x", sum) != unExpected, fmt.Sprintf("hash shouldn't have returned %x", unExpected))
+	assert.BoolT(t, hex.EncodeToString(sum) != unExpected, fmt.Sprintf("hash shouldn't have returned %x", unExpected))
 }
 
 func TestInsecureHash(t *testing.T) {
 	algo := "md5"
-	h, err := New(algo)
+	h, err := ahash.New(algo)
 	assert.NoErrorT(t, err)
 	assert.BoolT(t, !h.IsSecure(), algo+" shouldn't be a secure hash")
 	assert.BoolT(t, h.HashAlgo() == algo, "hash returned the wrong HashAlgo")
@@ -49,28 +51,28 @@ func TestInsecureHash(t *testing.T) {
 
 	var data []byte
 	var expected = "d41d8cd98f00b204e9800998ecf8427e"
-	sum, err := Sum(algo, data)
+	sum, err := ahash.Sum(algo, data)
 	assert.NoErrorT(t, err)
-	assert.BoolT(t, fmt.Sprintf("%x", sum) == expected, fmt.Sprintf("expected hash %s but have %x", expected, sum))
+	assert.BoolT(t, hex.EncodeToString(sum) == expected, fmt.Sprintf("expected hash %s but have %x", expected, sum))
 
 	data = []byte("hello, world")
 	buf := bytes.NewBuffer(data)
 	expected = "e4d7f1b4ed2e42d15898f4b27b019da4"
-	sum, err = SumReader(algo, buf)
+	sum, err = ahash.SumReader(algo, buf)
 	assert.NoErrorT(t, err)
-	assert.BoolT(t, fmt.Sprintf("%x", sum) == expected, fmt.Sprintf("expected hash %s but have %x", expected, sum))
+	assert.BoolT(t, hex.EncodeToString(sum) == expected, fmt.Sprintf("expected hash %s but have %x", expected, sum))
 
 	data = []byte("hello world")
 	_, err = h.Write(data)
 	assert.NoErrorT(t, err)
 	unExpected := "e4d7f1b4ed2e42d15898f4b27b019da4"
 	sum = h.Sum(nil)
-	assert.BoolT(t, fmt.Sprintf("%x", sum) != unExpected, fmt.Sprintf("hash shouldn't have returned %x", unExpected))
+	assert.BoolT(t, hex.EncodeToString(sum) != unExpected, fmt.Sprintf("hash shouldn't have returned %x", unExpected))
 }
 
 func TestHash32(t *testing.T) {
 	algo := "crc32-ieee"
-	h, err := New(algo)
+	h, err := ahash.New(algo)
 	assert.NoErrorT(t, err)
 	assert.BoolT(t, !h.IsSecure(), algo+" shouldn't be a secure hash")
 	assert.BoolT(t, h.HashAlgo() == algo, "hash returned the wrong HashAlgo")
@@ -102,7 +104,7 @@ func TestHash32(t *testing.T) {
 
 func TestHash64(t *testing.T) {
 	algo := "crc64"
-	h, err := New(algo)
+	h, err := ahash.New(algo)
 	assert.NoErrorT(t, err)
 	assert.BoolT(t, !h.IsSecure(), algo+" shouldn't be a secure hash")
 	assert.BoolT(t, h.HashAlgo() == algo, "hash returned the wrong HashAlgo")
@@ -133,9 +135,9 @@ func TestHash64(t *testing.T) {
 }
 
 func TestListLengthSanity(t *testing.T) {
-	all := HashList()
-	secure := SecureHashList()
-	insecure := InsecureHashList()
+	all := ahash.HashList()
+	secure := ahash.SecureHashList()
+	insecure := ahash.InsecureHashList()
 
 	assert.BoolT(t, len(all) == len(secure)+len(insecure))
 }
@@ -146,11 +148,11 @@ func TestSumLimitedReader(t *testing.T) {
 	extendedData := bytes.NewBufferString("hello, world! this is an extended message")
 	expected := "09ca7e4eaa6e8ae9c7d261167129184883644d07dfba7cbfbc4c8a2e08360d5b"
 
-	hash, err := SumReader("sha256", data)
+	hash, err := ahash.SumReader("sha256", data)
 	assert.NoErrorT(t, err)
-	assert.BoolT(t, fmt.Sprintf("%x", hash) == expected, fmt.Sprintf("have hash %x, want %s", hash, expected))
+	assert.BoolT(t, hex.EncodeToString(hash) == expected, fmt.Sprintf("have hash %x, want %s", hash, expected))
 
-	extendedHash, err := SumLimitedReader("sha256", extendedData, int64(dataLen))
+	extendedHash, err := ahash.SumLimitedReader("sha256", extendedData, int64(dataLen))
 	assert.NoErrorT(t, err)
 
 	assert.BoolT(t, bytes.Equal(hash, extendedHash), fmt.Sprintf("have hash %x, want %x", extendedHash, hash))

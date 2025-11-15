@@ -158,59 +158,87 @@ type EncryptedContentInfo struct {
 	EncryptedContent           []byte `asn1:"tag:0,optional"`
 }
 
+func unmarshalInit(raw []byte) (init initPKCS7, err error) {
+	_, err = asn1.Unmarshal(raw, &init)
+	if err != nil {
+		return initPKCS7{}, certerr.ParsingError(certerr.ErrorSourceCertificate, err)
+	}
+	return init, nil
+}
+
+func populateData(msg *PKCS7, content asn1.RawValue) error {
+	msg.ContentInfo = "Data"
+	_, err := asn1.Unmarshal(content.Bytes, &msg.Content.Data)
+	if err != nil {
+		return certerr.ParsingError(certerr.ErrorSourceCertificate, err)
+	}
+	return nil
+}
+
+func populateSignedData(msg *PKCS7, contentBytes []byte) error {
+	msg.ContentInfo = "SignedData"
+	var sd signedData
+	if _, err := asn1.Unmarshal(contentBytes, &sd); err != nil {
+		return certerr.ParsingError(certerr.ErrorSourceCertificate, err)
+	}
+	if len(sd.Certificates.Bytes) != 0 {
+		certs, err := x509.ParseCertificates(sd.Certificates.Bytes)
+		if err != nil {
+			return certerr.ParsingError(certerr.ErrorSourceCertificate, err)
+		}
+		msg.Content.SignedData.Certificates = certs
+	}
+	if len(sd.Crls.Bytes) != 0 {
+		crl, err := x509.ParseRevocationList(sd.Crls.Bytes)
+		if err != nil {
+			return certerr.ParsingError(certerr.ErrorSourceCertificate, err)
+		}
+		msg.Content.SignedData.Crl = crl
+	}
+	msg.Content.SignedData.Version = sd.Version
+	msg.Content.SignedData.Raw = contentBytes
+	return nil
+}
+
+func populateEncryptedData(msg *PKCS7, contentBytes []byte) error {
+	msg.ContentInfo = "EncryptedData"
+	var ed EncryptedData
+	if _, err := asn1.Unmarshal(contentBytes, &ed); err != nil {
+		return certerr.ParsingError(certerr.ErrorSourceCertificate, err)
+	}
+	if ed.Version != 0 {
+		return certerr.ParsingError(certerr.ErrorSourceCertificate, errors.New("only PKCS #7 encryptedData version 0 is supported"))
+	}
+	msg.Content.EncryptedData = ed
+	return nil
+}
+
 // ParsePKCS7 attempts to parse the DER encoded bytes of a
 // PKCS7 structure.
 func ParsePKCS7(raw []byte) (msg *PKCS7, err error) {
 
-	var pkcs7 initPKCS7
-	_, err = asn1.Unmarshal(raw, &pkcs7)
+	pkcs7, err := unmarshalInit(raw)
 	if err != nil {
-		return nil, certerr.ParsingError(certerr.ErrorSourceCertificate, err)
+		return nil, err
 	}
 
 	msg = new(PKCS7)
 	msg.Raw = pkcs7.Raw
 	msg.ContentInfo = pkcs7.ContentType.String()
-	switch {
-	case msg.ContentInfo == ObjIDData:
-		msg.ContentInfo = "Data"
-		_, err = asn1.Unmarshal(pkcs7.Content.Bytes, &msg.Content.Data)
-		if err != nil {
-			return nil, certerr.ParsingError(certerr.ErrorSourceCertificate, err)
-		}
-	case msg.ContentInfo == ObjIDSignedData:
-		msg.ContentInfo = "SignedData"
-		var signedData signedData
-		_, err = asn1.Unmarshal(pkcs7.Content.Bytes, &signedData)
-		if err != nil {
-			return nil, certerr.ParsingError(certerr.ErrorSourceCertificate, err)
-		}
-		if len(signedData.Certificates.Bytes) != 0 {
-			msg.Content.SignedData.Certificates, err = x509.ParseCertificates(signedData.Certificates.Bytes)
-			if err != nil {
-				return nil, certerr.ParsingError(certerr.ErrorSourceCertificate, err)
-			}
-		}
-		if len(signedData.Crls.Bytes) != 0 {
-			msg.Content.SignedData.Crl, err = x509.ParseRevocationList(signedData.Crls.Bytes)
-			if err != nil {
-				return nil, certerr.ParsingError(certerr.ErrorSourceCertificate, err)
-			}
-		}
-		msg.Content.SignedData.Version = signedData.Version
-		msg.Content.SignedData.Raw = pkcs7.Content.Bytes
-	case msg.ContentInfo == ObjIDEncryptedData:
-		msg.ContentInfo = "EncryptedData"
-		var encryptedData EncryptedData
-		_, err = asn1.Unmarshal(pkcs7.Content.Bytes, &encryptedData)
-		if err != nil {
-			return nil, certerr.ParsingError(certerr.ErrorSourceCertificate, err)
-		}
-		if encryptedData.Version != 0 {
-			return nil, certerr.ParsingError(certerr.ErrorSourceCertificate, errors.New("only PKCS #7 encryptedData version 0 is supported"))
-		}
-		msg.Content.EncryptedData = encryptedData
 
+	switch msg.ContentInfo {
+	case ObjIDData:
+		if err := populateData(msg, pkcs7.Content); err != nil {
+			return nil, err
+		}
+	case ObjIDSignedData:
+		if err := populateSignedData(msg, pkcs7.Content.Bytes); err != nil {
+			return nil, err
+		}
+	case ObjIDEncryptedData:
+		if err := populateEncryptedData(msg, pkcs7.Content.Bytes); err != nil {
+			return nil, err
+		}
 	default:
 		return nil, certerr.ParsingError(certerr.ErrorSourceCertificate, errors.New("only PKCS# 7 content of type data, signed data or encrypted data can be parsed"))
 	}

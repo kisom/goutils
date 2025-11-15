@@ -10,29 +10,21 @@
 // backoff is configured with a maximum duration that will not be
 // exceeded.
 //
-// The `New` function will attempt to use the system's cryptographic
-// random number generator to seed a Go math/rand random number
-// source. If this fails, the package will panic on startup.
+// This package uses math/rand/v2 for jitter, which is automatically
+// seeded from a cryptographically secure source.
 package backoff
 
 import (
-	"crypto/rand"
-	"encoding/binary"
-	"io"
 	"math"
-	mrand "math/rand"
-	"sync"
+	"math/rand/v2"
 	"time"
 )
-
-var prngMu sync.Mutex
-var prng *mrand.Rand
 
 // DefaultInterval is used when a Backoff is initialised with a
 // zero-value Interval.
 var DefaultInterval = 5 * time.Minute
 
-// DefaultMaxDuration is maximum amount of time that the backoff will
+// DefaultMaxDuration is the maximum amount of time that the backoff will
 // delay for.
 var DefaultMaxDuration = 6 * time.Hour
 
@@ -50,10 +42,9 @@ type Backoff struct {
 	// interval controls the time step for backing off.
 	interval time.Duration
 
-	// noJitter controls whether to use the "Full Jitter"
-	// improvement to attempt to smooth out spikes in a high
-	// contention scenario. If noJitter is set to true, no
-	// jitter will be introduced.
+	// noJitter controls whether to use the "Full Jitter" improvement to attempt
+	// to smooth out spikes in a high-contention scenario. If noJitter is set to
+	// true, no jitter will be introduced.
 	noJitter bool
 
 	// decay controls the decay of n. If it is non-zero, n is
@@ -65,17 +56,17 @@ type Backoff struct {
 	lastTry time.Time
 }
 
-// New creates a new backoff with the specified max duration and
+// New creates a new backoff with the specified maxDuration duration and
 // interval. Zero values may be used to use the default values.
 //
-// Panics if either max or interval is negative.
-func New(max time.Duration, interval time.Duration) *Backoff {
-	if max < 0 || interval < 0 {
-		panic("backoff: max or interval is negative")
+// Panics if either dMax or interval is negative.
+func New(dMax time.Duration, interval time.Duration) *Backoff {
+	if dMax < 0 || interval < 0 {
+		panic("backoff: dMax or interval is negative")
 	}
 
 	b := &Backoff{
-		maxDuration: max,
+		maxDuration: dMax,
 		interval:    interval,
 	}
 	b.setup()
@@ -84,29 +75,10 @@ func New(max time.Duration, interval time.Duration) *Backoff {
 
 // NewWithoutJitter works similarly to New, except that the created
 // Backoff will not use jitter.
-func NewWithoutJitter(max time.Duration, interval time.Duration) *Backoff {
-	b := New(max, interval)
+func NewWithoutJitter(dMax time.Duration, interval time.Duration) *Backoff {
+	b := New(dMax, interval)
 	b.noJitter = true
 	return b
-}
-
-func init() {
-	var buf [8]byte
-	var n int64
-
-	_, err := io.ReadFull(rand.Reader, buf[:])
-	if err != nil {
-		panic(err.Error())
-	}
-
-	// G115: Intentional uint64->int64 conversion. Overflow is acceptable here
-	// since math/rand.NewSource accepts any int64 value (positive or negative)
-	// as a valid seed. The conversion ensures uniform distribution across the
-	// entire int64 range.
-	n = int64(binary.LittleEndian.Uint64(buf[:])) // #nosec G115
-
-	src := mrand.NewSource(n)
-	prng = mrand.New(src)
 }
 
 func (b *Backoff) setup() {
@@ -126,35 +98,44 @@ func (b *Backoff) Duration() time.Duration {
 
 	b.decayN()
 
-	t := b.duration(b.n)
+	d := b.duration(b.n)
 
 	if b.n < math.MaxUint64 {
 		b.n++
 	}
 
 	if !b.noJitter {
-		prngMu.Lock()
-		t = time.Duration(prng.Int63n(int64(t)))
-		prngMu.Unlock()
+		d = time.Duration(rand.Int64N(int64(d))) // #nosec G404
 	}
 
-	return t
+	return d
 }
 
+const maxN uint64 = 63
+
 // requires b to be locked.
-func (b *Backoff) duration(n uint64) (t time.Duration) {
-	// Saturate pow
-	pow := time.Duration(math.MaxInt64)
-	if n < 63 {
-		pow = 1 << n
+func (b *Backoff) duration(n uint64) time.Duration {
+	// Use left shift on the underlying integer representation to avoid
+	// multiplying time.Duration by time.Duration (which is semantically
+	// incorrect and flagged by linters).
+	if n >= maxN {
+		// Saturate when n would overflow a 64-bit shift or exceed maxDuration.
+		return b.maxDuration
 	}
 
-	t = b.interval * pow
-	if t/pow != b.interval || t > b.maxDuration {
-		t = b.maxDuration
+	// Calculate 2^n * interval using a shift. Detect overflow by checking
+	// for sign change or monotonicity loss and clamp to maxDuration.
+	shifted := b.interval << n
+	if shifted < 0 || shifted < b.interval {
+		// Overflow occurred during the shift; clamp to maxDuration.
+		return b.maxDuration
 	}
 
-	return
+	if shifted > b.maxDuration {
+		return b.maxDuration
+	}
+
+	return shifted
 }
 
 // Reset resets the attempt counter of a backoff.
@@ -178,7 +159,7 @@ func (b *Backoff) SetDecay(decay time.Duration) {
 	b.decay = decay
 }
 
-// requires b to be locked
+// requires b to be locked.
 func (b *Backoff) decayN() {
 	if b.decay == 0 {
 		return
@@ -190,7 +171,9 @@ func (b *Backoff) decayN() {
 	}
 
 	lastDuration := b.duration(b.n - 1)
-	decayed := time.Since(b.lastTry) > lastDuration+b.decay
+	// Reset when the elapsed time is at least the previous backoff plus decay.
+	// Using ">=" avoids boundary flakiness in tests and real usage.
+	decayed := time.Since(b.lastTry) >= lastDuration+b.decay
 	b.lastTry = time.Now()
 
 	if !decayed {

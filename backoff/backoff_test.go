@@ -9,7 +9,7 @@ import (
 
 // If given New with 0's and no jitter, ensure that certain invariants are met:
 //
-//   - the default max duration and interval should be used
+//   - the default maxDuration duration and interval should be used
 //   - noJitter should be true
 //   - the RNG should not be initialised
 //   - the first duration should be equal to the default interval
@@ -17,7 +17,11 @@ func TestDefaults(t *testing.T) {
 	b := NewWithoutJitter(0, 0)
 
 	if b.maxDuration != DefaultMaxDuration {
-		t.Fatalf("expected new backoff to use the default max duration (%s), but have %s", DefaultMaxDuration, b.maxDuration)
+		t.Fatalf(
+			"expected new backoff to use the default maxDuration duration (%s), but have %s",
+			DefaultMaxDuration,
+			b.maxDuration,
+		)
 	}
 
 	if b.interval != DefaultInterval {
@@ -48,7 +52,7 @@ func TestSetup(t *testing.T) {
 func TestTries(t *testing.T) {
 	b := NewWithoutJitter(5, 1)
 
-	for i := uint64(0); i < 3; i++ {
+	for i := range uint64(3) {
 		if b.n != i {
 			t.Fatalf("want tries=%d, have tries=%d", i, b.n)
 		}
@@ -73,7 +77,7 @@ func TestTries(t *testing.T) {
 func TestReset(t *testing.T) {
 	const iter = 10
 	b := New(1000, 1)
-	for i := 0; i < iter; i++ {
+	for range iter {
 		_ = b.Duration()
 	}
 
@@ -88,17 +92,17 @@ func TestReset(t *testing.T) {
 }
 
 const decay = 5 * time.Millisecond
-const max = 10 * time.Millisecond
+const maxDuration = 10 * time.Millisecond
 const interval = time.Millisecond
 
 func TestDecay(t *testing.T) {
 	const iter = 10
 
-	b := NewWithoutJitter(max, 1)
+	b := NewWithoutJitter(maxDuration, 1)
 	b.SetDecay(decay)
 
 	var backoff time.Duration
-	for i := 0; i < iter; i++ {
+	for range iter {
 		backoff = b.Duration()
 	}
 
@@ -127,7 +131,7 @@ func TestDecaySaturation(t *testing.T) {
 	b.SetDecay(decay)
 
 	var duration time.Duration
-	for i := 0; i <= 2; i++ {
+	for range 3 {
 		duration = b.Duration()
 	}
 
@@ -145,7 +149,7 @@ func TestDecaySaturation(t *testing.T) {
 }
 
 func ExampleBackoff_SetDecay() {
-	b := NewWithoutJitter(max, interval)
+	b := NewWithoutJitter(maxDuration, interval)
 	b.SetDecay(decay)
 
 	// try 0
