@@ -1,0 +1,43 @@
+config:
+  hashes: bundle.sha256
+  expiry: 1y
+chains:
+  core_certs:
+    certs:
+      - root: pems/gts-r1.pem
+        intermediates:
+          - pems/goog-wr2.pem
+      - root: pems/isrg-root-x1.pem
+        intermediates:
+          - pems/le-e7.pem
+    outputs:
+      include_single: true
+      include_individual: true
+      manifest: true
+      formats:
+        - zip
+        - tgz
+  google_certs:
+    certs:
+      - root: pems/gts-r1.pem
+        intermediates:
+          - pems/goog-wr2.pem
+    outputs:
+      include_single: true
+      include_individual: false
+      manifest: true
+      encoding: der
+      formats:
+        - tgz
+  lets_encrypt:
+    certs:
+      - root: pems/isrg-root-x1.pem
+        intermediates:
+          - pems/le-e7.pem
+    outputs:
+      include_single: false
+      include_individual: true
+      manifest: false
+      encoding: both
+      formats:
+        - zip
