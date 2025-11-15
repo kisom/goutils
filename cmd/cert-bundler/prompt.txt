@@ -186,4 +186,9 @@ to provide the same detailed information.
 
 It may be easier to embed the README.txt in the program on build.
 
+-----
+
+For the archive (tar.gz and zip) writers, make sure errors are
+checked at the end, and don't just defer the close operations.
+
 
