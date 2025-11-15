@@ -1,0 +1,189 @@
+Task: build a certificate bundling tool in cmd/cert-bundler. It
+creates archives of certificates chains.
+
+A YAML file for this looks something like:
+
+``` yaml
+config:
+  hashes: bundle.sha256
+  expiry: 1y
+chains:
+  core_certs:
+    certs:
+      - root: roots/core-ca.pem
+        intermediates:
+          - int/cca1.pem
+  	- int/cca2.pem
+  	- int/cca3.pem
+      - root: roots/ssh-ca.pem
+        intermediates:
+          - ssh/ssh_dmz1.pem
+  	- ssh/ssh_internal.pem
+  outputs:
+    include_single: true
+    include_individual: true
+    manifest: true
+    formats:
+      - zip
+      - tgz
+```
+
+Some requirements:
+
+1. First, all the certificates should be loaded.
+2. For each root, each of the indivudal intermediates should be
+   checked to make sure they are properly signed by the root CA.
+3. The program should optionally take an expiration period (defaulting
+   to one year), specified in config.expiration, and if any certificate
+   is within that expiration period, a warning should be printed.
+4. If outputs.include_single is true, all certificates under chains
+   should be concatenated into a single file.
+5. If outputs.include_individual is true, all certificates under
+   chains should be included at the root level (e.g. int/cca2.pem
+   would be cca2.pem in the archive).
+6. If bundle.manifest is true, a "MANIFEST" file is created with
+   SHA256 sums of each file included in the archive.
+7. For each of the formats, create an archive file in the output
+   directory (specified with `-o`) with that format.
+   - If zip is included, create a .zip file.
+   - If tgz is included, create a .tar.gz file with default compression
+     levels.
+   - All archive files should include any generated files (single
+     and/or individual) in the top-level directory.
+8. In the output directory, create a file with the same name as
+   config.hashes that contains the SHA256 sum of all files created.
+
+-----
+
+The outputs.include_single and outputs.include_individual describe
+what should go in the final archive. If both are specified, the output
+archive should include both a single bundle.pem and each individual
+certificate, for example.
+
+-----
+
+As it stands, given the following `bundle.yaml`:
+
+``` yaml
+config:
+  hashes: bundle.sha256
+  expiry: 1y
+chains:
+  core_certs:
+    certs:
+      - root: pems/gts-r1.pem
+        intermediates:
+          - pems/goog-wr2.pem
+        outputs:
+          include_single: true
+          include_individual: true
+          manifest: true
+          formats:
+            - zip
+            - tgz
+      - root: pems/isrg-root-x1.pem
+        intermediates:
+          - pems/le-e7.pem
+        outputs:
+          include_single: true
+          include_individual: false
+          manifest: true
+          formats:
+            - zip
+            - tgz
+  google_certs:
+    certs:
+      - root: pems/gts-r1.pem
+        intermediates:
+          - pems/goog-wr2.pem
+        outputs:
+          include_single: true
+          include_individual: false
+          manifest: true
+          formats:
+            - tgz
+  lets_encrypt:
+    certs:
+      - root: pems/isrg-root-x1.pem
+        intermediates:
+          - pems/le-e7.pem
+        outputs:
+          include_single: false
+          include_individual: true
+          manifest: false
+          formats:
+            - zip
+```
+
+The program outputs the following files:
+
+- bundle.sha256
+- core_certs_0.tgz (contains individual certs)
+- core_certs_0.zip (contains individual certs)
+- core_certs_1.tgz (contains core_certs.pem)
+- core_certs_1.zip (contains core_certs.pem)
+- google_certs_0.tgz
+- lets_encrypt_0.zip
+
+It should output
+
+- bundle.sha256
+- core_certs.tgz
+- core_certs.zip
+- google_certs.tgz
+- lets_encrypt.zip
+
+core_certs.* should contain `bundle.pem` and all the individual
+certs. There should be no _$n$ variants of archives.
+
+-----
+
+Add an additional field to outputs: encoding. It should accept one of
+`der`, `pem`, or `both`. If `der`, certificates should be output as a
+`.crt` file containing a DER-encoded certificate. If `pem`, certificates
+should be output as a `.pem` file containing a PEM-encoded certificate.
+If both, both the `.crt` and `.pem` certificate should be included.
+
+For example, given the previous config, if `encoding` is der, the
+google_certs.tgz archive should contain
+
+- bundle.crt
+- MANIFEST
+
+Or with lets_encrypt.zip:
+
+- isrg-root-x1.crt
+- le-e7.crt
+
+However, if `encoding` is pem, the lets_encrypt.zip archive should contain:
+
+- isrg-root-x1.pem
+- le-e7.pem
+
+And if it `encoding` is both, the lets_encrypt.zip archive should contain:
+
+- isrg-root-x1.crt
+- isrg-root-x1.pem
+- le-e7.crt
+- le-e7.pem
+
+-----
+
+The tgz format should output a `.tar.gz` file instead of a `.tgz` file.
+
+-----
+
+Move the format extensions to a global variable.
+
+-----
+
+Write a README.txt with a description of the bundle.yaml format.
+
+Additionally, update the help text for the program (e.g. with `-h`)
+to provide the same detailed information.
+
+-----
+
+It may be easier to embed the README.txt in the program on build.
+
+
