@@ -33,10 +33,26 @@ jobs:
           command: go build ./...
       - store_test_results:
           path: /tmp/test-reports
-
+  lint:
+    docker:
+      - image: golangci/golangci-lint:v2.6.2-alpine
+    steps:
+      - checkout
+      - run: golangci-lint run
+    test:
+      docker:
+        # We use golang:bookworm instead of golang:alpine because we want to run
+        # tests with the race detector enabled. The race detector requires glibc,
+        # which is only present in the Debian-based containers.
+        - image: golang:1.25-bookworm
+      working_directory: ~/repo
+      steps:
+        - checkout
+        - run: go test -v -race ./...
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
   testbuild:
     jobs:
       - testbuild
+      - lint

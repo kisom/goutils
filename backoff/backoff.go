@@ -99,7 +99,11 @@ func init() {
 		panic(err.Error())
 	}
 
-	n = int64(binary.LittleEndian.Uint64(buf[:]))
+	// G115: Intentional uint64->int64 conversion. Overflow is acceptable here
+	// since math/rand.NewSource accepts any int64 value (positive or negative)
+	// as a valid seed. The conversion ensures uniform distribution across the
+	// entire int64 range.
+	n = int64(binary.LittleEndian.Uint64(buf[:])) // #nosec G115
 
 	src := mrand.NewSource(n)
 	prng = mrand.New(src)

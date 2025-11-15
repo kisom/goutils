@@ -1,3 +1,6 @@
+This project is an exploration into the utility of Jetbrains' Junie
+to write smaller but tedious programs.
+
 Task: build a certificate bundling tool in cmd/cert-bundler. It
 creates archives of certificates chains.
 

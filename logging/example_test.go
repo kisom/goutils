@@ -23,7 +23,7 @@ func Example() {
 		map[string]string{"when": time.Now().String()})
 }
 
-func ExampleNewFromFile() {
+func ExampleNewSplitFile() {
 	flog, err := logging.NewSplitFile("example.log", "example.err", true)
 	if err != nil {
 		log.Fatal("filelog", "failed to open logger",
