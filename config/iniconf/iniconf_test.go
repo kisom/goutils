@@ -1,18 +1,19 @@
-package iniconf
+package iniconf_test
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"sort"
 	"testing"
+
+	"git.wntrmute.dev/kyle/goutils/config/iniconf"
 )
 
 // FailWithError is a utility for dumping errors and failing the test.
 func FailWithError(t *testing.T, err error) {
-	fmt.Println("failed")
+	t.Log("failed")
 	if err != nil {
-		fmt.Println("[!] ", err.Error())
+		t.Log("[!] ", err.Error())
 	}
 	t.FailNow()
 }
@@ -49,47 +50,50 @@ func stringSlicesEqual(slice1, slice2 []string) bool {
 
 func TestGoodConfig(t *testing.T) {
 	testFile := "testdata/test.conf"
-	fmt.Printf("[+] validating known-good config... ")
-	cmap, err := ParseFile(testFile)
+	t.Logf("[+] validating known-good config... ")
+	cmap, err := iniconf.ParseFile(testFile)
 	if err != nil {
 		FailWithError(t, err)
 	} else if len(cmap) != 2 {
 		FailWithError(t, err)
 	}
-	fmt.Println("ok")
+	t.Log("ok")
 }
 
 func TestGoodConfig2(t *testing.T) {
 	testFile := "testdata/test2.conf"
-	fmt.Printf("[+] validating second known-good config... ")
-	cmap, err := ParseFile(testFile)
-	if err != nil {
+	t.Logf("[+] validating second known-good config... ")
+	cmap, err := iniconf.ParseFile(testFile)
+	switch {
+	case err != nil:
 		FailWithError(t, err)
-	} else if len(cmap) != 1 {
+	case len(cmap) != 1:
 		FailWithError(t, err)
-	} else if len(cmap["default"]) != 3 {
+	case len(cmap["default"]) != 3:
 		FailWithError(t, err)
+	default:
+		// nothing to do here
 	}
-	fmt.Println("ok")
+	t.Log("ok")
 }
 
 func TestBadConfig(t *testing.T) {
 	testFile := "testdata/bad.conf"
-	fmt.Printf("[+] ensure invalid config file fails... ")
-	_, err := ParseFile(testFile)
+	t.Logf("[+] ensure invalid config file fails... ")
+	_, err := iniconf.ParseFile(testFile)
 	if err == nil {
-		err = fmt.Errorf("invalid config file should fail")
+		err = errors.New("invalid config file should fail")
 		FailWithError(t, err)
 	}
-	fmt.Println("ok")
+	t.Log("ok")
 }
 
 func TestWriteConfigFile(t *testing.T) {
-	fmt.Printf("[+] ensure config file is written properly... ")
+	t.Logf("[+] ensure config file is written properly... ")
 	const testFile = "testdata/test.conf"
 	const testOut = "testdata/test.out"
 
-	cmap, err := ParseFile(testFile)
+	cmap, err := iniconf.ParseFile(testFile)
 	if err != nil {
 		FailWithError(t, err)
 	}
@@ -100,7 +104,7 @@ func TestWriteConfigFile(t *testing.T) {
 		FailWithError(t, err)
 	}
 
-	cmap2, err := ParseFile(testOut)
+	cmap2, err := iniconf.ParseFile(testOut)
 	if err != nil {
 		FailWithError(t, err)
 	}
@@ -110,25 +114,25 @@ func TestWriteConfigFile(t *testing.T) {
 	sort.Strings(sectionList1)
 	sort.Strings(sectionList2)
 	if !stringSlicesEqual(sectionList1, sectionList2) {
-		err = fmt.Errorf("section lists don't match")
+		err = errors.New("section lists don't match")
 		FailWithError(t, err)
 	}
 
 	for _, section := range sectionList1 {
 		for _, k := range cmap[section] {
 			if cmap[section][k] != cmap2[section][k] {
-				err = fmt.Errorf("config key doesn't match")
+				err = errors.New("config key doesn't match")
 				FailWithError(t, err)
 			}
 		}
 	}
-	fmt.Println("ok")
+	t.Log("ok")
 }
 
 func TestQuotedValue(t *testing.T) {
 	testFile := "testdata/test.conf"
-	fmt.Printf("[+] validating quoted value... ")
-	cmap, _ := ParseFile(testFile)
+	t.Logf("[+] validating quoted value... ")
+	cmap, _ := iniconf.ParseFile(testFile)
 	val := cmap["sectionName"]["key4"]
 	if val != " space at beginning and end " {
 		FailWithError(t, errors.New("Wrong value in double quotes ["+val+"]"))
@@ -138,5 +142,5 @@ func TestQuotedValue(t *testing.T) {
 	if val != " is quoted with single quotes " {
 		FailWithError(t, errors.New("Wrong value in single quotes ["+val+"]"))
 	}
-	fmt.Println("ok")
+	t.Log("ok")
 }

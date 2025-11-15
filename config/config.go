@@ -11,7 +11,7 @@ package config
 import (
 	"bufio"
 	"fmt"
-	"log"
+	"maps"
 	"os"
 	"sort"
 	"strings"
@@ -33,14 +33,15 @@ func SetEnvPrefix(pfx string) {
 	prefix = pfx
 }
 
+const keyValueSplitLength = 2
+
 func addLine(line string) {
 	if strings.HasPrefix(line, "#") || line == "" {
 		return
 	}
 
-	lineParts := strings.SplitN(line, "=", 2)
-	if len(lineParts) != 2 {
-		log.Print("skipping line: ", line)
+	lineParts := strings.SplitN(line, "=", keyValueSplitLength)
+	if len(lineParts) != keyValueSplitLength {
 		return // silently ignore empty keys
 	}
 
@@ -49,7 +50,7 @@ func addLine(line string) {
 	vars[lineParts[0]] = lineParts[1]
 }
 
-// LoadFile scans the file at path for key=value pairs and adds them
+// LoadFile scans the file at 'path' for key=value pairs and adds them
 // to the configuration.
 func LoadFile(path string) error {
 	file, err := os.Open(path)
@@ -67,18 +68,16 @@ func LoadFile(path string) error {
 	return scanner.Err()
 }
 
-// LoadFileFor scans the ini file at path, loading the default section
-// and overriding any keys found under section. If strict is true, the
-// named section must exist (i.e. to catch typos in the section name).
+// LoadFileFor scans the ini file at 'path', loading the default section
+// and overriding any keys found under 'section'. If strict is true, the
+// named section must exist (i.e., to catch typos in the section name).
 func LoadFileFor(path, section string, strict bool) error {
 	cmap, err := iniconf.ParseFile(path)
 	if err != nil {
 		return err
 	}
 
-	for key, value := range cmap[iniconf.DefaultSection] {
-		vars[key] = value
-	}
+	maps.Copy(vars, cmap[iniconf.DefaultSection])
 
 	smap, ok := cmap[section]
 	if !ok {
@@ -88,9 +87,7 @@ func LoadFileFor(path, section string, strict bool) error {
 		return nil
 	}
 
-	for key, value := range smap {
-		vars[key] = value
-	}
+	maps.Copy(vars, smap)
 
 	return nil
 }
@@ -107,7 +104,7 @@ func Get(key string) string {
 
 // GetDefault retrieves a value from either a configuration file or
 // the environment. Note that value from a file will override
-// environment variables. If a value isn't found (e.g. Get returns an
+// environment variables. If a value isn't found (e.g., Get returns an
 // empty string), the default value will be used.
 func GetDefault(key, def string) string {
 	if v := Get(key); v != "" {
@@ -117,8 +114,7 @@ func GetDefault(key, def string) string {
 }
 
 // Require retrieves a value from either a configuration file or the
-// environment. If the key isn't present, it will call log.Fatal, printing
-// the missing key.
+// environment. If the key isn't present, it will panic.
 func Require(key string) string {
 	if v, ok := vars[key]; ok {
 		return v
@@ -131,7 +127,7 @@ func Require(key string) string {
 			envMessage = " (note: looked for the key " + prefix + key
 			envMessage += " in the local env)"
 		}
-		log.Fatalf("missing required configuration value %s%s", key, envMessage)
+		panic(fmt.Sprintf("missing required configuration value %s%s", key, envMessage))
 	}
 
 	return v
@@ -139,7 +135,8 @@ func Require(key string) string {
 
 // ListKeys returns a slice of the currently known keys.
 func ListKeys() []string {
-	keyList := []string{}
+	var keyList []string
+
 	for k := range vars {
 		keyList = append(keyList, k)
 	}

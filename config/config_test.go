@@ -1,27 +1,26 @@
-package config
+package config_test
 
 import (
 	"os"
 	"testing"
+
+	"git.wntrmute.dev/kyle/goutils/config"
 )
 
 const (
 	testFilePath = "testdata/test.env"
 
-	// Keys
+	// Key constants.
 	kOrder   = "ORDER"
 	kSpecies = "SPECIES"
 	kName    = "COMMON_NAME"
 
-	// Env
 	eOrder   = "corvus"
 	eSpecies = "corvus corax"
 	eName    = "northern raven"
 
-	// File
 	fOrder   = "stringiformes"
 	fSpecies = "strix aluco"
-	// Name isn't set in the file to test fall through.
 )
 
 func init() {
@@ -31,8 +30,8 @@ func init() {
 }
 
 func TestLoadEnvOnly(t *testing.T) {
-	order := Get(kOrder)
-	species := Get(kSpecies)
+	order := config.Get(kOrder)
+	species := config.Get(kSpecies)
 	if order != eOrder {
 		t.Errorf("want %s, have %s", eOrder, order)
 	}
@@ -43,14 +42,14 @@ func TestLoadEnvOnly(t *testing.T) {
 }
 
 func TestLoadFile(t *testing.T) {
-	err := LoadFile(testFilePath)
+	err := config.LoadFile(testFilePath)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	order := Get(kOrder)
-	species := Get(kSpecies)
-	name := Get(kName)
+	order := config.Get(kOrder)
+	species := config.Get(kSpecies)
+	name := config.Get(kName)
 
 	if order != fOrder {
 		t.Errorf("want %s, have %s", fOrder, order)
