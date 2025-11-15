@@ -1,5 +1,4 @@
 //go:build windows
-// +build windows
 
 // Package fileutil contains common file functions.
 package fileutil

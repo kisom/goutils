@@ -1,10 +1,10 @@
 //go:build !windows
-// +build !windows
 
 // Package fileutil contains common file functions.
 package fileutil
 
 import (
+	"math"
 	"os"
 
 	"golang.org/x/sys/unix"
@@ -46,5 +46,9 @@ const (
 // Access returns a boolean indicating whether the mode being checked
 // for is valid.
 func Access(path string, mode int) error {
-	return unix.Access(path, uint32(mode))
+	// Validate the conversion to avoid potential integer overflow (gosec G115).
+	if mode < 0 || uint64(mode) > uint64(math.MaxUint32) {
+		return unix.EINVAL
+	}
+	return unix.Access(path, uint32(mode)) // #nosec G115 - handled above.
 }
