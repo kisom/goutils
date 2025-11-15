@@ -64,11 +64,7 @@ func LoadFile(path string) error {
 		addLine(line)
 	}
 
-	if err = scanner.Err(); err != nil {
-		return err
-	}
-
-	return nil
+	return scanner.Err()
 }
 
 // LoadFileFor scans the ini file at path, loading the default section

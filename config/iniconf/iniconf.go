@@ -42,67 +42,94 @@ func ParseReader(r io.Reader) (cfg ConfigMap, err error) {
 		line           string
 		longLine       bool
 		currentSection string
-		lineBytes      []byte
-		isPrefix       bool
 	)
 
 	for {
-		err = nil
-		lineBytes, isPrefix, err = buf.ReadLine()
-		if io.EOF == err {
+		line, longLine, err = readConfigLine(buf, line, longLine)
+		if err == io.EOF {
 			err = nil
 			break
 		} else if err != nil {
 			break
-		} else if isPrefix {
-			line += string(lineBytes)
-
-			longLine = true
-			continue
-		} else if longLine {
-			line += string(lineBytes)
-			longLine = false
-		} else {
-			line = string(lineBytes)
 		}
 
-		if commentLine.MatchString(line) {
+		if line == "" {
 			continue
-		} else if blankLine.MatchString(line) {
-			continue
-		} else if configSection.MatchString(line) {
-			section := configSection.ReplaceAllString(line,
-				"$1")
-			if section == "" {
-				err = fmt.Errorf("invalid structure in file")
-				break
-			} else if !cfg.SectionInConfig(section) {
-				cfg[section] = make(map[string]string, 0)
-			}
-			currentSection = section
-		} else if configLine.MatchString(line) {
-			regex := configLine
-			if quotedConfigLine.MatchString(line) {
-				regex = quotedConfigLine
-			}
-			if currentSection == "" {
-				currentSection = DefaultSection
-				if !cfg.SectionInConfig(currentSection) {
-					cfg[currentSection] = map[string]string{}
-				}
-			}
-			key := regex.ReplaceAllString(line, "$1")
-			val := regex.ReplaceAllString(line, "$2")
-			if key == "" {
-				continue
-			}
-			cfg[currentSection][key] = val
-		} else {
-			err = fmt.Errorf("invalid config file")
+		}
+
+		currentSection, err = processConfigLine(cfg, line, currentSection)
+		if err != nil {
 			break
 		}
 	}
 	return
+}
+
+// readConfigLine reads and assembles a complete configuration line, handling long lines.
+func readConfigLine(buf *bufio.Reader, currentLine string, longLine bool) (line string, stillLong bool, err error) {
+	lineBytes, isPrefix, err := buf.ReadLine()
+	if err != nil {
+		return "", false, err
+	}
+
+	if isPrefix {
+		return currentLine + string(lineBytes), true, nil
+	} else if longLine {
+		return currentLine + string(lineBytes), false, nil
+	}
+	return string(lineBytes), false, nil
+}
+
+// processConfigLine processes a single line and updates the configuration map.
+func processConfigLine(cfg ConfigMap, line string, currentSection string) (string, error) {
+	if commentLine.MatchString(line) || blankLine.MatchString(line) {
+		return currentSection, nil
+	}
+
+	if configSection.MatchString(line) {
+		return handleSectionLine(cfg, line)
+	}
+
+	if configLine.MatchString(line) {
+		return handleConfigLine(cfg, line, currentSection)
+	}
+
+	return currentSection, fmt.Errorf("invalid config file")
+}
+
+// handleSectionLine processes a section header line.
+func handleSectionLine(cfg ConfigMap, line string) (string, error) {
+	section := configSection.ReplaceAllString(line, "$1")
+	if section == "" {
+		return "", fmt.Errorf("invalid structure in file")
+	}
+	if !cfg.SectionInConfig(section) {
+		cfg[section] = make(map[string]string, 0)
+	}
+	return section, nil
+}
+
+// handleConfigLine processes a key=value configuration line.
+func handleConfigLine(cfg ConfigMap, line string, currentSection string) (string, error) {
+	regex := configLine
+	if quotedConfigLine.MatchString(line) {
+		regex = quotedConfigLine
+	}
+
+	if currentSection == "" {
+		currentSection = DefaultSection
+		if !cfg.SectionInConfig(currentSection) {
+			cfg[currentSection] = map[string]string{}
+		}
+	}
+
+	key := regex.ReplaceAllString(line, "$1")
+	val := regex.ReplaceAllString(line, "$2")
+	if key != "" {
+		cfg[currentSection][key] = val
+	}
+
+	return currentSection, nil
 }
 
 // SectionInConfig determines whether a section is in the configuration.
