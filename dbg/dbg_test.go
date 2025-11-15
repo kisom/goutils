@@ -2,7 +2,6 @@ package dbg
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -50,7 +49,7 @@ func TestTo(t *testing.T) {
 }
 
 func TestToFile(t *testing.T) {
-	testFile, err := ioutil.TempFile("", "dbg")
+	testFile, err := os.CreateTemp(t.TempDir(), "dbg")
 	assert.NoErrorT(t, err)
 	err = testFile.Close()
 	assert.NoErrorT(t, err)
@@ -103,7 +102,7 @@ func TestWriting(t *testing.T) {
 }
 
 func TestToFileError(t *testing.T) {
-	testFile, err := ioutil.TempFile("", "dbg")
+	testFile, err := os.CreateTemp(t.TempDir(), "dbg")
 	assert.NoErrorT(t, err)
 	err = testFile.Chmod(0400)
 	assert.NoErrorT(t, err)

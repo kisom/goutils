@@ -47,7 +47,7 @@ func ToFile(path string) (*DebugPrinter, error) {
 	}, nil
 }
 
-// To sets up a new DebugPrint to an io.WriteCloser.
+// To will set up a new DebugPrint to an io.WriteCloser.
 func To(w io.WriteCloser) *DebugPrinter {
 	return &DebugPrinter{
 		out: w,
@@ -55,22 +55,22 @@ func To(w io.WriteCloser) *DebugPrinter {
 }
 
 // Print calls fmt.Print if Enabled is true.
-func (dbg *DebugPrinter) Print(v ...interface{}) {
+func (dbg *DebugPrinter) Print(v any) {
 	if dbg.Enabled {
-		fmt.Fprint(dbg.out, v...)
+		fmt.Fprint(dbg.out, v)
 	}
 }
 
 // Println calls fmt.Println if Enabled is true.
-func (dbg *DebugPrinter) Println(v ...interface{}) {
+func (dbg *DebugPrinter) Println(v any) {
 	if dbg.Enabled {
-		fmt.Fprintln(dbg.out, v...)
+		fmt.Fprintln(dbg.out, v)
 	}
 }
 
 // Printf calls fmt.Printf if Enabled is true.
-func (dbg *DebugPrinter) Printf(format string, v ...interface{}) {
+func (dbg *DebugPrinter) Printf(format string, v any) {
 	if dbg.Enabled {
-		fmt.Fprintf(dbg.out, format, v...)
+		fmt.Fprintf(dbg.out, format, v)
 	}
 }

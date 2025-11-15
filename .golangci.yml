@@ -447,6 +447,8 @@ linters:
         linters: [ staticcheck, gosec ]
       - path: 'backoff/backoff_test.go'
         linters: [ testpackage ]
+      - path: 'dbg/dbg_test.go'
+        linters: [ testpackage ]
       - source: 'TODO'
         linters: [ godot ]
       - text: 'should have a package comment'
