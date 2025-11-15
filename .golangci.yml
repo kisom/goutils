@@ -1,0 +1,87 @@
+run:
+  timeout: 5m
+  tests: true
+  build-tags: []
+  modules-download-mode: readonly
+
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - gofmt
+    - goimports
+    - misspell
+    - unparam
+    - unconvert
+    - goconst
+    - gocyclo
+    - gosec
+    - prealloc
+    - copyloopvar
+    - revive
+    - typecheck
+
+linters-settings:
+  gocyclo:
+    min-complexity: 15
+  
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  
+  misspell:
+    locale: US
+  
+  revive:
+    rules:
+      - name: exported
+        disabled: false
+      - name: error-return
+      - name: error-naming
+      - name: if-return
+      - name: var-naming
+      - name: package-comments
+        disabled: true
+      - name: indent-error-flow
+      - name: context-as-argument
+  
+  gosec:
+    excludes:
+      - G304  # File path from variable (common in file utilities)
+      - G404  # Use of weak random (acceptable for non-crypto use)
+
+issues:
+  exclude-rules:
+    # Exclude some linters from running on tests files
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - errcheck
+        - gosec
+    
+    # Exclude embedded content from checks
+    - path: ".*\\.txt$"
+      linters:
+        - all
+    
+    # Ignore deprecation warnings in legacy code if needed
+    - linters:
+        - staticcheck
+      text: "SA1019"
+  
+  # Maximum issues count per one linter
+  max-issues-per-linter: 0
+  
+  # Maximum count of issues with the same text
+  max-same-issues: 0
+
+output:
+  formats:
+    - format: colored-line-number
+      path: stdout
+  print-issued-lines: true
+  print-linter-name: true

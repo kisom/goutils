@@ -1,6 +1,6 @@
 module git.wntrmute.dev/kyle/goutils
 
-go 1.20
+go 1.22
 
 require (
 	github.com/hashicorp/go-syslog v1.0.0
