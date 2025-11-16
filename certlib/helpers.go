@@ -91,16 +91,20 @@ var Apr2015 = InclusiveDate(2015, time.April, 01)
 
 // KeyLength returns the bit size of ECDSA or RSA PublicKey.
 func KeyLength(key any) int {
-	if key == nil {
+	switch k := key.(type) {
+	case *ecdsa.PublicKey:
+		if k == nil {
+			return 0
+		}
+		return k.Curve.Params().BitSize
+	case *rsa.PublicKey:
+		if k == nil {
+			return 0
+		}
+		return k.N.BitLen()
+	default:
 		return 0
 	}
-	if ecdsaKey, ok := key.(*ecdsa.PublicKey); ok {
-		return ecdsaKey.Curve.Params().BitSize
-	} else if rsaKey, ok := key.(*rsa.PublicKey); ok {
-		return rsaKey.N.BitLen()
-	}
-
-	return 0
 }
 
 // ExpiryTime returns the time when the certificate chain is expired.
@@ -144,91 +148,79 @@ func ValidExpiry(c *x509.Certificate) bool {
 		maxMonths = 39
 	case issued.After(Jul2012):
 		maxMonths = 60
-	case issued.Before(Jul2012):
+	default:
 		maxMonths = 120
 	}
 
-	if MonthsValid(c) > maxMonths {
-		return false
-	}
-	return true
+	return MonthsValid(c) <= maxMonths
+}
+
+// SignatureString returns the TLS signature string corresponding to
+// an X509 signature algorithm.
+var signatureString = map[x509.SignatureAlgorithm]string{
+	x509.MD2WithRSA:      "MD2WithRSA",
+	x509.MD5WithRSA:      "MD5WithRSA",
+	x509.SHA1WithRSA:     "SHA1WithRSA",
+	x509.SHA256WithRSA:   "SHA256WithRSA",
+	x509.SHA384WithRSA:   "SHA384WithRSA",
+	x509.SHA512WithRSA:   "SHA512WithRSA",
+	x509.DSAWithSHA1:     "DSAWithSHA1",
+	x509.DSAWithSHA256:   "DSAWithSHA256",
+	x509.ECDSAWithSHA1:   "ECDSAWithSHA1",
+	x509.ECDSAWithSHA256: "ECDSAWithSHA256",
+	x509.ECDSAWithSHA384: "ECDSAWithSHA384",
+	x509.ECDSAWithSHA512: "ECDSAWithSHA512",
 }
 
 // SignatureString returns the TLS signature string corresponding to
 // an X509 signature algorithm.
 func SignatureString(alg x509.SignatureAlgorithm) string {
-	switch alg {
-	case x509.MD2WithRSA:
-		return "MD2WithRSA"
-	case x509.MD5WithRSA:
-		return "MD5WithRSA"
-	case x509.SHA1WithRSA:
-		return "SHA1WithRSA"
-	case x509.SHA256WithRSA:
-		return "SHA256WithRSA"
-	case x509.SHA384WithRSA:
-		return "SHA384WithRSA"
-	case x509.SHA512WithRSA:
-		return "SHA512WithRSA"
-	case x509.DSAWithSHA1:
-		return "DSAWithSHA1"
-	case x509.DSAWithSHA256:
-		return "DSAWithSHA256"
-	case x509.ECDSAWithSHA1:
-		return "ECDSAWithSHA1"
-	case x509.ECDSAWithSHA256:
-		return "ECDSAWithSHA256"
-	case x509.ECDSAWithSHA384:
-		return "ECDSAWithSHA384"
-	case x509.ECDSAWithSHA512:
-		return "ECDSAWithSHA512"
-	default:
-		return "Unknown Signature"
+	if s, ok := signatureString[alg]; ok {
+		return s
 	}
+	return "Unknown Signature"
+}
+
+// HashAlgoString returns the hash algorithm name contains in the signature
+// method.
+var hashAlgoString = map[x509.SignatureAlgorithm]string{
+	x509.MD2WithRSA:      "MD2",
+	x509.MD5WithRSA:      "MD5",
+	x509.SHA1WithRSA:     "SHA1",
+	x509.SHA256WithRSA:   "SHA256",
+	x509.SHA384WithRSA:   "SHA384",
+	x509.SHA512WithRSA:   "SHA512",
+	x509.DSAWithSHA1:     "SHA1",
+	x509.DSAWithSHA256:   "SHA256",
+	x509.ECDSAWithSHA1:   "SHA1",
+	x509.ECDSAWithSHA256: "SHA256",
+	x509.ECDSAWithSHA384: "SHA384",
+	x509.ECDSAWithSHA512: "SHA512",
 }
 
 // HashAlgoString returns the hash algorithm name contains in the signature
 // method.
 func HashAlgoString(alg x509.SignatureAlgorithm) string {
-	switch alg {
-	case x509.MD2WithRSA:
-		return "MD2"
-	case x509.MD5WithRSA:
-		return "MD5"
-	case x509.SHA1WithRSA:
-		return "SHA1"
-	case x509.SHA256WithRSA:
-		return "SHA256"
-	case x509.SHA384WithRSA:
-		return "SHA384"
-	case x509.SHA512WithRSA:
-		return "SHA512"
-	case x509.DSAWithSHA1:
-		return "SHA1"
-	case x509.DSAWithSHA256:
-		return "SHA256"
-	case x509.ECDSAWithSHA1:
-		return "SHA1"
-	case x509.ECDSAWithSHA256:
-		return "SHA256"
-	case x509.ECDSAWithSHA384:
-		return "SHA384"
-	case x509.ECDSAWithSHA512:
-		return "SHA512"
-	default:
-		return "Unknown Hash Algorithm"
+	if s, ok := hashAlgoString[alg]; ok {
+		return s
 	}
+	return "Unknown Hash Algorithm"
 }
 
 // StringTLSVersion returns underlying enum values from human names for TLS
 // versions, defaults to current golang default of TLS 1.0.
 func StringTLSVersion(version string) uint16 {
 	switch version {
+	case "1.3":
+		return tls.VersionTLS13
 	case "1.2":
 		return tls.VersionTLS12
 	case "1.1":
 		return tls.VersionTLS11
+	case "1.0":
+		return tls.VersionTLS10
 	default:
+		// Default to Go's historical default of TLS 1.0 for unknown values
 		return tls.VersionTLS10
 	}
 }
@@ -283,33 +275,40 @@ func ParseCertificatesPEM(certsPEM []byte) ([]*x509.Certificate, error) {
 // either PKCS #7, PKCS #12, or raw x509.
 func ParseCertificatesDER(certsDER []byte, password string) (certs []*x509.Certificate, key crypto.Signer, err error) {
 	certsDER = bytes.TrimSpace(certsDER)
-	pkcs7data, err := pkcs7.ParsePKCS7(certsDER)
-	if err != nil {
-		var pkcs12data any
-		var ok bool
-		certs = make([]*x509.Certificate, 1)
-		pkcs12data, certs[0], err = pkcs12.Decode(certsDER, password)
-		if err != nil {
-			certs, err = x509.ParseCertificates(certsDER)
-			if err != nil {
-				return nil, nil, certerr.DecodeError(certerr.ErrorSourceCertificate, err)
-			}
-		} else {
-			key, ok = pkcs12data.(crypto.Signer)
-			if !ok {
-				return nil, nil, certerr.DecodeError(certerr.ErrorSourcePrivateKey, errors.New("PKCS12 data does not contain a private key"))
-			}
-		}
-	} else {
+
+	// First, try PKCS #7
+	if pkcs7data, err7 := pkcs7.ParsePKCS7(certsDER); err7 == nil {
 		if pkcs7data.ContentInfo != "SignedData" {
-			return nil, nil, certerr.DecodeError(certerr.ErrorSourceCertificate, errors.New("can only extract certificates from signed data content info"))
+			return nil, nil, certerr.DecodeError(
+				certerr.ErrorSourceCertificate,
+				errors.New("can only extract certificates from signed data content info"),
+			)
 		}
 		certs = pkcs7data.Content.SignedData.Certificates
+		if certs == nil {
+			return nil, nil, certerr.DecodeError(certerr.ErrorSourceCertificate, errors.New("no certificates decoded"))
+		}
+		return certs, nil, nil
 	}
-	if certs == nil {
-		return nil, key, certerr.DecodeError(certerr.ErrorSourceCertificate, errors.New("no certificates decoded"))
+
+	// Next, try PKCS #12
+	if pkcs12data, cert, err12 := pkcs12.Decode(certsDER, password); err12 == nil {
+		signer, ok := pkcs12data.(crypto.Signer)
+		if !ok {
+			return nil, nil, certerr.DecodeError(
+				certerr.ErrorSourcePrivateKey,
+				errors.New("PKCS12 data does not contain a private key"),
+			)
+		}
+		return []*x509.Certificate{cert}, signer, nil
 	}
-	return certs, key, nil
+
+	// Finally, attempt to parse raw X.509 certificates
+	certs, err = x509.ParseCertificates(certsDER)
+	if err != nil {
+		return nil, nil, certerr.DecodeError(certerr.ErrorSourceCertificate, err)
+	}
+	return certs, nil, nil
 }
 
 // ParseSelfSignedCertificatePEM parses a PEM-encoded certificate and check if it is self-signed.
@@ -329,17 +328,26 @@ func ParseSelfSignedCertificatePEM(certPEM []byte) (*x509.Certificate, error) {
 // can handle PEM encoded PKCS #7 structures.
 func ParseCertificatePEM(certPEM []byte) (*x509.Certificate, error) {
 	certPEM = bytes.TrimSpace(certPEM)
-	cert, rest, err := ParseOneCertificateFromPEM(certPEM)
+	certs, rest, err := ParseOneCertificateFromPEM(certPEM)
 	if err != nil {
 		return nil, certerr.ParsingError(certerr.ErrorSourceCertificate, err)
-	} else if cert == nil {
-		return nil, certerr.DecodeError(certerr.ErrorSourceCertificate, errors.New("no certificate decoded"))
-	} else if len(rest) > 0 {
-		return nil, certerr.ParsingError(certerr.ErrorSourceCertificate, errors.New("the PEM file should contain only one object"))
-	} else if len(cert) > 1 {
-		return nil, certerr.ParsingError(certerr.ErrorSourceCertificate, errors.New("the PKCS7 object in the PEM file should contain only one certificate"))
 	}
-	return cert[0], nil
+	if certs == nil {
+		return nil, certerr.DecodeError(certerr.ErrorSourceCertificate, errors.New("no certificate decoded"))
+	}
+	if len(rest) > 0 {
+		return nil, certerr.ParsingError(
+			certerr.ErrorSourceCertificate,
+			errors.New("the PEM file should contain only one object"),
+		)
+	}
+	if len(certs) > 1 {
+		return nil, certerr.ParsingError(
+			certerr.ErrorSourceCertificate,
+			errors.New("the PKCS7 object in the PEM file should contain only one certificate"),
+		)
+	}
+	return certs[0], nil
 }
 
 // ParseOneCertificateFromPEM attempts to parse one PEM encoded certificate object,
@@ -392,7 +400,7 @@ func PEMToCertPool(pemCerts []byte) (*x509.CertPool, error) {
 
 	certPool := x509.NewCertPool()
 	if !certPool.AppendCertsFromPEM(pemCerts) {
-		return nil, errors.New("failed to load cert pool")
+		return nil, certerr.LoadingError(certerr.ErrorSourceCertificate, errors.New("failed to load cert pool"))
 	}
 
 	return certPool, nil
@@ -461,12 +469,12 @@ func ParseCSR(in []byte) (csr *x509.CertificateRequest, rest []byte, err error) 
 	}
 
 	if err != nil {
-		return nil, rest, err
+		return nil, rest, certerr.ParsingError(certerr.ErrorSourceCSR, err)
 	}
 
 	err = csr.CheckSignature()
 	if err != nil {
-		return nil, rest, err
+		return nil, rest, certerr.VerifyError(certerr.ErrorSourceCSR, err)
 	}
 
 	return csr, rest, nil
@@ -483,7 +491,7 @@ func ParseCSRPEM(csrPEM []byte) (*x509.CertificateRequest, error) {
 	csrObject, err := x509.ParseCertificateRequest(block.Bytes)
 
 	if err != nil {
-		return nil, err
+		return nil, certerr.ParsingError(certerr.ErrorSourceCSR, err)
 	}
 
 	return csrObject, nil
@@ -628,20 +636,16 @@ func SCTListFromOCSPResponse(response *ocsp.Response) ([]ct.SignedCertificateTim
 // the subsequent file. If no prefix is provided, valFile is assumed to be a
 // file path.
 func ReadBytes(valFile string) ([]byte, error) {
-	switch splitVal := strings.SplitN(valFile, ":", 2); len(splitVal) {
-	case 1:
+	prefix, rest, found := strings.Cut(valFile, ":")
+	if !found {
 		return os.ReadFile(valFile)
-	case 2:
-		switch splitVal[0] {
-		case "env":
-			return []byte(os.Getenv(splitVal[1])), nil
-		case "file":
-			return os.ReadFile(splitVal[1])
-		default:
-			return nil, fmt.Errorf("unknown prefix: %s", splitVal[0])
-		}
+	}
+	switch prefix {
+	case "env":
+		return []byte(os.Getenv(rest)), nil
+	case "file":
+		return os.ReadFile(rest)
 	default:
-		return nil, fmt.Errorf("multiple prefixes: %s",
-			strings.Join(splitVal[:len(splitVal)-1], ", "))
+		return nil, fmt.Errorf("unknown prefix: %s", prefix)
 	}
 }

@@ -1,70 +1,68 @@
 package main
 
 import (
-	"compress/flate"
-	"compress/gzip"
-	"flag"
-	"fmt"
-	"io"
-	"os"
-	"path/filepath"
-	"strings"
-
-	"github.com/pkg/errors"
+    "compress/flate"
+    "compress/gzip"
+    "flag"
+    "fmt"
+    "io"
+    "os"
+    "path/filepath"
+    "strings"
 )
 
 const gzipExt = ".gz"
 
 func compress(path, target string, level int) error {
-	sourceFile, err := os.Open(path)
-	if err != nil {
-		return errors.Wrap(err, "opening file for read")
-	}
+ sourceFile, err := os.Open(path)
+ if err != nil {
+     return fmt.Errorf("opening file for read: %w", err)
+ }
 	defer sourceFile.Close()
 
-	destFile, err := os.Create(target)
-	if err != nil {
-		return errors.Wrap(err, "opening file for write")
-	}
+ destFile, err := os.Create(target)
+ if err != nil {
+     return fmt.Errorf("opening file for write: %w", err)
+ }
 	defer destFile.Close()
 
-	gzipCompressor, err := gzip.NewWriterLevel(destFile, level)
-	if err != nil {
-		return errors.Wrap(err, "invalid compression level")
-	}
+ gzipCompressor, err := gzip.NewWriterLevel(destFile, level)
+ if err != nil {
+     return fmt.Errorf("invalid compression level: %w", err)
+ }
 	defer gzipCompressor.Close()
 
-	_, err = io.Copy(gzipCompressor, sourceFile)
-	if err != nil {
-		return errors.Wrap(err, "compressing file")
-	}
+ _, err = io.Copy(gzipCompressor, sourceFile)
+ if err != nil {
+     return fmt.Errorf("compressing file: %w", err)
+ }
 
 	return nil
 }
 
 func uncompress(path, target string) error {
-	sourceFile, err := os.Open(path)
-	if err != nil {
-		return errors.Wrap(err, "opening file for read")
-	}
+ sourceFile, err := os.Open(path)
+ if err != nil {
+     return fmt.Errorf("opening file for read: %w", err)
+ }
 	defer sourceFile.Close()
 
-	gzipUncompressor, err := gzip.NewReader(sourceFile)
-	if err != nil {
-		return errors.Wrap(err, "reading gzip headers")
-	}
+ gzipUncompressor, err := gzip.NewReader(sourceFile)
+ if err != nil {
+     return fmt.Errorf("reading gzip headers: %w", err)
+ }
 	defer gzipUncompressor.Close()
 
-	destFile, err := os.Create(target)
-	if err != nil {
-		return errors.Wrap(err, "opening file for write")
-	}
+ destFile, err := os.Create(target)
+ if err != nil {
+     return fmt.Errorf("opening file for write: %w", err)
+ }
 	defer destFile.Close()
 
-	_, err = io.Copy(destFile, gzipUncompressor)
-	if err != nil {
-		return errors.Wrap(err, "uncompressing file")
-	}
+ _, err = io.Copy(destFile, gzipUncompressor)
+ if err != nil {
+     return fmt.Errorf("uncompressing file: %w", err)
+ }
 
 	return nil
 }
@@ -108,9 +106,9 @@ func pathForUncompressing(source, dest string) (string, error) {
 	}
 
 	source = filepath.Base(source)
-	if !strings.HasSuffix(source, gzipExt) {
-		return "", errors.Errorf("%s is a not gzip-compressed file", source)
-	}
+ if !strings.HasSuffix(source, gzipExt) {
+        return "", fmt.Errorf("%s is a not gzip-compressed file", source)
+    }
 	outFile := source[:len(source)-len(gzipExt)]
 	outFile = filepath.Join(dest, outFile)
 	return outFile, nil
@@ -122,9 +120,9 @@ func pathForCompressing(source, dest string) (string, error) {
 	}
 
 	source = filepath.Base(source)
-	if strings.HasSuffix(source, gzipExt) {
-		return "", errors.Errorf("%s is a gzip-compressed file", source)
-	}
+ if strings.HasSuffix(source, gzipExt) {
+        return "", fmt.Errorf("%s is a gzip-compressed file", source)
+    }
 
 	dest = filepath.Join(dest, source+gzipExt)
 	return dest, nil

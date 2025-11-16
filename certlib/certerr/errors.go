@@ -37,6 +37,48 @@ const (
 	ErrorSourceKeypair     ErrorSourceType = 5
 )
 
+// ErrorKind is a broad classification describing what went wrong.
+type ErrorKind uint8
+
+const (
+	KindParse ErrorKind = iota + 1
+	KindDecode
+	KindVerify
+	KindLoad
+)
+
+func (k ErrorKind) String() string {
+	switch k {
+	case KindParse:
+		return "parse"
+	case KindDecode:
+		return "decode"
+	case KindVerify:
+		return "verify"
+	case KindLoad:
+		return "load"
+	default:
+		return "unknown"
+	}
+}
+
+// Error is a typed, wrapped error with structured context for programmatic checks.
+// It implements error and supports errors.Is/As via Unwrap.
+type Error struct {
+	Source ErrorSourceType // which domain produced the error (certificate, private key, etc.)
+	Kind   ErrorKind       // operation category (parse, decode, verify, load)
+	Op     string          // optional operation or function name
+	Err    error           // wrapped cause
+}
+
+func (e *Error) Error() string {
+	// Keep message format consistent with existing helpers: "failed to <kind> <source>: <err>"
+	// Do not include Op by default to preserve existing output expectations.
+	return fmt.Sprintf("failed to %s %s: %v", e.Kind.String(), e.Source.String(), e.Err)
+}
+
+func (e *Error) Unwrap() error { return e.Err }
+
 // InvalidPEMType is used to indicate that we were expecting one type of PEM
 // file, but saw another.
 type InvalidPEMType struct {
@@ -61,19 +103,19 @@ func ErrInvalidPEMType(have string, want ...string) error {
 }
 
 func LoadingError(t ErrorSourceType, err error) error {
-	return fmt.Errorf("failed to load %s from disk: %w", t, err)
+	return &Error{Source: t, Kind: KindLoad, Err: err}
 }
 
 func ParsingError(t ErrorSourceType, err error) error {
-	return fmt.Errorf("failed to parse %s: %w", t, err)
+	return &Error{Source: t, Kind: KindParse, Err: err}
 }
 
 func DecodeError(t ErrorSourceType, err error) error {
-	return fmt.Errorf("failed to decode %s: %w", t, err)
+	return &Error{Source: t, Kind: KindDecode, Err: err}
 }
 
 func VerifyError(t ErrorSourceType, err error) error {
-	return fmt.Errorf("failed to verify %s: %w", t, err)
+	return &Error{Source: t, Kind: KindVerify, Err: err}
 }
 
 var ErrEncryptedPrivateKey = errors.New("private key is encrypted")

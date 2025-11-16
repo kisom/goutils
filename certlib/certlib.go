@@ -4,7 +4,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"io/ioutil"
+	"os"
 
 	"git.wntrmute.dev/kyle/goutils/certlib/certerr"
 )
@@ -13,28 +13,31 @@ import (
 // byte slice.
 func ReadCertificate(in []byte) (cert *x509.Certificate, rest []byte, err error) {
 	if len(in) == 0 {
-		err = certerr.ErrEmptyCertificate
-		return cert, rest, err
+		return nil, nil, certerr.ParsingError(certerr.ErrorSourceCertificate, certerr.ErrEmptyCertificate)
 	}
 
 	if in[0] == '-' {
 		p, remaining := pem.Decode(in)
 		if p == nil {
-			err = errors.New("certlib: invalid PEM file")
-			return cert, rest, err
+			return nil, nil, certerr.ParsingError(certerr.ErrorSourceCertificate, errors.New("invalid PEM file"))
 		}
 
 		rest = remaining
 		if p.Type != "CERTIFICATE" {
-			err = certerr.ErrInvalidPEMType(p.Type, "CERTIFICATE")
-			return cert, rest, err
+			return nil, rest, certerr.ParsingError(
+				certerr.ErrorSourceCertificate,
+				certerr.ErrInvalidPEMType(p.Type, "CERTIFICATE"),
+			)
 		}
 
 		in = p.Bytes
 	}
 
 	cert, err = x509.ParseCertificate(in)
-	return cert, rest, err
+	if err != nil {
+		return nil, rest, certerr.ParsingError(certerr.ErrorSourceCertificate, err)
+	}
+	return cert, rest, nil
 }
 
 // ReadCertificates tries to read all the certificates in a
@@ -64,9 +67,9 @@ func ReadCertificates(in []byte) (certs []*x509.Certificate, err error) {
 // the file contains multiple certificates (e.g. a chain), only the
 // first certificate is returned.
 func LoadCertificate(path string) (*x509.Certificate, error) {
-	in, err := ioutil.ReadFile(path)
+	in, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return nil, certerr.LoadingError(certerr.ErrorSourceCertificate, err)
 	}
 
 	cert, _, err := ReadCertificate(in)
@@ -76,9 +79,9 @@ func LoadCertificate(path string) (*x509.Certificate, error) {
 // LoadCertificates tries to read all the certificates in a file,
 // returning them in the order that it found them in the file.
 func LoadCertificates(path string) ([]*x509.Certificate, error) {
-	in, err := ioutil.ReadFile(path)
+	in, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return nil, certerr.LoadingError(certerr.ErrorSourceCertificate, err)
 	}
 
 	return ReadCertificates(in)

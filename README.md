@@ -78,3 +78,43 @@ Each program should have a small README in the directory with more
 information.
 
 All code here is licensed under the ISC license.
+
+
+Error handling
+--------------
+
+This repo standardizes on Go 1.13+ error wrapping and matching. Libraries and
+CLIs should:
+
+- Wrap causes with context using `fmt.Errorf("context: %w", err)`.
+- Use typed, structured errors from `certlib/certerr` for certificate-related
+  operations. These include a typed `*certerr.Error` with `Source` and `Kind`.
+- Match errors programmatically:
+  - `errors.Is(err, certerr.ErrEncryptedPrivateKey)` to detect sentinel states.
+  - `errors.As(err, &e)` (where `var e *certerr.Error`) to inspect
+    `e.Source`/`e.Kind`.
+
+Examples:
+
+```
+cert, err := certlib.LoadCertificate(path)
+if err != nil {
+    // sentinel match
+    if errors.Is(err, certerr.ErrEmptyCertificate) {
+        // handle empty input
+    }
+
+    // typed error match
+    var ce *certerr.Error
+    if errors.As(err, &ce) {
+        switch ce.Kind {
+        case certerr.KindParse:
+            // parse error handling
+        case certerr.KindLoad:
+            // file loading error handling
+        }
+    }
+}
+```
+
+Avoid including sensitive data (keys, passwords, tokens) in error messages.

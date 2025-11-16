@@ -1,9 +1,8 @@
 package logging
 
 import (
-	"os"
-
-	"github.com/pkg/errors"
+    "fmt"
+    "os"
 )
 
 // File writes its logs to file.
@@ -60,12 +59,12 @@ func NewSplitFile(outpath, errpath string, overwrite bool) (*File, error) {
 		fl.fe, err = os.OpenFile(errpath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0600)
 	}
 
-	if err != nil {
-		if closeErr := fl.Close(); closeErr != nil {
-			return nil, errors.Wrap(err, closeErr.Error())
-		}
-		return nil, err
-	}
+ if err != nil {
+        if closeErr := fl.Close(); closeErr != nil {
+            return nil, fmt.Errorf("failed to open error log: cleanup close failed: %v: %w", closeErr, err)
+        }
+        return nil, err
+    }
 
 	fl.LogWriter = NewLogWriter(fl.fo, fl.fe)
 	return fl, nil
@@ -95,13 +94,13 @@ func (fl *File) Flush() error {
 }
 
 func (fl *File) Chmod(mode os.FileMode) error {
-	if err := fl.fo.Chmod(mode); err != nil {
-		return errors.WithMessage(err, "failed to chmod output log")
-	}
+    if err := fl.fo.Chmod(mode); err != nil {
+        return fmt.Errorf("failed to chmod output log: %w", err)
+    }
 
-	if err := fl.fe.Chmod(mode); err != nil {
-		return errors.WithMessage(err, "failed to chmod error log")
-	}
+    if err := fl.fe.Chmod(mode); err != nil {
+        return fmt.Errorf("failed to chmod error log: %w", err)
+    }
 
-	return nil
+    return nil
 }

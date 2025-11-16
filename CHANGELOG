@@ -1,3 +1,21 @@
+Unreleased - 2025-11-15
+
+"Error handling modernization" (in progress)
+
+- Introduced typed, wrapped errors via certlib/certerr.Error (Source, Kind, Op, Err) with Unwrap.
+- Standardized helper constructors: DecodeError, ParsingError, VerifyError, LoadingError.
+- Preserved sentinel errors (e.g., ErrEncryptedPrivateKey, ErrInvalidPEMType, ErrEmptyCertificate) for errors.Is.
+- Refactored certlib to use certerr in key paths (CSR parsing/verification, PEM cert pool, certificate read/load).
+- Migrated logging/file.go and cmd/kgz away from github.com/pkg/errors to stdlib wrapping.
+- Removed dependency on github.com/pkg/errors; ran go mod tidy.
+- Added package docs for certerr and a README section on error handling and matching.
+- Added unit tests for certerr (Is/As and message formatting).
+
+Planned next steps:
+- Continue refactoring remaining error paths for consistent wrapping.
+- Add focused tests for key flows (encrypted private key, CSR invalid PEM types, etc.).
+- Run golangci-lint (errorlint, errcheck) and address findings.
+
 Release 1.2.1 - 2018-09-15
 
 + Add missing format argument to Errorf call in kgz.
