@@ -1,6 +1,7 @@
 package logging
 
 import (
+    "errors"
     "fmt"
     "os"
 )
@@ -61,9 +62,9 @@ func NewSplitFile(outpath, errpath string, overwrite bool) (*File, error) {
 
  if err != nil {
         if closeErr := fl.Close(); closeErr != nil {
-            return nil, fmt.Errorf("failed to open error log: cleanup close failed: %v: %w", closeErr, err)
+            return nil, fmt.Errorf("failed to open error log: %w", errors.Join(closeErr, err))
         }
-        return nil, err
+        return nil, fmt.Errorf("failed to open error log: %w", err)
     }
 
 	fl.LogWriter = NewLogWriter(fl.fo, fl.fe)

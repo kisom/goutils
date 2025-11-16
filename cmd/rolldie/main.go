@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 	"os"
 	"regexp"
 	"strconv"
@@ -17,11 +17,11 @@ func rollDie(count, sides int) []int {
 	sum := 0
 	var rolls []int
 
-	for i := 0; i < count; i++ {
-		roll := rand.Intn(sides) + 1
-		sum += roll
-		rolls = append(rolls, roll)
-	}
+ for i := 0; i < count; i++ {
+        roll := rand.IntN(sides) + 1
+        sum += roll
+        rolls = append(rolls, roll)
+    }
 
 	rolls = append(rolls, sum)
 	return rolls

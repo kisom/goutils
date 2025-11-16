@@ -81,12 +81,12 @@ var (
 
 // Duration returns a prettier string for time.Durations.
 func Duration(d time.Duration) string {
-	var s string
-	if d >= yearDuration {
-		years := d / yearDuration
-		s += fmt.Sprintf("%dy", years)
-		d -= years * yearDuration
-	}
+    var s string
+    if d >= yearDuration {
+        years := int64(d / yearDuration)
+        s += fmt.Sprintf("%dy", years)
+        d -= time.Duration(years) * yearDuration
+    }
 
 	if d >= dayDuration {
 		days := d / dayDuration
@@ -97,9 +97,9 @@ func Duration(d time.Duration) string {
 		return s
 	}
 
-	d %= 1 * time.Second
-	hours := d / time.Hour
-	d -= hours * time.Hour
+ d %= 1 * time.Second
+ hours := int64(d / time.Hour)
+ d -= time.Duration(hours) * time.Hour
 	s += fmt.Sprintf("%dh%s", hours, d)
 	return s
 }

@@ -1,15 +1,16 @@
 package main
 
 import (
-	"bufio"
-	"flag"
-	"fmt"
-	"io"
-	"log"
-	"net"
-	"os"
-	"strings"
-	"sync"
+    "bufio"
+    "flag"
+    "fmt"
+    "io"
+    "errors"
+    "log"
+    "net"
+    "os"
+    "strings"
+    "sync"
 
 	"git.wntrmute.dev/kyle/goutils/lib"
 	"github.com/pkg/sftp"
@@ -92,12 +93,12 @@ func exec(wg *sync.WaitGroup, user, host string, commands []string) {
 
 	defer func() {
 		for i := len(shutdown) - 1; i >= 0; i-- {
-			err := shutdown[i]()
-			if err != nil && err != io.EOF {
-				logError(host, err, "shutting down")
-			}
-		}
-	}()
+            err := shutdown[i]()
+            if err != nil && !errors.Is(err, io.EOF) {
+                logError(host, err, "shutting down")
+            }
+        }
+    }()
 	defer wg.Done()
 
 	conf := sshConfig(user)
@@ -149,12 +150,12 @@ func upload(wg *sync.WaitGroup, user, host, local, remote string) {
 
 	defer func() {
 		for i := len(shutdown) - 1; i >= 0; i-- {
-			err := shutdown[i]()
-			if err != nil && err != io.EOF {
-				logError(host, err, "shutting down")
-			}
-		}
-	}()
+            err := shutdown[i]()
+            if err != nil && !errors.Is(err, io.EOF) {
+                logError(host, err, "shutting down")
+            }
+        }
+    }()
 	defer wg.Done()
 
 	conf := sshConfig(user)
@@ -199,13 +200,13 @@ func upload(wg *sync.WaitGroup, user, host, local, remote string) {
 			fmt.Printf("[%s] wrote %d-byte chunk\n", host, n)
 		}
 
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			logError(host, err, "reading chunk")
-			return
-		}
-	}
+        if errors.Is(err, io.EOF) {
+            break
+        } else if err != nil {
+            logError(host, err, "reading chunk")
+            return
+        }
+    }
 	fmt.Printf("[%s] %s uploaded to %s\n", host, remote, local)
 }
 
@@ -214,12 +215,12 @@ func download(wg *sync.WaitGroup, user, host, local, remote string) {
 
 	defer func() {
 		for i := len(shutdown) - 1; i >= 0; i-- {
-			err := shutdown[i]()
-			if err != nil && err != io.EOF {
-				logError(host, err, "shutting down")
-			}
-		}
-	}()
+            err := shutdown[i]()
+            if err != nil && !errors.Is(err, io.EOF) {
+                logError(host, err, "shutting down")
+            }
+        }
+    }()
 	defer wg.Done()
 
 	conf := sshConfig(user)
@@ -265,12 +266,12 @@ func download(wg *sync.WaitGroup, user, host, local, remote string) {
 			fmt.Printf("[%s] wrote %d-byte chunk\n", host, n)
 		}
 
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			logError(host, err, "reading chunk")
-			return
-		}
+  if errors.Is(err, io.EOF) {
+            break
+        } else if err != nil {
+            logError(host, err, "reading chunk")
+            return
+        }
 	}
 	fmt.Printf("[%s] %s downloaded to %s\n", host, remote, local)
 }

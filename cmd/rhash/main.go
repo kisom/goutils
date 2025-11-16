@@ -66,24 +66,19 @@ func main() {
 	for _, remote := range flag.Args() {
 		u, err := url.Parse(remote)
 		if err != nil {
-			lib.Warn(err, "parsing %s", remote)
+			_, _ = lib.Warn(err, "parsing %s", remote)
 			continue
 		}
 
 		name := filepath.Base(u.Path)
 		if name == "" {
-			lib.Warnx("source URL doesn't appear to name a file")
+			_, _ = lib.Warnx("source URL doesn't appear to name a file")
 			continue
 		}
 
 		resp, err := http.Get(remote)
 		if err != nil {
-			lib.Warn(err, "fetching %s", remote)
-			continue
-		}
-
-		if err != nil {
-			lib.Warn(err, "fetching %s", remote)
+			_, _ = lib.Warn(err, "fetching %s", remote)
 			continue
 		}
 

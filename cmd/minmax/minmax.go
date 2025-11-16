@@ -46,8 +46,8 @@ func main() {
 	max, err := strconv.Atoi(flag.Arg(2))
 	dieIf(err)
 
-	code := kind << 6
-	code += (min << 3)
-	code += max
-	fmt.Printf("%0o\n", code)
+    code := kind << 6
+    code += (min << 3)
+    code += max
+    fmt.Fprintf(os.Stdout, "%0o\n", code)
 }

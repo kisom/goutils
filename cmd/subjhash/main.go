@@ -57,16 +57,16 @@ func getSubjectInfoHash(cert *x509.Certificate, issuer bool) []byte {
 }
 
 func printDigests(paths []string, issuer bool) {
-	for _, path := range paths {
-		cert, err := certlib.LoadCertificate(path)
-		if err != nil {
-			lib.Warn(err, "failed to load certificate from %s", path)
-			continue
-		}
+    for _, path := range paths {
+        cert, err := certlib.LoadCertificate(path)
+        if err != nil {
+            _, _ = lib.Warn(err, "failed to load certificate from %s", path)
+            continue
+        }
 
 		digest := getSubjectInfoHash(cert, issuer)
-		fmt.Printf("%x  %s\n", digest, path)
-	}
+        fmt.Printf("%x  %s\n", digest, path)
+    }
 }
 
 func matchDigests(paths []string, issuer bool) {
@@ -87,10 +87,10 @@ func matchDigests(paths []string, issuer bool) {
 		die.If(err)
 		sndCert, err := certlib.LoadCertificate(snd)
 		die.If(err)
-		if !bytes.Equal(getSubjectInfoHash(fstCert, issuer), getSubjectInfoHash(sndCert, issuer)) {
-			lib.Warnx("certificates don't match: %s and %s", fst, snd)
-			invalid++
-		}
+  if !bytes.Equal(getSubjectInfoHash(fstCert, issuer), getSubjectInfoHash(sndCert, issuer)) {
+            _, _ = lib.Warnx("certificates don't match: %s and %s", fst, snd)
+            invalid++
+        }
 	}
 
 	if invalid > 0 {

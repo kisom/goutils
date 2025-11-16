@@ -1,24 +1,23 @@
 package main
 
 import (
-	"bytes"
-	"crypto"
-	"crypto/ecdsa"
-	"crypto/rsa"
-	"crypto/sha1"
-	"crypto/x509"
-	"crypto/x509/pkix"
-	"encoding/asn1"
-	"encoding/pem"
-	"flag"
-	"fmt"
-	"io"
-	"io/ioutil"
-	"os"
-	"strings"
+    "bytes"
+    "crypto"
+    "crypto/ecdsa"
+    "crypto/rsa"
+    "crypto/sha1"
+    "crypto/x509"
+    "crypto/x509/pkix"
+    "encoding/asn1"
+    "encoding/pem"
+    "flag"
+    "fmt"
+    "io"
+    "os"
+    "strings"
 
-	"git.wntrmute.dev/kyle/goutils/die"
-	"git.wntrmute.dev/kyle/goutils/lib"
+    "git.wntrmute.dev/kyle/goutils/die"
+    "git.wntrmute.dev/kyle/goutils/lib"
 )
 
 func usage(w io.Writer) {
@@ -40,14 +39,14 @@ func init() {
 }
 
 func parse(path string) (public []byte, kt, ft string) {
-	data, err := ioutil.ReadFile(path)
+    data, err := os.ReadFile(path)
 	die.If(err)
 
 	data = bytes.TrimSpace(data)
 	p, rest := pem.Decode(data)
-	if len(rest) > 0 {
-		lib.Warnx("trailing data in PEM file")
-	}
+ if len(rest) > 0 {
+        _, _ = lib.Warnx("trailing data in PEM file")
+    }
 
 	if p == nil {
 		die.With("no PEM data found")
@@ -73,7 +72,7 @@ func parse(path string) (public []byte, kt, ft string) {
 }
 
 func parseKey(data []byte) (public []byte, kt string) {
-	privInterface, err := x509.ParsePKCS8PrivateKey(data)
+    privInterface, err := x509.ParsePKCS8PrivateKey(data)
 	if err != nil {
 		privInterface, err = x509.ParsePKCS1PrivateKey(data)
 		if err != nil {
@@ -85,12 +84,12 @@ func parseKey(data []byte) (public []byte, kt string) {
 	}
 
 	var priv crypto.Signer
-	switch privInterface.(type) {
+	switch p := privInterface.(type) {
 	case *rsa.PrivateKey:
-		priv = privInterface.(*rsa.PrivateKey)
+		priv = p
 		kt = "RSA"
 	case *ecdsa.PrivateKey:
-		priv = privInterface.(*ecdsa.PrivateKey)
+		priv = p
 		kt = "ECDSA"
 	default:
 		die.With("unknown private key type %T", privInterface)
@@ -171,10 +170,10 @@ func main() {
 
 		var subPKI subjectPublicKeyInfo
 		_, err := asn1.Unmarshal(public, &subPKI)
-		if err != nil {
-			lib.Warn(err, "failed to get subject PKI")
-			continue
-		}
+  if err != nil {
+            _, _ = lib.Warn(err, "failed to get subject PKI")
+            continue
+        }
 
 		pubHash := sha1.Sum(subPKI.SubjectPublicKey.Bytes)
 		pubHashString := dumpHex(pubHash[:])
@@ -182,10 +181,10 @@ func main() {
 			ski = pubHashString
 		}
 
-		if shouldMatch && ski != pubHashString {
-			lib.Warnx("%s: SKI mismatch (%s != %s)",
-				path, ski, pubHashString)
-		}
+  if shouldMatch && ski != pubHashString {
+            _, _ = lib.Warnx("%s: SKI mismatch (%s != %s)",
+                path, ski, pubHashString)
+        }
 		fmt.Printf("%s  %s (%s %s)\n", path, pubHashString, kt, ft)
 	}
 }

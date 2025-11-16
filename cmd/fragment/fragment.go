@@ -95,12 +95,12 @@ func main() {
 		return false
 	}
 
-	fmtStr += "\n"
-	for i := start; !endFunc(i); i++ {
-		if *quiet {
-			fmt.Println(lines[i])
-		} else {
-			fmt.Printf(fmtStr, i, lines[i])
-		}
-	}
+    fmtStr += "\n"
+    for i := start; !endFunc(i); i++ {
+        if *quiet {
+            fmt.Fprintln(os.Stdout, lines[i])
+        } else {
+            fmt.Fprintf(os.Stdout, fmtStr, i, lines[i])
+        }
+    }
 }

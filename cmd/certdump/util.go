@@ -26,64 +26,85 @@ var keyUsage = map[x509.KeyUsage]string{
 }
 
 var extKeyUsages = map[x509.ExtKeyUsage]string{
-	x509.ExtKeyUsageAny:                        "any",
-	x509.ExtKeyUsageServerAuth:                 "server auth",
-	x509.ExtKeyUsageClientAuth:                 "client auth",
-	x509.ExtKeyUsageCodeSigning:                "code signing",
-	x509.ExtKeyUsageEmailProtection:            "s/mime",
-	x509.ExtKeyUsageIPSECEndSystem:             "ipsec end system",
-	x509.ExtKeyUsageIPSECTunnel:                "ipsec tunnel",
-	x509.ExtKeyUsageIPSECUser:                  "ipsec user",
-	x509.ExtKeyUsageTimeStamping:               "timestamping",
-	x509.ExtKeyUsageOCSPSigning:                "ocsp signing",
-	x509.ExtKeyUsageMicrosoftServerGatedCrypto: "microsoft sgc",
-	x509.ExtKeyUsageNetscapeServerGatedCrypto:  "netscape sgc",
+    x509.ExtKeyUsageAny:                        "any",
+    x509.ExtKeyUsageServerAuth:                 "server auth",
+    x509.ExtKeyUsageClientAuth:                 "client auth",
+    x509.ExtKeyUsageCodeSigning:                "code signing",
+    x509.ExtKeyUsageEmailProtection:            "s/mime",
+    x509.ExtKeyUsageIPSECEndSystem:             "ipsec end system",
+    x509.ExtKeyUsageIPSECTunnel:                "ipsec tunnel",
+    x509.ExtKeyUsageIPSECUser:                  "ipsec user",
+    x509.ExtKeyUsageTimeStamping:               "timestamping",
+    x509.ExtKeyUsageOCSPSigning:                "ocsp signing",
+    x509.ExtKeyUsageMicrosoftServerGatedCrypto: "microsoft sgc",
+    x509.ExtKeyUsageNetscapeServerGatedCrypto:  "netscape sgc",
+    x509.ExtKeyUsageMicrosoftCommercialCodeSigning: "microsoft commercial code signing",
+    x509.ExtKeyUsageMicrosoftKernelCodeSigning:     "microsoft kernel code signing",
 }
 
 func pubKeyAlgo(a x509.PublicKeyAlgorithm) string {
-	switch a {
-	case x509.RSA:
-		return "RSA"
-	case x509.ECDSA:
-		return "ECDSA"
-	case x509.DSA:
-		return "DSA"
-	default:
-		return "unknown public key algorithm"
-	}
+    switch a {
+    case x509.UnknownPublicKeyAlgorithm:
+        return "unknown public key algorithm"
+    case x509.RSA:
+        return "RSA"
+    case x509.ECDSA:
+        return "ECDSA"
+    case x509.DSA:
+        return "DSA"
+    case x509.Ed25519:
+        return "Ed25519"
+    default:
+        return "unknown public key algorithm"
+    }
 }
 
 func sigAlgoPK(a x509.SignatureAlgorithm) string {
-	switch a {
-
-	case x509.MD2WithRSA, x509.MD5WithRSA, x509.SHA1WithRSA, x509.SHA256WithRSA, x509.SHA384WithRSA, x509.SHA512WithRSA:
-		return "RSA"
-	case x509.ECDSAWithSHA1, x509.ECDSAWithSHA256, x509.ECDSAWithSHA384, x509.ECDSAWithSHA512:
-		return "ECDSA"
-	case x509.DSAWithSHA1, x509.DSAWithSHA256:
-		return "DSA"
-	default:
-		return "unknown public key algorithm"
-	}
+    switch a {
+    case x509.MD2WithRSA, x509.MD5WithRSA, x509.SHA1WithRSA, x509.SHA256WithRSA, x509.SHA384WithRSA, x509.SHA512WithRSA:
+        return "RSA"
+    case x509.SHA256WithRSAPSS, x509.SHA384WithRSAPSS, x509.SHA512WithRSAPSS:
+        return "RSA-PSS"
+    case x509.ECDSAWithSHA1, x509.ECDSAWithSHA256, x509.ECDSAWithSHA384, x509.ECDSAWithSHA512:
+        return "ECDSA"
+    case x509.DSAWithSHA1, x509.DSAWithSHA256:
+        return "DSA"
+    case x509.PureEd25519:
+        return "Ed25519"
+    case x509.UnknownSignatureAlgorithm:
+        return "unknown public key algorithm"
+    default:
+        return "unknown public key algorithm"
+    }
 }
 
 func sigAlgoHash(a x509.SignatureAlgorithm) string {
-	switch a {
-	case x509.MD2WithRSA:
-		return "MD2"
-	case x509.MD5WithRSA:
-		return "MD5"
-	case x509.SHA1WithRSA, x509.ECDSAWithSHA1, x509.DSAWithSHA1:
-		return "SHA1"
-	case x509.SHA256WithRSA, x509.ECDSAWithSHA256, x509.DSAWithSHA256:
-		return "SHA256"
-	case x509.SHA384WithRSA, x509.ECDSAWithSHA384:
-		return "SHA384"
-	case x509.SHA512WithRSA, x509.ECDSAWithSHA512:
-		return "SHA512"
-	default:
-		return "unknown hash algorithm"
-	}
+    switch a {
+    case x509.MD2WithRSA:
+        return "MD2"
+    case x509.MD5WithRSA:
+        return "MD5"
+    case x509.SHA1WithRSA, x509.ECDSAWithSHA1, x509.DSAWithSHA1:
+        return "SHA1"
+    case x509.SHA256WithRSA, x509.ECDSAWithSHA256, x509.DSAWithSHA256:
+        return "SHA256"
+    case x509.SHA256WithRSAPSS:
+        return "SHA256"
+    case x509.SHA384WithRSA, x509.ECDSAWithSHA384:
+        return "SHA384"
+    case x509.SHA384WithRSAPSS:
+        return "SHA384"
+    case x509.SHA512WithRSA, x509.ECDSAWithSHA512:
+        return "SHA512"
+    case x509.SHA512WithRSAPSS:
+        return "SHA512"
+    case x509.PureEd25519:
+        return "SHA512"
+    case x509.UnknownSignatureAlgorithm:
+        return "unknown hash algorithm"
+    default:
+        return "unknown hash algorithm"
+    }
 }
 
 const maxLine = 78

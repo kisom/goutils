@@ -109,27 +109,27 @@ func main() {
 
 	for _, file := range flag.Args() {
 		renamed, err := newName(file)
-		if err != nil {
-			lib.Warn(err, "failed to get new file name")
-			continue
-		}
+  if err != nil {
+            _, _ = lib.Warn(err, "failed to get new file name")
+            continue
+        }
 
-		if verbose && !printChanged {
-			fmt.Println(file)
-		}
+  if verbose && !printChanged {
+            fmt.Fprintln(os.Stdout, file)
+        }
 
 		if renamed != file {
 			if !dryRun {
 				err = move(renamed, file, force)
-				if err != nil {
-					lib.Warn(err, "failed to rename file from %s to %s", file, renamed)
-					continue
-				}
+    if err != nil {
+                    _, _ = lib.Warn(err, "failed to rename file from %s to %s", file, renamed)
+                    continue
+                }
 			}
 
-			if printChanged && !verbose {
-				fmt.Println(file, "->", renamed)
-			}
+   if printChanged && !verbose {
+                fmt.Fprintln(os.Stdout, file, "->", renamed)
+            }
 		}
 	}
 }

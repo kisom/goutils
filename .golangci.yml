@@ -18,6 +18,19 @@ issues:
   # Default: 3
   max-same-issues: 50
 
+  # Exclude some lints for CLI programs under cmd/ (package main).
+  # The project allows fmt.Print* in command-line tools; keep forbidigo for libraries.
+  exclude-rules:
+    - path: ^cmd/
+      linters:
+        - forbidigo
+    - path: cmd/.*
+      linters:
+        - forbidigo
+    - path: .*/cmd/.*
+      linters:
+        - forbidigo
+
 formatters:
   enable:
     - goimports # checks if the code and import statements are formatted according to the 'goimports' command

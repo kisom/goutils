@@ -1,21 +1,19 @@
 package main
 
 import (
-	"bytes"
-	"crypto"
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
-	"errors"
-	"flag"
-	"fmt"
-	"io/ioutil"
-	"log"
-	"os"
+    "bytes"
+    "crypto"
+    "crypto/ecdsa"
+    "crypto/elliptic"
+    "crypto/rsa"
+    "crypto/x509"
+    "encoding/pem"
+    "errors"
+    "flag"
+    "fmt"
+    "os"
 
-	"git.wntrmute.dev/kyle/goutils/die"
+    "git.wntrmute.dev/kyle/goutils/die"
 )
 
 var validPEMs = map[string]bool{
@@ -52,8 +50,75 @@ func getECCurve(pub interface{}) int {
 	}
 }
 
+// matchRSA compares an RSA public key from certificate against RSA public key from private key.
+// It returns true on match.
+func matchRSA(certPub *rsa.PublicKey, keyPub *rsa.PublicKey) bool {
+    return keyPub.N.Cmp(certPub.N) == 0 && keyPub.E == certPub.E
+}
+
+// matchECDSA compares ECDSA public keys for equality and compatible curve.
+// It returns match=true when they are on the same curve and have the same X/Y.
+// If curves mismatch, match is false.
+func matchECDSA(certPub *ecdsa.PublicKey, keyPub *ecdsa.PublicKey) bool {
+    if getECCurve(certPub) != getECCurve(keyPub) {
+        return false
+    }
+    if keyPub.X.Cmp(certPub.X) != 0 {
+        return false
+    }
+    if keyPub.Y.Cmp(certPub.Y) != 0 {
+        return false
+    }
+    return true
+}
+
+// matchKeys determines whether the certificate's public key matches the given private key.
+// It returns true if they match; otherwise, it returns false and a human-friendly reason.
+func matchKeys(cert *x509.Certificate, priv crypto.Signer) (bool, string) {
+    switch keyPub := priv.Public().(type) {
+    case *rsa.PublicKey:
+        switch certPub := cert.PublicKey.(type) {
+        case *rsa.PublicKey:
+            if matchRSA(certPub, keyPub) {
+                return true, ""
+            }
+            return false, "public keys don't match"
+        case *ecdsa.PublicKey:
+            return false, "RSA private key, EC public key"
+        default:
+            return false, fmt.Sprintf("unsupported certificate public key type: %T", cert.PublicKey)
+        }
+    case *ecdsa.PublicKey:
+        switch certPub := cert.PublicKey.(type) {
+        case *ecdsa.PublicKey:
+            if matchECDSA(certPub, keyPub) {
+                return true, ""
+            }
+            // Determine a more precise reason
+            kc := getECCurve(keyPub)
+            cc := getECCurve(certPub)
+            if kc == curveInvalid {
+                return false, "invalid private key curve"
+            }
+            if cc == curveRSA {
+                return false, "private key is EC, certificate is RSA"
+            }
+            if kc != cc {
+                return false, "EC curves don't match"
+            }
+            return false, "public keys don't match"
+        case *rsa.PublicKey:
+            return false, "private key is EC, certificate is RSA"
+        default:
+            return false, fmt.Sprintf("unsupported certificate public key type: %T", cert.PublicKey)
+        }
+    default:
+        return false, fmt.Sprintf("unrecognised private key type: %T", priv.Public())
+    }
+}
+
 func loadKey(path string) (crypto.Signer, error) {
-	in, err := ioutil.ReadFile(path)
+    in, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +132,7 @@ func loadKey(path string) (crypto.Signer, error) {
 		in = p.Bytes
 	}
 
-	priv, err := x509.ParsePKCS8PrivateKey(in)
+ priv, err := x509.ParsePKCS8PrivateKey(in)
 	if err != nil {
 		priv, err = x509.ParsePKCS1PrivateKey(in)
 		if err != nil {
@@ -78,15 +143,15 @@ func loadKey(path string) (crypto.Signer, error) {
 		}
 	}
 
-	switch priv.(type) {
-	case *rsa.PrivateKey:
-		return priv.(*rsa.PrivateKey), nil
-	case *ecdsa.PrivateKey:
-		return priv.(*ecdsa.PrivateKey), nil
-	}
-
-	// should never reach here
-	return nil, errors.New("invalid private key")
+ switch p := priv.(type) {
+ case *rsa.PrivateKey:
+     return p, nil
+ case *ecdsa.PrivateKey:
+     return p, nil
+ default:
+     // should never reach here
+     return nil, errors.New("invalid private key")
+ }
 
 }
 
@@ -96,7 +161,7 @@ func main() {
 	flag.StringVar(&certFile, "c", "", "TLS `certificate` file")
 	flag.Parse()
 
-	in, err := ioutil.ReadFile(certFile)
+ in, err := os.ReadFile(certFile)
 	die.If(err)
 
 	p, _ := pem.Decode(in)
@@ -112,50 +177,11 @@ func main() {
 	priv, err := loadKey(keyFile)
 	die.If(err)
 
-	switch pub := priv.Public().(type) {
-	case *rsa.PublicKey:
-		switch certPub := cert.PublicKey.(type) {
-		case *rsa.PublicKey:
-			if pub.N.Cmp(certPub.N) != 0 || pub.E != certPub.E {
-				fmt.Println("No match (public keys don't match).")
-				os.Exit(1)
-			}
-			fmt.Println("Match.")
-			return
-		case *ecdsa.PublicKey:
-			fmt.Println("No match (RSA private key, EC public key).")
-			os.Exit(1)
-		}
-	case *ecdsa.PublicKey:
-		privCurve := getECCurve(pub)
-		certCurve := getECCurve(cert.PublicKey)
-		log.Printf("priv: %d\tcert: %d\n", privCurve, certCurve)
-
-		if certCurve == curveRSA {
-			fmt.Println("No match (private key is EC, certificate is RSA).")
-			os.Exit(1)
-		} else if privCurve == curveInvalid {
-			fmt.Println("No match (invalid private key curve).")
-			os.Exit(1)
-		} else if privCurve != certCurve {
-			fmt.Println("No match (EC curves don't match).")
-			os.Exit(1)
-		}
-
-		certPub := cert.PublicKey.(*ecdsa.PublicKey)
-		if pub.X.Cmp(certPub.X) != 0 {
-			fmt.Println("No match (public keys don't match).")
-			os.Exit(1)
-		}
-
-		if pub.Y.Cmp(certPub.Y) != 0 {
-			fmt.Println("No match (public keys don't match).")
-			os.Exit(1)
-		}
-
-		fmt.Println("Match.")
-	default:
-		fmt.Printf("Unrecognised private key type: %T\n", priv.Public())
-		os.Exit(1)
-	}
+ matched, reason := matchKeys(cert, priv)
+ if matched {
+     fmt.Println("Match.")
+     return
+ }
+ fmt.Printf("No match (%s).\n", reason)
+ os.Exit(1)
 }

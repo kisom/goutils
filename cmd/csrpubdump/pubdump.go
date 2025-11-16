@@ -7,8 +7,7 @@ import (
 	"encoding/pem"
 	"flag"
 	"fmt"
-	"io/ioutil"
-	"log"
+	"os"
 
 	"git.wntrmute.dev/kyle/goutils/die"
 )
@@ -17,12 +16,12 @@ func main() {
 	flag.Parse()
 
 	for _, fileName := range flag.Args() {
-		in, err := ioutil.ReadFile(fileName)
+		in, err := os.ReadFile(fileName)
 		die.If(err)
 
 		if p, _ := pem.Decode(in); p != nil {
 			if p.Type != "CERTIFICATE REQUEST" {
-				log.Fatal("INVALID FILE TYPE")
+				die.With("INVALID FILE TYPE")
 			}
 			in = p.Bytes
 		}
@@ -48,8 +47,8 @@ func main() {
 			Bytes: out,
 		}
 
-		err = ioutil.WriteFile(fileName+".pub", pem.EncodeToMemory(p), 0644)
-		die.If(err)
-		fmt.Printf("[+] wrote %s.\n", fileName+".pub")
+  err = os.WriteFile(fileName+".pub", pem.EncodeToMemory(p), 0o644)
+  die.If(err)
+  fmt.Fprintf(os.Stdout, "[+] wrote %s.\n", fileName+".pub")
 	}
 }

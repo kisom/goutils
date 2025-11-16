@@ -1,51 +1,51 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
-	"flag"
-	"fmt"
-	"io/ioutil"
-	"os"
+    "bytes"
+    "encoding/json"
+    "flag"
+    "fmt"
+    "io"
+    "os"
 
-	"git.wntrmute.dev/kyle/goutils/lib"
+    "git.wntrmute.dev/kyle/goutils/lib"
 )
 
 func prettify(file string, validateOnly bool) error {
 	var in []byte
 	var err error
 
-	if file == "-" {
-		in, err = ioutil.ReadAll(os.Stdin)
-	} else {
-		in, err = ioutil.ReadFile(file)
-	}
+ if file == "-" {
+        in, err = io.ReadAll(os.Stdin)
+    } else {
+        in, err = os.ReadFile(file)
+    }
 
-	if err != nil {
-		lib.Warn(err, "ReadFile")
-		return err
-	}
+ if err != nil {
+        _, _ = lib.Warn(err, "ReadFile")
+        return err
+    }
 
 	var buf = &bytes.Buffer{}
 	err = json.Indent(buf, in, "", "    ")
-	if err != nil {
-		lib.Warn(err, "%s", file)
-		return err
-	}
+ if err != nil {
+        _, _ = lib.Warn(err, "%s", file)
+        return err
+    }
 
 	if validateOnly {
 		return nil
 	}
 
-	if file == "-" {
-		_, err = os.Stdout.Write(buf.Bytes())
-	} else {
-		err = ioutil.WriteFile(file, buf.Bytes(), 0644)
-	}
+ if file == "-" {
+        _, err = os.Stdout.Write(buf.Bytes())
+    } else {
+        err = os.WriteFile(file, buf.Bytes(), 0o644)
+    }
 
-	if err != nil {
-		lib.Warn(err, "WriteFile")
-	}
+ if err != nil {
+        _, _ = lib.Warn(err, "WriteFile")
+    }
 
 	return err
 }
@@ -54,44 +54,44 @@ func compact(file string, validateOnly bool) error {
 	var in []byte
 	var err error
 
-	if file == "-" {
-		in, err = ioutil.ReadAll(os.Stdin)
-	} else {
-		in, err = ioutil.ReadFile(file)
-	}
+ if file == "-" {
+        in, err = io.ReadAll(os.Stdin)
+    } else {
+        in, err = os.ReadFile(file)
+    }
 
-	if err != nil {
-		lib.Warn(err, "ReadFile")
-		return err
-	}
+ if err != nil {
+        _, _ = lib.Warn(err, "ReadFile")
+        return err
+    }
 
 	var buf = &bytes.Buffer{}
 	err = json.Compact(buf, in)
-	if err != nil {
-		lib.Warn(err, "%s", file)
-		return err
-	}
+ if err != nil {
+        _, _ = lib.Warn(err, "%s", file)
+        return err
+    }
 
 	if validateOnly {
 		return nil
 	}
 
-	if file == "-" {
-		_, err = os.Stdout.Write(buf.Bytes())
-	} else {
-		err = ioutil.WriteFile(file, buf.Bytes(), 0644)
-	}
+ if file == "-" {
+        _, err = os.Stdout.Write(buf.Bytes())
+    } else {
+        err = os.WriteFile(file, buf.Bytes(), 0o644)
+    }
 
-	if err != nil {
-		lib.Warn(err, "WriteFile")
-	}
+ if err != nil {
+        _, _ = lib.Warn(err, "WriteFile")
+    }
 
 	return err
 }
 
 func usage() {
-	progname := lib.ProgName()
-	fmt.Printf(`Usage: %s [-h] files...
+    progname := lib.ProgName()
+    fmt.Fprintf(os.Stdout, `Usage: %s [-h] files...
 	%s is used to lint and prettify (or compact) JSON files. The
 	files will be updated in-place.
 

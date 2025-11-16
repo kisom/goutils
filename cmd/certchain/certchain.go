@@ -5,6 +5,7 @@ import (
 	"encoding/pem"
 	"flag"
 	"fmt"
+	"os"
 	"regexp"
 
 	"git.wntrmute.dev/kyle/goutils/die"
@@ -34,6 +35,6 @@ func main() {
 			chain += string(pem.EncodeToMemory(&p))
 		}
 
-		fmt.Println(chain)
+		fmt.Fprintln(os.Stdout, chain)
 	}
 }

@@ -101,30 +101,30 @@ func extUsage(ext []x509.ExtKeyUsage) string {
 }
 
 func showBasicConstraints(cert *x509.Certificate) {
-	fmt.Printf("\tBasic constraints: ")
-	if cert.BasicConstraintsValid {
-		fmt.Printf("valid")
-	} else {
-		fmt.Printf("invalid")
-	}
+    fmt.Fprint(os.Stdout, "\tBasic constraints: ")
+    if cert.BasicConstraintsValid {
+        fmt.Fprint(os.Stdout, "valid")
+    } else {
+        fmt.Fprint(os.Stdout, "invalid")
+    }
 
-	if cert.IsCA {
-		fmt.Printf(", is a CA certificate")
-		if !cert.BasicConstraintsValid {
-			fmt.Printf(" (basic constraint failure)")
-		}
-	} else {
-		fmt.Printf("is not a CA certificate")
-		if cert.KeyUsage&x509.KeyUsageKeyEncipherment != 0 {
-			fmt.Printf(" (key encipherment usage enabled!)")
-		}
-	}
+    if cert.IsCA {
+        fmt.Fprint(os.Stdout, ", is a CA certificate")
+        if !cert.BasicConstraintsValid {
+            fmt.Fprint(os.Stdout, " (basic constraint failure)")
+        }
+    } else {
+        fmt.Fprint(os.Stdout, "is not a CA certificate")
+        if cert.KeyUsage&x509.KeyUsageKeyEncipherment != 0 {
+            fmt.Fprint(os.Stdout, " (key encipherment usage enabled!)")
+        }
+    }
 
-	if (cert.MaxPathLen == 0 && cert.MaxPathLenZero) || (cert.MaxPathLen > 0) {
-		fmt.Printf(", max path length %d", cert.MaxPathLen)
-	}
+    if (cert.MaxPathLen == 0 && cert.MaxPathLenZero) || (cert.MaxPathLen > 0) {
+        fmt.Fprintf(os.Stdout, ", max path length %d", cert.MaxPathLen)
+    }
 
-	fmt.Printf("\n")
+    fmt.Fprintln(os.Stdout)
 }
 
 const oneTrueDateFormat = "2006-01-02T15:04:05-0700"
@@ -135,41 +135,41 @@ var (
 )
 
 func wrapPrint(text string, indent int) {
-	tabs := ""
-	for i := 0; i < indent; i++ {
-		tabs += "\t"
-	}
+    tabs := ""
+    for i := 0; i < indent; i++ {
+        tabs += "\t"
+    }
 
-	fmt.Printf(tabs+"%s\n", wrap(text, indent))
+    fmt.Fprintf(os.Stdout, tabs+"%s\n", wrap(text, indent))
 }
 
 func displayCert(cert *x509.Certificate) {
-	fmt.Println("CERTIFICATE")
-	if showHash {
-		fmt.Println(wrap(fmt.Sprintf("SHA256: %x", sha256.Sum256(cert.Raw)), 0))
-	}
-	fmt.Println(wrap("Subject: "+displayName(cert.Subject), 0))
-	fmt.Println(wrap("Issuer: "+displayName(cert.Issuer), 0))
-	fmt.Printf("\tSignature algorithm: %s / %s\n", sigAlgoPK(cert.SignatureAlgorithm),
-		sigAlgoHash(cert.SignatureAlgorithm))
-	fmt.Println("Details:")
-	wrapPrint("Public key: "+certPublic(cert), 1)
-	fmt.Printf("\tSerial number: %s\n", cert.SerialNumber)
+    fmt.Fprintln(os.Stdout, "CERTIFICATE")
+    if showHash {
+        fmt.Fprintln(os.Stdout, wrap(fmt.Sprintf("SHA256: %x", sha256.Sum256(cert.Raw)), 0))
+    }
+    fmt.Fprintln(os.Stdout, wrap("Subject: "+displayName(cert.Subject), 0))
+    fmt.Fprintln(os.Stdout, wrap("Issuer: "+displayName(cert.Issuer), 0))
+    fmt.Fprintf(os.Stdout, "\tSignature algorithm: %s / %s\n", sigAlgoPK(cert.SignatureAlgorithm),
+        sigAlgoHash(cert.SignatureAlgorithm))
+    fmt.Fprintln(os.Stdout, "Details:")
+    wrapPrint("Public key: "+certPublic(cert), 1)
+    fmt.Fprintf(os.Stdout, "\tSerial number: %s\n", cert.SerialNumber)
 
-	if len(cert.AuthorityKeyId) > 0 {
-		fmt.Printf("\t%s\n", wrap("AKI: "+dumpHex(cert.AuthorityKeyId), 1))
-	}
-	if len(cert.SubjectKeyId) > 0 {
-		fmt.Printf("\t%s\n", wrap("SKI: "+dumpHex(cert.SubjectKeyId), 1))
-	}
+ if len(cert.AuthorityKeyId) > 0 {
+        fmt.Fprintf(os.Stdout, "\t%s\n", wrap("AKI: "+dumpHex(cert.AuthorityKeyId), 1))
+    }
+    if len(cert.SubjectKeyId) > 0 {
+        fmt.Fprintf(os.Stdout, "\t%s\n", wrap("SKI: "+dumpHex(cert.SubjectKeyId), 1))
+    }
 
 	wrapPrint("Valid from: "+cert.NotBefore.Format(dateFormat), 1)
-	fmt.Printf("\t     until: %s\n", cert.NotAfter.Format(dateFormat))
-	fmt.Printf("\tKey usages: %s\n", keyUsages(cert.KeyUsage))
+ fmt.Fprintf(os.Stdout, "\t     until: %s\n", cert.NotAfter.Format(dateFormat))
+ fmt.Fprintf(os.Stdout, "\tKey usages: %s\n", keyUsages(cert.KeyUsage))
 
-	if len(cert.ExtKeyUsage) > 0 {
-		fmt.Printf("\tExtended usages: %s\n", extUsage(cert.ExtKeyUsage))
-	}
+ if len(cert.ExtKeyUsage) > 0 {
+        fmt.Fprintf(os.Stdout, "\tExtended usages: %s\n", extUsage(cert.ExtKeyUsage))
+    }
 
 	showBasicConstraints(cert)
 
@@ -217,19 +217,19 @@ func displayCert(cert *x509.Certificate) {
 }
 
 func displayAllCerts(in []byte, leafOnly bool) {
-	certs, err := certlib.ParseCertificatesPEM(in)
-	if err != nil {
-		certs, _, err = certlib.ParseCertificatesDER(in, "")
-		if err != nil {
-			lib.Warn(err, "failed to parse certificates")
-			return
-		}
-	}
+ certs, err := certlib.ParseCertificatesPEM(in)
+ if err != nil {
+     certs, _, err = certlib.ParseCertificatesDER(in, "")
+     if err != nil {
+         _, _ = lib.Warn(err, "failed to parse certificates")
+         return
+     }
+ }
 
 	if len(certs) == 0 {
-		lib.Warnx("no certificates found")
-		return
-	}
+        _, _ = lib.Warnx("no certificates found")
+        return
+    }
 
 	if leafOnly {
 		displayCert(certs[0])
@@ -243,11 +243,11 @@ func displayAllCerts(in []byte, leafOnly bool) {
 
 func displayAllCertsWeb(uri string, leafOnly bool) {
 	ci := getConnInfo(uri)
-	conn, err := tls.Dial("tcp", ci.Addr, permissiveConfig())
-	if err != nil {
-		lib.Warn(err, "couldn't connect to %s", ci.Addr)
-		return
-	}
+ conn, err := tls.Dial("tcp", ci.Addr, permissiveConfig())
+ if err != nil {
+     _, _ = lib.Warn(err, "couldn't connect to %s", ci.Addr)
+     return
+ }
 	defer conn.Close()
 
 	state := conn.ConnectionState()
@@ -260,34 +260,34 @@ func displayAllCertsWeb(uri string, leafOnly bool) {
 			state = conn.ConnectionState()
 		}
 		conn.Close()
-	} else {
-		lib.Warn(err, "TLS verification error with server name %s", ci.Host)
-	}
+ } else {
+        _, _ = lib.Warn(err, "TLS verification error with server name %s", ci.Host)
+    }
 
-	if len(state.PeerCertificates) == 0 {
-		lib.Warnx("no certificates found")
-		return
-	}
+ if len(state.PeerCertificates) == 0 {
+        _, _ = lib.Warnx("no certificates found")
+        return
+    }
 
 	if leafOnly {
 		displayCert(state.PeerCertificates[0])
 		return
 	}
 
-	if len(state.VerifiedChains) == 0 {
-		lib.Warnx("no verified chains found; using peer chain")
-		for i := range state.PeerCertificates {
-			displayCert(state.PeerCertificates[i])
-		}
-	} else {
-		fmt.Println("TLS chain verified successfully.")
-		for i := range state.VerifiedChains {
-			fmt.Printf("--- Verified certificate chain %d ---\n", i+1)
-			for j := range state.VerifiedChains[i] {
-				displayCert(state.VerifiedChains[i][j])
-			}
-		}
-	}
+ if len(state.VerifiedChains) == 0 {
+        _, _ = lib.Warnx("no verified chains found; using peer chain")
+        for i := range state.PeerCertificates {
+            displayCert(state.PeerCertificates[i])
+        }
+ } else {
+        fmt.Fprintln(os.Stdout, "TLS chain verified successfully.")
+        for i := range state.VerifiedChains {
+            fmt.Fprintf(os.Stdout, "--- Verified certificate chain %d ---%s", i+1, "\n")
+            for j := range state.VerifiedChains[i] {
+                displayCert(state.VerifiedChains[i][j])
+            }
+        }
+    }
 }
 
 func main() {
@@ -298,11 +298,11 @@ func main() {
 	flag.Parse()
 
 	if flag.NArg() == 0 || (flag.NArg() == 1 && flag.Arg(0) == "-") {
-		certs, err := io.ReadAll(os.Stdin)
-		if err != nil {
-			lib.Warn(err, "couldn't read certificates from standard input")
-			os.Exit(1)
-		}
+  certs, err := io.ReadAll(os.Stdin)
+  if err != nil {
+      _, _ = lib.Warn(err, "couldn't read certificates from standard input")
+      os.Exit(1)
+  }
 
 		// This is needed for getting certs from JSON/jq.
 		certs = bytes.TrimSpace(certs)
@@ -311,15 +311,15 @@ func main() {
 		displayAllCerts(certs, leafOnly)
 	} else {
 		for _, filename := range flag.Args() {
-			fmt.Printf("--%s ---\n", filename)
+   fmt.Fprintf(os.Stdout, "--%s ---%s", filename, "\n")
 			if strings.HasPrefix(filename, "https://") {
 				displayAllCertsWeb(filename, leafOnly)
 			} else {
-				in, err := os.ReadFile(filename)
-				if err != nil {
-					lib.Warn(err, "couldn't read certificate")
-					continue
-				}
+    in, err := os.ReadFile(filename)
+    if err != nil {
+        _, _ = lib.Warn(err, "couldn't read certificate")
+        continue
+    }
 
 				displayAllCerts(in, leafOnly)
 			}

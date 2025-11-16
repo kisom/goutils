@@ -123,13 +123,14 @@ func main() {
 
 		for _, path := range pathList {
 			if isDir(path) {
-				err := filepath.Walk(path, buildWalker(search))
-				if err != nil {
+				if err := filepath.Walk(path, buildWalker(search)); err != nil {
 					errorf("%v", err)
 					return
 				}
 			} else {
-				searchFile(path, search)
+				if err := searchFile(path, search); err != nil {
+					errorf("%v", err)
+				}
 			}
 		}
 	}
