@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"crypto"
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"crypto/sha1" // #nosec G505
@@ -16,6 +15,7 @@ import (
 	"os"
 	"strings"
 
+	"git.wntrmute.dev/kyle/goutils/certlib"
 	"git.wntrmute.dev/kyle/goutils/die"
 	"git.wntrmute.dev/kyle/goutils/lib"
 )
@@ -83,28 +83,19 @@ func parse(path string) ([]byte, string, string) {
 }
 
 func parseKey(data []byte) ([]byte, string) {
-	privInterface, err := x509.ParsePKCS8PrivateKey(data)
+	priv, err := certlib.ParsePrivateKeyDER(data)
 	if err != nil {
-		privInterface, err = x509.ParsePKCS1PrivateKey(data)
-		if err != nil {
-			privInterface, err = x509.ParseECPrivateKey(data)
-			if err != nil {
-				die.With("couldn't parse private key.")
-			}
-		}
+		die.If(err)
 	}
 
-	var priv crypto.Signer
 	var kt string
-	switch p := privInterface.(type) {
-	case *rsa.PrivateKey:
-		priv = p
+	switch priv.Public().(type) {
+	case *rsa.PublicKey:
 		kt = keyTypeRSA
-	case *ecdsa.PrivateKey:
-		priv = p
+	case *ecdsa.PublicKey:
 		kt = keyTypeECDSA
 	default:
-		die.With("unknown private key type %T", privInterface)
+		die.With("unknown private key type %T", priv)
 	}
 
 	public, err := x509.MarshalPKIXPublicKey(priv.Public())
@@ -134,7 +125,8 @@ func parseCertificate(data []byte) ([]byte, string) {
 }
 
 func parseCSR(data []byte) ([]byte, string) {
-	csr, err := x509.ParseCertificateRequest(data)
+	// Use certlib to support both PEM and DER and to centralize validation.
+	csr, _, err := certlib.ParseCSR(data)
 	die.If(err)
 
 	pub := csr.PublicKey

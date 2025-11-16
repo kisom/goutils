@@ -2,39 +2,52 @@ GOUTILS
 
 This is a collection of small utility code I've written in Go; the `cmd/`
 directory has a number of command-line utilities. Rather than keep all
-of these in superfluous repositories of their own, or rewriting them
+of these in superfluous repositories of their own or rewriting them
 for each project, I'm putting them here.
 
-The project can be built with the standard Go tooling, or it can be built
-with Bazel.
+The project can be built with the standard Go tooling.
 
 Contents:
 
     ahash/          Provides hashes from string algorithm specifiers.
     assert/         Error handling, assertion-style.
     backoff/        Implementation of an intelligent backoff strategy.
+    cache/          Implementations of various caches.
+        lru/        Least-recently-used cache.
+        mru/        Most-recently-used cache.
+    certlib/        Library for working with TLS certificates.
     cmd/
         atping/     Automated TCP ping, meant for putting in cronjobs.
-        certchain/  Display the certificate chain from a
-                    TLS connection.
+        ca-signed/  Validate whether a certificate is signed by a CA.
+        cert-bundler/
+                    Create certificate bundles from a source of PEM 
+                    certificates.
+        cert-revcheck/
+                    Check whether a certificate has been revoked or is
+                    expired.
+        certchain/  Display the certificate chain from a TLS connection.
         certdump/   Dump certificate information.
         certexpiry/ Print a list of certificate subjects and expiry times
                     or warn about certificates expiring within a certain
                     window.
-        certverify/ Verify a TLS X.509 certificate, optionally printing
+        certverify/ Verify a TLS X.509 certificate file, optionally printing
                     the time to expiry and checking for revocations.
         clustersh/  Run commands or transfer files across multiple
                     servers via SSH.
-        cruntar/    Untar an archive with hard links, copying instead of
+        cruntar/    (Un)tar an archive with hard links, copying instead of
                     linking.
         csrpubdump/ Dump the public key from an X.509 certificate request.
         data_sync/  Sync the user's homedir to external storage.
         diskimg/    Write a disk image to a device.
+        dumpbytes/  Dump the contents of a file as hex bytes, printing it as
+                    a Go []byte literal.
         eig/        EEPROM image generator.
         fragment/   Print a fragment of a file.
+        host/       Go imlpementation of the host(1) command.
         jlp/        JSON linter/prettifier.
         kgz/        Custom gzip compressor / decompressor that handles 99%
                     of my use cases.
+        minmax/     Generate a minmax code for use in uLisp.
         parts/      Simple parts database management for my collection of
                     electronic components.
         pem2bin/    Dump the binary body of a PEM-encoded block.
@@ -44,41 +57,44 @@ Contents:
                     in a bundle.
         renfnv/     Rename a file to base32-encoded 64-bit FNV-1a hash.
         rhash/      Compute the digest of remote files.
+        rolldie/    Roll some dice.
         showimp/    List the external (e.g. non-stdlib and outside the
                     current working directory) imports for a Go file.
         ski         Display the SKI for PEM-encoded TLS material.
         sprox/      Simple TCP proxy.
-        stealchain/ Dump the verified chain from a TLS
-                    connection to a server.
-        stealchain- Dump the verified chain from a TLS
-          server/   connection from a client.
+        stealchain/ Dump the verified chain from a TLS connection to a
+                    server.
+        stealchain-server/ 
+                    Dump the verified chain from a TLS connection from
+                    from a client.
         subjhash/   Print or match subject info from a certificate.
+        tlsinfo/    Print information about a TLS connection (the TLS version
+                    and cipher suite).
         tlskeypair/ Check whether a TLS certificate and key file match.
         utc/        Convert times to UTC.
         yamll/      A small YAML linter.
+        zsearch/    Search for a string in directory of gzipped files.
     config/         A simple global configuration system where configuration
                     data is pulled from a file or an environment variable
                     transparently.
+        iniconf/    A simple INI-style configuration system.
     dbg/            A debug printer.
     die/            Death of a program.
     fileutil/       Common file functions.
     lib/            Commonly-useful functions for writing Go programs.
+    log/            A syslog library.
     logging/        A logging library.
     mwc/            MultiwriteCloser implementation.
-    rand/           Utilities for working with math/rand.
     sbuf/           A byte buffer that can be wiped.
     seekbuf/        A read-seekable byte buffer.
     syslog/         Syslog-type logging.
     tee/            Emulate tee(1)'s functionality in io.Writers.
     testio/         Various I/O utilities useful during testing.
-    testutil/       Various utility functions useful during testing.
-
 
 Each program should have a small README in the directory with more
 information.
 
-All code here is licensed under the ISC license.
-
+All code here is licensed under the Apache 2.0 license.
 
 Error handling
 --------------
@@ -99,7 +115,7 @@ Examples:
 ```
 cert, err := certlib.LoadCertificate(path)
 if err != nil {
-    // sentinel match
+    // sentinel match:
     if errors.Is(err, certerr.ErrEmptyCertificate) {
         // handle empty input
     }
@@ -116,5 +132,3 @@ if err != nil {
     }
 }
 ```
-
-Avoid including sensitive data (keys, passwords, tokens) in error messages.

@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"os"
 
+	"git.wntrmute.dev/kyle/goutils/certlib"
 	"git.wntrmute.dev/kyle/goutils/die"
 )
 
@@ -124,34 +125,14 @@ func loadKey(path string) (crypto.Signer, error) {
 	}
 
 	in = bytes.TrimSpace(in)
-	p, _ := pem.Decode(in)
-	if p != nil {
+	if p, _ := pem.Decode(in); p != nil {
 		if !validPEMs[p.Type] {
 			return nil, errors.New("invalid private key file type " + p.Type)
 		}
-		in = p.Bytes
+		return certlib.ParsePrivateKeyPEM(in)
 	}
 
-	priv, err := x509.ParsePKCS8PrivateKey(in)
-	if err != nil {
-		priv, err = x509.ParsePKCS1PrivateKey(in)
-		if err != nil {
-			priv, err = x509.ParseECPrivateKey(in)
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	switch p := priv.(type) {
-	case *rsa.PrivateKey:
-		return p, nil
-	case *ecdsa.PrivateKey:
-		return p, nil
-	default:
-		// should never reach here
-		return nil, errors.New("invalid private key")
-	}
+	return certlib.ParsePrivateKeyDER(in)
 }
 
 func main() {

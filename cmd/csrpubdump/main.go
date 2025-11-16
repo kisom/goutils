@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 
+	"git.wntrmute.dev/kyle/goutils/certlib"
 	"git.wntrmute.dev/kyle/goutils/die"
 )
 
@@ -19,14 +20,7 @@ func main() {
 		in, err := os.ReadFile(fileName)
 		die.If(err)
 
-		if p, _ := pem.Decode(in); p != nil {
-			if p.Type != "CERTIFICATE REQUEST" {
-				die.With("INVALID FILE TYPE")
-			}
-			in = p.Bytes
-		}
-
-		csr, err := x509.ParseCertificateRequest(in)
+		csr, _, err := certlib.ParseCSR(in)
 		die.If(err)
 
 		out, err := x509.MarshalPKIXPublicKey(csr.PublicKey)
