@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net"
@@ -28,10 +29,16 @@ func connect(addr string, dport string, six bool, timeout time.Duration) error {
 
 	if verbose {
 		fmt.Printf("connecting to %s/%s... ", addr, proto)
-		os.Stdout.Sync()
+		if err = os.Stdout.Sync(); err != nil {
+			return err
+		}
 	}
 
-	conn, err := net.DialTimeout(proto, addr, timeout)
+	dialer := &net.Dialer{
+		Timeout: timeout,
+	}
+
+	conn, err := dialer.DialContext(context.Background(), proto, addr)
 	if err != nil {
 		if verbose {
 			fmt.Println("failed.")
@@ -42,8 +49,8 @@ func connect(addr string, dport string, six bool, timeout time.Duration) error {
 	if verbose {
 		fmt.Println("OK")
 	}
-	conn.Close()
-	return nil
+
+	return conn.Close()
 }
 
 func main() {

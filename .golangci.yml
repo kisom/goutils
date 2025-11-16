@@ -450,6 +450,8 @@ linters:
         linters: [ forbidigo ]
       - path: 'logging/example_test.go'
         linters: [ testableexamples ]
+      - path: 'main.go'
+        linters: [ forbidigo, mnd ]
       - source: 'TODO'
         linters: [ godot ]
       - text: 'should have a package comment'
