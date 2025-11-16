@@ -14,27 +14,27 @@ import (
 func ReadCertificate(in []byte) (cert *x509.Certificate, rest []byte, err error) {
 	if len(in) == 0 {
 		err = certerr.ErrEmptyCertificate
-		return
+		return cert, rest, err
 	}
 
 	if in[0] == '-' {
 		p, remaining := pem.Decode(in)
 		if p == nil {
 			err = errors.New("certlib: invalid PEM file")
-			return
+			return cert, rest, err
 		}
 
 		rest = remaining
 		if p.Type != "CERTIFICATE" {
 			err = certerr.ErrInvalidPEMType(p.Type, "CERTIFICATE")
-			return
+			return cert, rest, err
 		}
 
 		in = p.Bytes
 	}
 
 	cert, err = x509.ParseCertificate(in)
-	return
+	return cert, rest, err
 }
 
 // ReadCertificates tries to read all the certificates in a

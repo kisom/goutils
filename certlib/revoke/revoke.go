@@ -89,7 +89,7 @@ func ldapURL(url string) bool {
 // - false, false: an error was encountered while checking revocations.
 // - false, true:  the certificate was checked successfully, and it is not revoked.
 // - true, true:   the certificate was checked successfully, and it is revoked.
-// - true, false:  failure to check revocation status causes verification to fail
+// - true, false:  failure to check revocation status causes verification to fail.
 func revCheck(cert *x509.Certificate) (revoked, ok bool, err error) {
 	for _, url := range cert.CRLDistributionPoints {
 		if ldapURL(url) {
@@ -154,7 +154,6 @@ func getIssuer(cert *x509.Certificate) *x509.Certificate {
 	}
 
 	return issuer
-
 }
 
 // check a cert against a specific CRL. Returns the same bool pair
@@ -219,16 +218,16 @@ func VerifyCertificate(cert *x509.Certificate) (revoked, ok bool) {
 // VerifyCertificateError ensures that the certificate passed in hasn't
 // expired and checks the CRL for the server.
 func VerifyCertificateError(cert *x509.Certificate) (revoked, ok bool, err error) {
-    if !time.Now().Before(cert.NotAfter) {
-        msg := fmt.Sprintf("Certificate expired %s\n", cert.NotAfter)
-        log.Info(msg)
-        return true, true, errors.New(msg)
-    } else if !time.Now().After(cert.NotBefore) {
-        msg := fmt.Sprintf("Certificate isn't valid until %s\n", cert.NotBefore)
-        log.Info(msg)
-        return true, true, errors.New(msg)
-    }
-    return revCheck(cert)
+	if !time.Now().Before(cert.NotAfter) {
+		msg := fmt.Sprintf("Certificate expired %s\n", cert.NotAfter)
+		log.Info(msg)
+		return true, true, errors.New(msg)
+	} else if !time.Now().After(cert.NotBefore) {
+		msg := fmt.Sprintf("Certificate isn't valid until %s\n", cert.NotBefore)
+		log.Info(msg)
+		return true, true, errors.New(msg)
+	}
+	return revCheck(cert)
 }
 
 func fetchRemote(url string) (*x509.Certificate, error) {
@@ -343,21 +342,21 @@ func sendOCSPRequest(server string, req []byte, leaf, issuer *x509.Certificate) 
 
 var crlRead = io.ReadAll
 
-// SetCRLFetcher sets the function to use to read from the http response body
+// SetCRLFetcher sets the function to use to read from the http response body.
 func SetCRLFetcher(fn func(io.Reader) ([]byte, error)) {
 	crlRead = fn
 }
 
 var remoteRead = io.ReadAll
 
-// SetRemoteFetcher sets the function to use to read from the http response body
+// SetRemoteFetcher sets the function to use to read from the http response body.
 func SetRemoteFetcher(fn func(io.Reader) ([]byte, error)) {
 	remoteRead = fn
 }
 
 var ocspRead = io.ReadAll
 
-// SetOCSPFetcher sets the function to use to read from the http response body
+// SetOCSPFetcher sets the function to use to read from the http response body.
 func SetOCSPFetcher(fn func(io.Reader) ([]byte, error)) {
 	ocspRead = fn
 }

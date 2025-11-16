@@ -50,7 +50,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // to indicate that this is the case.
 
 // 2014/05/22 14:18:17 Certificate expired 2014-04-04 14:14:20 +0000 UTC
-// 2014/05/22 14:18:17 Revoked certificate: misc/intermediate_ca/ActalisServerAuthenticationCA.crt
+// 2014/05/22 14:18:17 Revoked certificate: misc/intermediate_ca/ActalisServerAuthenticationCA.crt.
 var expiredCert = mustParse(`-----BEGIN CERTIFICATE-----
 MIIEXTCCA8agAwIBAgIEBycURTANBgkqhkiG9w0BAQUFADB1MQswCQYDVQQGEwJV
 UzEYMBYGA1UEChMPR1RFIENvcnBvcmF0aW9uMScwJQYDVQQLEx5HVEUgQ3liZXJU
@@ -80,7 +80,7 @@ sESPRwHkcMUNdAp37FLweUw=
 
 // 2014/05/22 14:18:31 Serial number match: intermediate is revoked.
 // 2014/05/22 14:18:31 certificate is revoked via CRL
-// 2014/05/22 14:18:31 Revoked certificate: misc/intermediate_ca/MobileArmorEnterpriseCA.crt
+// 2014/05/22 14:18:31 Revoked certificate: misc/intermediate_ca/MobileArmorEnterpriseCA.crt.
 var revokedCert = mustParse(`-----BEGIN CERTIFICATE-----
 MIIEEzCCAvugAwIBAgILBAAAAAABGMGjftYwDQYJKoZIhvcNAQEFBQAwcTEoMCYG
 A1UEAxMfR2xvYmFsU2lnbiBSb290U2lnbiBQYXJ0bmVycyBDQTEdMBsGA1UECxMU
@@ -106,7 +106,7 @@ Kz5vh+5tmytUPKA8hUgmLWe94lMb7Uqq2wgZKsqun5DAWleKu81w7wEcOrjiiB+x
 jeBHq7OnpWm+ccTOPCE6H4ZN4wWVS7biEBUdop/8HgXBPQHWAdjL
 -----END CERTIFICATE-----`)
 
-// A Comodo intermediate CA certificate with issuer url, CRL url and OCSP url
+// A Comodo intermediate CA certificate with issuer url, CRL url and OCSP url.
 var goodComodoCA = (`-----BEGIN CERTIFICATE-----
 MIIGCDCCA/CgAwIBAgIQKy5u6tl1NmwUim7bo3yMBzANBgkqhkiG9w0BAQwFADCB
 hTELMAkGA1UEBhMCR0IxGzAZBgNVBAgTEkdyZWF0ZXIgTWFuY2hlc3RlcjEQMA4G
@@ -182,7 +182,6 @@ func TestGood(t *testing.T) {
 	} else if revoked {
 		t.Fatalf("good certificate should not have been marked as revoked")
 	}
-
 }
 
 func TestLdap(t *testing.T) {
@@ -230,7 +229,6 @@ func TestBadCRLSet(t *testing.T) {
 		t.Fatalf("key emptystring should be deleted from CRLSet")
 	}
 	delete(CRLSet, "")
-
 }
 
 func TestCachedCRLSet(t *testing.T) {
@@ -241,13 +239,11 @@ func TestCachedCRLSet(t *testing.T) {
 }
 
 func TestRemoteFetchError(t *testing.T) {
-
 	badurl := ":"
 
 	if _, err := fetchRemote(badurl); err == nil {
 		t.Fatalf("fetching bad url should result in non-nil error")
 	}
-
 }
 
 func TestNoOCSPServers(t *testing.T) {

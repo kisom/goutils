@@ -65,10 +65,10 @@ const OneYear = 8760 * time.Hour
 // OneDay is a time.Duration representing a day's worth of seconds.
 const OneDay = 24 * time.Hour
 
-// DelegationUsage  is the OID for the DelegationUseage extensions
+// DelegationUsage  is the OID for the DelegationUseage extensions.
 var DelegationUsage = asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 44363, 44}
 
-// DelegationExtension
+// DelegationExtension.
 var DelegationExtension = pkix.Extension{
 	Id:       DelegationUsage,
 	Critical: false,
@@ -89,8 +89,8 @@ var Jul2012 = InclusiveDate(2012, time.July, 01)
 // issuing certificates valid for more than 39 months.
 var Apr2015 = InclusiveDate(2015, time.April, 01)
 
-// KeyLength returns the bit size of ECDSA or RSA PublicKey
-func KeyLength(key interface{}) int {
+// KeyLength returns the bit size of ECDSA or RSA PublicKey.
+func KeyLength(key any) int {
 	if key == nil {
 		return 0
 	}
@@ -106,7 +106,7 @@ func KeyLength(key interface{}) int {
 // ExpiryTime returns the time when the certificate chain is expired.
 func ExpiryTime(chain []*x509.Certificate) (notAfter time.Time) {
 	if len(chain) == 0 {
-		return
+		return notAfter
 	}
 
 	notAfter = chain[0].NotAfter
@@ -115,7 +115,7 @@ func ExpiryTime(chain []*x509.Certificate) (notAfter time.Time) {
 			notAfter = cert.NotAfter
 		}
 	}
-	return
+	return notAfter
 }
 
 // MonthsValid returns the number of months for which a certificate is valid.
@@ -221,7 +221,7 @@ func HashAlgoString(alg x509.SignatureAlgorithm) string {
 }
 
 // StringTLSVersion returns underlying enum values from human names for TLS
-// versions, defaults to current golang default of TLS 1.0
+// versions, defaults to current golang default of TLS 1.0.
 func StringTLSVersion(version string) uint16 {
 	switch version {
 	case "1.2":
@@ -233,20 +233,22 @@ func StringTLSVersion(version string) uint16 {
 	}
 }
 
-// EncodeCertificatesPEM encodes a number of x509 certificates to PEM
+// EncodeCertificatesPEM encodes a number of x509 certificates to PEM.
 func EncodeCertificatesPEM(certs []*x509.Certificate) []byte {
 	var buffer bytes.Buffer
 	for _, cert := range certs {
-		pem.Encode(&buffer, &pem.Block{
+		if err := pem.Encode(&buffer, &pem.Block{
 			Type:  "CERTIFICATE",
 			Bytes: cert.Raw,
-		})
+		}); err != nil {
+			return nil
+		}
 	}
 
 	return buffer.Bytes()
 }
 
-// EncodeCertificatePEM encodes a single x509 certificates to PEM
+// EncodeCertificatePEM encodes a single x509 certificates to PEM.
 func EncodeCertificatePEM(cert *x509.Certificate) []byte {
 	return EncodeCertificatesPEM([]*x509.Certificate{cert})
 }
@@ -269,7 +271,10 @@ func ParseCertificatesPEM(certsPEM []byte) ([]*x509.Certificate, error) {
 		certs = append(certs, cert...)
 	}
 	if len(certsPEM) > 0 {
-		return nil, certerr.DecodeError(certerr.ErrorSourceCertificate, errors.New("trailing data at end of certificate"))
+		return nil, certerr.DecodeError(
+			certerr.ErrorSourceCertificate,
+			errors.New("trailing data at end of certificate"),
+		)
 	}
 	return certs, nil
 }
@@ -280,7 +285,8 @@ func ParseCertificatesDER(certsDER []byte, password string) (certs []*x509.Certi
 	certsDER = bytes.TrimSpace(certsDER)
 	pkcs7data, err := pkcs7.ParsePKCS7(certsDER)
 	if err != nil {
-		var pkcs12data interface{}
+		var pkcs12data any
+		var ok bool
 		certs = make([]*x509.Certificate, 1)
 		pkcs12data, certs[0], err = pkcs12.Decode(certsDER, password)
 		if err != nil {
@@ -289,7 +295,10 @@ func ParseCertificatesDER(certsDER []byte, password string) (certs []*x509.Certi
 				return nil, nil, certerr.DecodeError(certerr.ErrorSourceCertificate, err)
 			}
 		} else {
-			key = pkcs12data.(crypto.Signer)
+			key, ok = pkcs12data.(crypto.Signer)
+			if !ok {
+				return nil, nil, certerr.DecodeError(certerr.ErrorSourcePrivateKey, errors.New("PKCS12 data does not contain a private key"))
+			}
 		}
 	} else {
 		if pkcs7data.ContentInfo != "SignedData" {
@@ -338,7 +347,6 @@ func ParseCertificatePEM(certPEM []byte) (*x509.Certificate, error) {
 // multiple certificates, from the top of certsPEM, which itself may
 // contain multiple PEM encoded certificate objects.
 func ParseOneCertificateFromPEM(certsPEM []byte) ([]*x509.Certificate, []byte, error) {
-
 	block, rest := pem.Decode(certsPEM)
 	if block == nil {
 		return nil, rest, nil
@@ -441,7 +449,10 @@ func ParseCSR(in []byte) (csr *x509.CertificateRequest, rest []byte, err error) 
 	p, rest := pem.Decode(in)
 	if p != nil {
 		if p.Type != "NEW CERTIFICATE REQUEST" && p.Type != "CERTIFICATE REQUEST" {
-			return nil, rest, certerr.ParsingError(certerr.ErrorSourceCSR, certerr.ErrInvalidPEMType(p.Type, "NEW CERTIFICATE REQUEST", "CERTIFICATE REQUEST"))
+			return nil, rest, certerr.ParsingError(
+				certerr.ErrorSourceCSR,
+				certerr.ErrInvalidPEMType(p.Type, "NEW CERTIFICATE REQUEST", "CERTIFICATE REQUEST"),
+			)
 		}
 
 		csr, err = x509.ParseCertificateRequest(p.Bytes)
@@ -509,7 +520,7 @@ func SignerAlgo(priv crypto.Signer) x509.SignatureAlgorithm {
 	}
 }
 
-// LoadClientCertificate load key/certificate from pem files
+// LoadClientCertificate load key/certificate from pem files.
 func LoadClientCertificate(certFile string, keyFile string) (*tls.Certificate, error) {
 	if certFile != "" && keyFile != "" {
 		cert, err := tls.LoadX509KeyPair(certFile, keyFile)
@@ -521,7 +532,7 @@ func LoadClientCertificate(certFile string, keyFile string) (*tls.Certificate, e
 	return nil, nil
 }
 
-// CreateTLSConfig creates a tls.Config object from certs and roots
+// CreateTLSConfig creates a tls.Config object from certs and roots.
 func CreateTLSConfig(remoteCAs *x509.CertPool, cert *tls.Certificate) *tls.Config {
 	var certs []tls.Certificate
 	if cert != nil {
@@ -554,7 +565,10 @@ func DeserializeSCTList(serializedSCTList []byte) ([]ct.SignedCertificateTimesta
 		return nil, err
 	}
 	if len(rest) != 0 {
-		return nil, certerr.ParsingError(certerr.ErrorSourceSCTList, errors.New("serialized SCT list contained trailing garbage"))
+		return nil, certerr.ParsingError(
+			certerr.ErrorSourceSCTList,
+			errors.New("serialized SCT list contained trailing garbage"),
+		)
 	}
 
 	list := make([]ct.SignedCertificateTimestamp, len(sctList.SCTList))
@@ -565,7 +579,10 @@ func DeserializeSCTList(serializedSCTList []byte) ([]ct.SignedCertificateTimesta
 			return nil, err
 		}
 		if len(rest) != 0 {
-			return nil, certerr.ParsingError(certerr.ErrorSourceSCTList, errors.New("serialized SCT list contained trailing garbage"))
+			return nil, certerr.ParsingError(
+				certerr.ErrorSourceSCTList,
+				errors.New("serialized SCT list contained trailing garbage"),
+			)
 		}
 		list[i] = sct
 	}

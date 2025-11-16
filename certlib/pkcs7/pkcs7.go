@@ -93,7 +93,7 @@ type signedData struct {
 	Version          int
 	DigestAlgorithms asn1.RawValue
 	ContentInfo      asn1.RawValue
-	Certificates     asn1.RawValue `asn1:"optional" asn1:"tag:0"`
+	Certificates     asn1.RawValue `asn1:"optional"`
 	Crls             asn1.RawValue `asn1:"optional"`
 	SignerInfos      asn1.RawValue
 }
@@ -207,7 +207,10 @@ func populateEncryptedData(msg *PKCS7, contentBytes []byte) error {
 		return certerr.ParsingError(certerr.ErrorSourceCertificate, err)
 	}
 	if ed.Version != 0 {
-		return certerr.ParsingError(certerr.ErrorSourceCertificate, errors.New("only PKCS #7 encryptedData version 0 is supported"))
+		return certerr.ParsingError(
+			certerr.ErrorSourceCertificate,
+			errors.New("only PKCS #7 encryptedData version 0 is supported"),
+		)
 	}
 	msg.Content.EncryptedData = ed
 	return nil
@@ -216,7 +219,6 @@ func populateEncryptedData(msg *PKCS7, contentBytes []byte) error {
 // ParsePKCS7 attempts to parse the DER encoded bytes of a
 // PKCS7 structure.
 func ParsePKCS7(raw []byte) (msg *PKCS7, err error) {
-
 	pkcs7, err := unmarshalInit(raw)
 	if err != nil {
 		return nil, err
@@ -240,9 +242,11 @@ func ParsePKCS7(raw []byte) (msg *PKCS7, err error) {
 			return nil, err
 		}
 	default:
-		return nil, certerr.ParsingError(certerr.ErrorSourceCertificate, errors.New("only PKCS# 7 content of type data, signed data or encrypted data can be parsed"))
+		return nil, certerr.ParsingError(
+			certerr.ErrorSourceCertificate,
+			errors.New("only PKCS# 7 content of type data, signed data or encrypted data can be parsed"),
+		)
 	}
 
 	return msg, nil
-
 }
