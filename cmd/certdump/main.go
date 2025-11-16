@@ -3,6 +3,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"crypto/dsa"
 	"crypto/ecdsa"
 	"crypto/elliptic"
@@ -246,18 +247,34 @@ func displayAllCerts(in []byte, leafOnly bool) {
 
 func displayAllCertsWeb(uri string, leafOnly bool) {
 	ci := getConnInfo(uri)
-	conn, err := tls.Dial("tcp", ci.Addr, permissiveConfig())
+	d := &tls.Dialer{Config: permissiveConfig()}
+	nc, err := d.DialContext(context.Background(), "tcp", ci.Addr)
 	if err != nil {
 		_, _ = lib.Warn(err, "couldn't connect to %s", ci.Addr)
+		return
+	}
+
+	conn, ok := nc.(*tls.Conn)
+	if !ok {
+		_, _ = lib.Warnx("invalid TLS connection (not a *tls.Conn)")
 		return
 	}
 	defer conn.Close()
 
 	state := conn.ConnectionState()
-	conn.Close()
+	if err = conn.Close(); err != nil {
+		_, _ = lib.Warn(err, "couldn't close TLS connection")
+	}
 
-	conn, err = tls.Dial("tcp", ci.Addr, verifyConfig(ci.Host))
+	d = &tls.Dialer{Config: verifyConfig(ci.Host)}
+	nc, err = d.DialContext(context.Background(), "tcp", ci.Addr)
 	if err == nil {
+		conn, ok = nc.(*tls.Conn)
+		if !ok {
+			_, _ = lib.Warnx("invalid TLS connection (not a *tls.Conn)")
+			return
+		}
+
 		err = conn.VerifyHostname(ci.Host)
 		if err == nil {
 			state = conn.ConnectionState()
@@ -293,6 +310,32 @@ func displayAllCertsWeb(uri string, leafOnly bool) {
 	}
 }
 
+func shouldReadStdin(argc int, argv []string) bool {
+	if argc == 0 {
+		return true
+	}
+
+	if argc == 1 && argv[0] == "-" {
+		return true
+	}
+
+	return false
+}
+
+func readStdin(leafOnly bool) {
+	certs, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		_, _ = lib.Warn(err, "couldn't read certificates from standard input")
+		os.Exit(1)
+	}
+
+	// This is needed for getting certs from JSON/jq.
+	certs = bytes.TrimSpace(certs)
+	certs = bytes.ReplaceAll(certs, []byte(`\n`), []byte{0xa})
+	certs = bytes.Trim(certs, `"`)
+	displayAllCerts(certs, leafOnly)
+}
+
 func main() {
 	var leafOnly bool
 	flag.BoolVar(&showHash, "d", false, "show hashes of raw DER contents")
@@ -300,32 +343,23 @@ func main() {
 	flag.BoolVar(&leafOnly, "l", false, "only show the leaf certificate")
 	flag.Parse()
 
-	if flag.NArg() == 0 || (flag.NArg() == 1 && flag.Arg(0) == "-") {
-		certs, err := io.ReadAll(os.Stdin)
-		if err != nil {
-			_, _ = lib.Warn(err, "couldn't read certificates from standard input")
-			os.Exit(1)
-		}
+	if shouldReadStdin(flag.NArg(), flag.Args()) {
+		readStdin(leafOnly)
+		return
+	}
 
-		// This is needed for getting certs from JSON/jq.
-		certs = bytes.TrimSpace(certs)
-		certs = bytes.ReplaceAll(certs, []byte(`\n`), []byte{0xa})
-		certs = bytes.Trim(certs, `"`)
-		displayAllCerts(certs, leafOnly)
-	} else {
-		for _, filename := range flag.Args() {
-			fmt.Fprintf(os.Stdout, "--%s ---%s", filename, "\n")
-			if strings.HasPrefix(filename, "https://") {
-				displayAllCertsWeb(filename, leafOnly)
-			} else {
-				in, err := os.ReadFile(filename)
-				if err != nil {
-					_, _ = lib.Warn(err, "couldn't read certificate")
-					continue
-				}
-
-				displayAllCerts(in, leafOnly)
+	for _, filename := range flag.Args() {
+		fmt.Fprintf(os.Stdout, "--%s ---%s", filename, "\n")
+		if strings.HasPrefix(filename, "https://") {
+			displayAllCertsWeb(filename, leafOnly)
+		} else {
+			in, err := os.ReadFile(filename)
+			if err != nil {
+				_, _ = lib.Warn(err, "couldn't read certificate")
+				continue
 			}
+
+			displayAllCerts(in, leafOnly)
 		}
 	}
 }

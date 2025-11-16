@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/pem"
 	"flag"
@@ -22,22 +23,26 @@ func main() {
 			server += ":443"
 		}
 
-		var chain string
-
-		conn, err := tls.Dial("tcp", server, nil)
+		d := &tls.Dialer{Config: &tls.Config{}} // #nosec G402
+		nc, err := d.DialContext(context.Background(), "tcp", server)
 		die.If(err)
+		conn, ok := nc.(*tls.Conn)
+		if !ok {
+			die.With("invalid TLS connection (not a *tls.Conn)")
+		}
+
+		defer conn.Close()
 
 		details := conn.ConnectionState()
-		var chainSb30 strings.Builder
+		var chain strings.Builder
 		for _, cert := range details.PeerCertificates {
 			p := pem.Block{
 				Type:  "CERTIFICATE",
 				Bytes: cert.Raw,
 			}
-			chainSb30.WriteString(string(pem.EncodeToMemory(&p)))
+			chain.Write(pem.EncodeToMemory(&p))
 		}
-		chain += chainSb30.String()
 
-		fmt.Fprintln(os.Stdout, chain)
+		fmt.Fprintln(os.Stdout, chain.String())
 	}
 }

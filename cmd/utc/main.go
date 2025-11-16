@@ -253,15 +253,16 @@ func main() {
 		showTime(time.Now())
 		os.Exit(0)
 	case 1:
-		if flag.Arg(0) == "-" {
+		switch {
+		case flag.Arg(0) == "-":
 			s := bufio.NewScanner(os.Stdin)
 
 			for s.Scan() {
 				times = append(times, s.Text())
 			}
-		} else if flag.Arg(0) == "help" {
+		case flag.Arg(0) == "help":
 			usageExamples()
-		} else {
+		default:
 			times = flag.Args()
 		}
 	default:

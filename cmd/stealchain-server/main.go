@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
@@ -15,7 +16,7 @@ import (
 )
 
 func main() {
-	cfg := &tls.Config{}
+	cfg := &tls.Config{} // #nosec G402
 
 	var sysRoot, listenAddr, certFile, keyFile string
 	var verify bool
@@ -46,7 +47,8 @@ func main() {
 	}
 	cfg.Certificates = append(cfg.Certificates, cert)
 	if sysRoot != "" {
-		pemList, err := os.ReadFile(sysRoot)
+		var pemList []byte
+		pemList, err = os.ReadFile(sysRoot)
 		die.If(err)
 
 		roots := x509.NewCertPool()
@@ -58,14 +60,16 @@ func main() {
 		cfg.RootCAs = roots
 	}
 
-	l, err := net.Listen("tcp", listenAddr)
+	lc := &net.ListenConfig{}
+	l, err := lc.Listen(context.Background(), "tcp", listenAddr)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
 	for {
-		conn, err := l.Accept()
+		var conn net.Conn
+		conn, err = l.Accept()
 		if err != nil {
 			fmt.Println(err.Error())
 			continue
@@ -79,7 +83,7 @@ func handleConn(conn net.Conn, cfg *tls.Config) {
 	defer conn.Close()
 	raddr := conn.RemoteAddr()
 	tconn := tls.Server(conn, cfg)
-	if err := tconn.Handshake(); err != nil {
+	if err := tconn.HandshakeContext(context.Background()); err != nil {
 		fmt.Printf("[+] %v: failed to complete handshake: %v\n", raddr, err)
 		return
 	}

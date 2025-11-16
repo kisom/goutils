@@ -26,7 +26,7 @@ func setupFile(hdr *tar.Header, file *os.File) error {
 		if verbose {
 			fmt.Printf("\tchmod %0#o\n", hdr.Mode)
 		}
-		err := file.Chmod(os.FileMode(hdr.Mode))
+		err := file.Chmod(os.FileMode(hdr.Mode & 0xFFFFFFFF)) // #nosec G115
 		if err != nil {
 			return err
 		}
@@ -55,7 +55,9 @@ func processFile(tfr *tar.Reader, hdr *tar.Header, top string) error {
 	if verbose {
 		fmt.Println(hdr.Name)
 	}
+
 	filePath := filepath.Clean(filepath.Join(top, hdr.Name))
+
 	switch hdr.Typeflag {
 	case tar.TypeReg:
 		file, err := os.Create(filePath)
@@ -109,7 +111,7 @@ func processFile(tfr *tar.Reader, hdr *tar.Header, top string) error {
 			return err
 		}
 	case tar.TypeDir:
-		err := os.MkdirAll(filePath, os.FileMode(hdr.Mode))
+		err := os.MkdirAll(filePath, os.FileMode(hdr.Mode&0xFFFFFFFF)) // #nosec G115
 		if err != nil {
 			return err
 		}
@@ -261,8 +263,9 @@ func main() {
 	die.If(err)
 
 	tfr := tar.NewReader(r)
+	var hdr *tar.Header
 	for {
-		hdr, err := tfr.Next()
+		hdr, err = tfr.Next()
 		if errors.Is(err, io.EOF) {
 			break
 		}

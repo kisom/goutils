@@ -13,6 +13,11 @@ import (
 // following two lifted from CFSSL, (replace-regexp "\(.+\): \(.+\),"
 // "\2: \1,")
 
+const (
+	sSHA256 = "SHA256"
+	sSHA512 = "SHA512"
+)
+
 var keyUsage = map[x509.KeyUsage]string{
 	x509.KeyUsageDigitalSignature:  "digital signature",
 	x509.KeyUsageContentCommitment: "content committment",
@@ -70,19 +75,19 @@ func sigAlgoHash(a x509.SignatureAlgorithm) string {
 	case x509.SHA1WithRSA, x509.ECDSAWithSHA1, x509.DSAWithSHA1:
 		return "SHA1"
 	case x509.SHA256WithRSA, x509.ECDSAWithSHA256, x509.DSAWithSHA256:
-		return "SHA256"
+		return sSHA256
 	case x509.SHA256WithRSAPSS:
-		return "SHA256"
+		return sSHA256
 	case x509.SHA384WithRSA, x509.ECDSAWithSHA384:
 		return "SHA384"
 	case x509.SHA384WithRSAPSS:
 		return "SHA384"
 	case x509.SHA512WithRSA, x509.ECDSAWithSHA512:
-		return "SHA512"
+		return sSHA512
 	case x509.SHA512WithRSAPSS:
-		return "SHA512"
+		return sSHA512
 	case x509.PureEd25519:
-		return "SHA512"
+		return sSHA512
 	case x509.UnknownSignatureAlgorithm:
 		return "unknown hash algorithm"
 	default:
@@ -144,14 +149,14 @@ func dumpHex(in []byte) string {
 func permissiveConfig() *tls.Config {
 	return &tls.Config{
 		InsecureSkipVerify: true,
-	}
+	} // #nosec G402
 }
 
 // verifyConfig returns a config that will verify the connection.
 func verifyConfig(hostname string) *tls.Config {
 	return &tls.Config{
 		ServerName: hostname,
-	}
+	} // #nosec G402
 }
 
 type connInfo struct {

@@ -27,7 +27,8 @@ func main() {
 				break
 			}
 
-			cert, err := x509.ParseCertificate(p.Bytes)
+			var cert *x509.Certificate
+			cert, err = x509.ParseCertificate(p.Bytes)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "[!] %s: %v\n", fileName, err)
 				break

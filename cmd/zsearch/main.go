@@ -14,16 +14,16 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+
+	"git.wntrmute.dev/kyle/goutils/lib"
 )
 
 const defaultDirectory = ".git/objects"
 
-func errorf(format string, a ...any) {
-	fmt.Fprintf(os.Stderr, format, a...)
-	if format[len(format)-1] != '\n' {
-		fmt.Fprintf(os.Stderr, "\n")
-	}
-}
+// maxDecompressedSize limits how many bytes we will decompress from a zlib
+// stream to mitigate decompression bombs (gosec G110).
+// Increase this if you expect larger objects.
+const maxDecompressedSize int64 = 64 << 30 // 64 GiB
 
 func isDir(path string) bool {
 	fi, err := os.Stat(path)
@@ -48,9 +48,13 @@ func loadFile(path string) ([]byte, error) {
 	}
 	defer zread.Close()
 
-	_, err = io.Copy(buf, zread)
-	if err != nil {
+	// Protect against decompression bombs by limiting how much we read.
+	lr := io.LimitReader(zread, maxDecompressedSize+1)
+	if _, err = buf.ReadFrom(lr); err != nil {
 		return nil, err
+	}
+	if int64(buf.Len()) > maxDecompressedSize {
+		return nil, fmt.Errorf("decompressed size exceeds limit (%d bytes)", maxDecompressedSize)
 	}
 	return buf.Bytes(), nil
 }
@@ -58,7 +62,7 @@ func loadFile(path string) ([]byte, error) {
 func showFile(path string) {
 	fileData, err := loadFile(path)
 	if err != nil {
-		errorf("%v", err)
+		lib.Warn(err, "failed to load %s", path)
 		return
 	}
 
@@ -68,37 +72,69 @@ func showFile(path string) {
 func searchFile(path string, search *regexp.Regexp) error {
 	file, err := os.Open(path)
 	if err != nil {
-		errorf("%v", err)
+		lib.Warn(err, "failed to open %s", path)
 		return err
 	}
 	defer file.Close()
 
 	zread, err := zlib.NewReader(file)
 	if err != nil {
-		errorf("%v", err)
+		lib.Warn(err, "failed to decompress %s", path)
 		return err
 	}
 	defer zread.Close()
 
-	zbuf := bufio.NewReader(zread)
-	if search.MatchReader(zbuf) {
-		fileData, err := loadFile(path)
-		if err != nil {
-			errorf("%v", err)
-			return err
-		}
-		fmt.Printf("%s:\n%s\n", path, fileData)
+	// Limit how much we scan to avoid DoS via huge decompression.
+	lr := io.LimitReader(zread, maxDecompressedSize+1)
+	zbuf := bufio.NewReader(lr)
+	if !search.MatchReader(zbuf) {
+		return nil
 	}
+
+	fileData, err := loadFile(path)
+	if err != nil {
+		lib.Warn(err, "failed to load %s", path)
+		return err
+	}
+	fmt.Printf("%s:\n%s\n", path, fileData)
 	return nil
 }
 
 func buildWalker(searchExpr *regexp.Regexp) filepath.WalkFunc {
 	return func(path string, info os.FileInfo, _ error) error {
-		if info.Mode().IsRegular() {
-			return searchFile(path, searchExpr)
+		if !info.Mode().IsRegular() {
+			return nil
 		}
-		return nil
+		return searchFile(path, searchExpr)
 	}
+}
+
+// runSearch compiles the search expression and processes the provided paths.
+// It returns an error for fatal conditions; per-file errors are logged.
+func runSearch(expr string) error {
+	search, err := regexp.Compile(expr)
+	if err != nil {
+		return fmt.Errorf("invalid regexp: %w", err)
+	}
+
+	pathList := flag.Args()
+	if len(pathList) == 0 {
+		pathList = []string{defaultDirectory}
+	}
+
+	for _, path := range pathList {
+		if isDir(path) {
+			if err2 := filepath.Walk(path, buildWalker(search)); err2 != nil {
+				return err2
+			}
+			continue
+		}
+		if err2 := searchFile(path, search); err2 != nil {
+			// Non-fatal: keep going, but report it.
+			lib.Warn(err2, "non-fatal error while searching files")
+		}
+	}
+	return nil
 }
 
 func main() {
@@ -109,29 +145,10 @@ func main() {
 		for _, path := range flag.Args() {
 			showFile(path)
 		}
-	} else {
-		search, err := regexp.Compile(*flSearch)
-		if err != nil {
-			errorf("Bad regexp: %v", err)
-			return
-		}
+		return
+	}
 
-		pathList := flag.Args()
-		if len(pathList) == 0 {
-			pathList = []string{defaultDirectory}
-		}
-
-		for _, path := range pathList {
-			if isDir(path) {
-				if err := filepath.Walk(path, buildWalker(search)); err != nil {
-					errorf("%v", err)
-					return
-				}
-			} else {
-				if err := searchFile(path, search); err != nil {
-					errorf("%v", err)
-				}
-			}
-		}
+	if err := runSearch(*flSearch); err != nil {
+		lib.Err(lib.ExitFailure, err, "failed to run search")
 	}
 }

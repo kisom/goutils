@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io"
@@ -152,7 +153,7 @@ func rsync(syncDir, target, excludeFile string, verboseRsync bool) error {
 		return err
 	}
 
-	cmd := exec.Command(path, args...)
+	cmd := exec.CommandContext(context.Background(), path, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
@@ -218,7 +219,7 @@ func main() {
 	if excludeFile != "" {
 		defer func() {
 			log.Infof("removing exclude file %s", excludeFile)
-			if err := os.Remove(excludeFile); err != nil {
+			if rmErr := os.Remove(excludeFile); rmErr != nil {
 				log.Warningf("failed to remove temp file %s", excludeFile)
 			}
 		}()

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -37,10 +38,11 @@ func dumpFile(path string, indentLevel int) error {
 	defer file.Close()
 
 	fmt.Printf("%svar buffer = []byte{\n", indent.String())
+	var n int
 	for {
 		buf := make([]byte, 8)
-		n, err := file.Read(buf)
-		if err == io.EOF {
+		n, err = file.Read(buf)
+		if errors.Is(err, io.EOF) {
 			if n > 0 {
 				fmt.Printf("%s", indent.String())
 				printBytes(buf[:n])

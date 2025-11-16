@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
 	"os"
+
+	"git.wntrmute.dev/kyle/goutils/certlib/hosts"
+	"git.wntrmute.dev/kyle/goutils/die"
 )
 
 func main() {
@@ -13,16 +17,23 @@ func main() {
 		os.Exit(1)
 	}
 
-	hostPort := os.Args[1]
-	conn, err := tls.Dial("tcp", hostPort, &tls.Config{
-		InsecureSkipVerify: true,
-	})
+	hostPort, err := hosts.ParseHost(os.Args[1])
+	die.If(err)
 
-	if err != nil {
-		fmt.Printf("Failed to connect to the TLS server: %v\n", err)
-		os.Exit(1)
+	d := &tls.Dialer{Config: &tls.Config{
+		InsecureSkipVerify: true,
+	}} // #nosec G402
+
+	nc, err := d.DialContext(context.Background(), "tcp", hostPort.String())
+	die.If(err)
+
+	conn, ok := nc.(*tls.Conn)
+	if !ok {
+		die.With("invalid TLS connection (not a *tls.Conn)")
 	}
+
 	defer conn.Close()
+
 	state := conn.ConnectionState()
 	printConnectionDetails(state)
 }

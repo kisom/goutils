@@ -5,7 +5,7 @@ import (
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/rsa"
-	"crypto/sha1"
+	"crypto/sha1" // #nosec G505
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
@@ -18,6 +18,11 @@ import (
 
 	"git.wntrmute.dev/kyle/goutils/die"
 	"git.wntrmute.dev/kyle/goutils/lib"
+)
+
+const (
+	keyTypeRSA   = "RSA"
+	keyTypeECDSA = "ECDSA"
 )
 
 func usage(w io.Writer) {
@@ -94,10 +99,10 @@ func parseKey(data []byte) ([]byte, string) {
 	switch p := privInterface.(type) {
 	case *rsa.PrivateKey:
 		priv = p
-		kt = "RSA"
+		kt = keyTypeRSA
 	case *ecdsa.PrivateKey:
 		priv = p
-		kt = "ECDSA"
+		kt = keyTypeECDSA
 	default:
 		die.With("unknown private key type %T", privInterface)
 	}
@@ -116,9 +121,9 @@ func parseCertificate(data []byte) ([]byte, string) {
 	var kt string
 	switch pub.(type) {
 	case *rsa.PublicKey:
-		kt = "RSA"
+		kt = keyTypeRSA
 	case *ecdsa.PublicKey:
-		kt = "ECDSA"
+		kt = keyTypeECDSA
 	default:
 		die.With("unknown public key type %T", pub)
 	}
@@ -136,9 +141,9 @@ func parseCSR(data []byte) ([]byte, string) {
 	var kt string
 	switch pub.(type) {
 	case *rsa.PublicKey:
-		kt = "RSA"
+		kt = keyTypeRSA
 	case *ecdsa.PublicKey:
-		kt = "ECDSA"
+		kt = keyTypeECDSA
 	default:
 		die.With("unknown public key type %T", pub)
 	}
@@ -186,7 +191,7 @@ func main() {
 			continue
 		}
 
-		pubHash := sha1.Sum(subPKI.SubjectPublicKey.Bytes)
+		pubHash := sha1.Sum(subPKI.SubjectPublicKey.Bytes) // #nosec G401 this is the standard
 		pubHashString := dumpHex(pubHash[:])
 		if ski == "" {
 			ski = pubHashString

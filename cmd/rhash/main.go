@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io"
@@ -76,7 +77,13 @@ func main() {
 			continue
 		}
 
-		resp, err := http.Get(remote)
+		req, reqErr := http.NewRequestWithContext(context.Background(), http.MethodGet, remote, nil)
+		if reqErr != nil {
+			_, _ = lib.Warn(reqErr, "building request for %s", remote)
+			continue
+		}
+		client := &http.Client{}
+		resp, err := client.Do(req)
 		if err != nil {
 			_, _ = lib.Warn(err, "fetching %s", remote)
 			continue

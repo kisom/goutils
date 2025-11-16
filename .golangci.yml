@@ -242,6 +242,10 @@ linters:
       check-type-assertions: true
       exclude-functions:
         - (*git.wntrmute.dev/kyle/goutils/sbuf.Buffer).Write
+        - git.wntrmute.dev/kyle/goutils/lib.Warn
+        - git.wntrmute.dev/kyle/goutils/lib.Warnx
+        - git.wntrmute.dev/kyle/goutils/lib.Err
+        - git.wntrmute.dev/kyle/goutils/lib.Errx
 
     exhaustive:
       # Program elements to check for exhaustiveness.
@@ -333,6 +337,12 @@ linters:
         # https://github.com/godoc-lint/godoc-lint?tab=readme-ov-file#no-unused-link
         - no-unused-link
 
+    gosec:
+      excludes:
+        - G104 # handled by errcheck
+        - G301
+        - G306
+
     govet:
       # Enable all analyzers.
       # Default: false
@@ -368,6 +378,12 @@ linters:
         - os.WriteFile
         - prometheus.ExponentialBuckets.*
         - prometheus.LinearBuckets
+      ignored-numbers:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 8
 
     nakedret:
       # Make an issue if func has more lines of code than this setting, and it has naked returns.
@@ -436,6 +452,8 @@ linters:
         # Omit embedded fields from selector expression.
         # https://staticcheck.dev/docs/checks/#QF1008
         - -QF1008
+        # We often explicitly enable old/deprecated ciphers for research.
+        - -SA1019
 
     usetesting:
       # Enable/disable `os.TempDir()` detections.

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -57,7 +58,7 @@ var modes = ssh.TerminalModes{
 }
 
 func sshAgent() ssh.AuthMethod {
-	a, err := net.Dial("unix", os.Getenv("SSH_AUTH_SOCK"))
+	a, err := (&net.Dialer{}).DialContext(context.Background(), "unix", os.Getenv("SSH_AUTH_SOCK"))
 	if err == nil {
 		return ssh.PublicKeysCallback(agent.NewClient(a).Signers)
 	}
@@ -116,7 +117,7 @@ func exec(wg *sync.WaitGroup, user, host string, commands []string) {
 	}
 	shutdown = append(shutdown, session.Close)
 
-	if err := session.RequestPty("xterm", 80, 40, modes); err != nil {
+	if err = session.RequestPty("xterm", 80, 40, modes); err != nil {
 		session.Close()
 		logError(host, err, "request for pty failed")
 		return

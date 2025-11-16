@@ -72,9 +72,7 @@ func main() {
 
 	if end < start {
 		fmt.Fprintln(os.Stderr, "[!] end < start, swapping values")
-		tmp := end
-		end = start
-		start = tmp
+		start, end = end, start
 	}
 
 	var fmtStr string

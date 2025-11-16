@@ -40,12 +40,19 @@ func compress(path, target string, level int) error {
 	return nil
 }
 
-func uncompress(path, target string) error {
+func uncompress(path, target string, unrestrict bool) error {
 	sourceFile, err := os.Open(path)
 	if err != nil {
 		return fmt.Errorf("opening file for read: %w", err)
 	}
 	defer sourceFile.Close()
+
+	fi, err := sourceFile.Stat()
+	if err != nil {
+		return fmt.Errorf("reading file stats: %w", err)
+	}
+
+	maxDecompressionSize := fi.Size() * 32
 
 	gzipUncompressor, err := gzip.NewReader(sourceFile)
 	if err != nil {
@@ -53,13 +60,22 @@ func uncompress(path, target string) error {
 	}
 	defer gzipUncompressor.Close()
 
+	var reader io.Reader = &io.LimitedReader{
+		R: gzipUncompressor,
+		N: maxDecompressionSize,
+	}
+
+	if unrestrict {
+		reader = gzipUncompressor
+	}
+
 	destFile, err := os.Create(target)
 	if err != nil {
 		return fmt.Errorf("opening file for write: %w", err)
 	}
 	defer destFile.Close()
 
-	_, err = io.Copy(destFile, gzipUncompressor)
+	_, err = io.Copy(destFile, reader)
 	if err != nil {
 		return fmt.Errorf("uncompressing file: %w", err)
 	}
@@ -87,8 +103,8 @@ func isDir(path string) bool {
 	file, err := os.Open(path)
 	if err == nil {
 		defer file.Close()
-		stat, err := file.Stat()
-		if err != nil {
+		stat, err2 := file.Stat()
+		if err2 != nil {
 			return false
 		}
 
@@ -132,8 +148,11 @@ func main() {
 	var level int
 	var path string
 	var target = "."
+	var err error
+	var unrestrict bool
 
 	flag.IntVar(&level, "l", flate.DefaultCompression, "compression level")
+	flag.BoolVar(&unrestrict, "u", false, "do not restrict decompression")
 	flag.Parse()
 
 	if flag.NArg() < 1 || flag.NArg() > 2 {
@@ -147,30 +166,31 @@ func main() {
 	}
 
 	if strings.HasSuffix(path, gzipExt) {
-		target, err := pathForUncompressing(path, target)
+		target, err = pathForUncompressing(path, target)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
 		}
 
-		err = uncompress(path, target)
+		err = uncompress(path, target, unrestrict)
 		if err != nil {
 			os.Remove(target)
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
 		}
-	} else {
-		target, err := pathForCompressing(path, target)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
-		}
+		return
+	}
 
-		err = compress(path, target, level)
-		if err != nil {
-			os.Remove(target)
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
-		}
+	target, err = pathForCompressing(path, target)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(1)
+	}
+
+	err = compress(path, target, level)
+	if err != nil {
+		os.Remove(target)
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(1)
 	}
 }

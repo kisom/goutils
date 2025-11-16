@@ -11,7 +11,10 @@ based on whether the source filename ends in ".gz".
 
 Flags:
 	-l level	Compression level (0-9). Only meaninful when
-			compressing a file.
+			    compressing a file.
+    -u          Do not restrict the size during decompression. As
+                a safeguard against gzip bombs, the maximum size
+                allowed is 32 * the compressed file size.
 
 
 

@@ -47,7 +47,7 @@ func main() {
 			Bytes: out,
 		}
 
-		err = os.WriteFile(fileName+".pub", pem.EncodeToMemory(p), 0o644)
+		err = os.WriteFile(fileName+".pub", pem.EncodeToMemory(p), 0o644) // #nosec G306
 		die.If(err)
 		fmt.Fprintf(os.Stdout, "[+] wrote %s.\n", fileName+".pub")
 	}

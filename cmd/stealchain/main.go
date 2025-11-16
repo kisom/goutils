@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
@@ -13,7 +14,7 @@ import (
 )
 
 func main() {
-	var cfg = &tls.Config{}
+	var cfg = &tls.Config{} // #nosec G402
 
 	var sysRoot, serverName string
 	flag.StringVar(&sysRoot, "ca", "", "provide an alternate CA bundle")
@@ -43,10 +44,13 @@ func main() {
 		if err != nil {
 			site += ":443"
 		}
-		conn, err := tls.Dial("tcp", site, cfg)
-		if err != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
+		d := &tls.Dialer{Config: cfg}
+		nc, err := d.DialContext(context.Background(), "tcp", site)
+		die.If(err)
+
+		conn, ok := nc.(*tls.Conn)
+		if !ok {
+			die.With("invalid TLS connection (not a *tls.Conn)")
 		}
 
 		cs := conn.ConnectionState()
@@ -62,6 +66,7 @@ func main() {
 
 		err = os.WriteFile(site+".pem", chain, 0644)
 		die.If(err)
+
 		fmt.Printf("[+] wrote %s.pem.\n", site)
 	}
 }

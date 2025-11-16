@@ -30,7 +30,7 @@ func openImage(imageFile string) (*os.File, []byte, error) {
 		return nil, nil, err
 	}
 
-	if _, err := f.Seek(0, 0); err != nil {
+	if _, err = f.Seek(0, 0); err != nil {
 		return nil, nil, err
 	}
 
@@ -103,12 +103,12 @@ func main() {
 	die.If(err)
 
 	if !bytes.Equal(deviceHash, hash) {
-		fmt.Fprintln(os.Stderr, "Hash mismatch:")
-		fmt.Fprintf(os.Stderr, "\t%s: %s\n", imageFile, hash)
-		fmt.Fprintf(os.Stderr, "\t%s: %s\n", devicePath, deviceHash)
-		os.Exit(1)
+		buf := &bytes.Buffer{}
+		fmt.Fprintln(buf, "Hash mismatch:")
+		fmt.Fprintf(buf, "\t%s: %s\n", imageFile, hash)
+		fmt.Fprintf(buf, "\t%s: %s\n", devicePath, deviceHash)
+		die.With(buf.String())
 	}
 
 	debug.Println("OK")
-	os.Exit(0)
 }

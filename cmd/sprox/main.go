@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"io"
 	"net"
@@ -10,7 +11,7 @@ import (
 )
 
 func proxy(conn net.Conn, inside string) error {
-	proxyConn, err := net.Dial("tcp", inside)
+	proxyConn, err := (&net.Dialer{}).DialContext(context.Background(), "tcp", inside)
 	if err != nil {
 		return err
 	}
@@ -31,18 +32,20 @@ func main() {
 	flag.StringVar(&inside, "p", "4000", "inside port")
 	flag.Parse()
 
-	l, err := net.Listen("tcp", "0.0.0.0:"+outside)
+	lc := &net.ListenConfig{}
+	l, err := lc.Listen(context.Background(), "tcp", "0.0.0.0:"+outside)
 	die.If(err)
 
 	for {
-		conn, err := l.Accept()
+		var conn net.Conn
+		conn, err = l.Accept()
 		if err != nil {
 			_, _ = lib.Warn(err, "accept failed")
 			continue
 		}
 
 		go func() {
-			if err := proxy(conn, "127.0.0.1:"+inside); err != nil {
+			if err = proxy(conn, "127.0.0.1:"+inside); err != nil {
 				_, _ = lib.Warn(err, "proxy error")
 			}
 		}()

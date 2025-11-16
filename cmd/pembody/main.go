@@ -32,7 +32,7 @@ func main() {
 	if p == nil {
 		lib.Errx(lib.ExitFailure, "%s isn't a PEM-encoded file", flag.Arg(0))
 	}
-	if _, err := os.Stdout.Write(p.Bytes); err != nil {
+	if _, err = os.Stdout.Write(p.Bytes); err != nil {
 		lib.Err(lib.ExitFailure, err, "writing body")
 	}
 }

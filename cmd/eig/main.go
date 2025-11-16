@@ -26,7 +26,7 @@ func main() {
 		path = flag.Arg(0)
 	}
 
-	fillByte := uint8(*fill)
+	fillByte := uint8(*fill & 0xff) // #nosec G115 clearing out of bounds bits
 
 	buf := make([]byte, pageSize)
 	for i := range pageSize {

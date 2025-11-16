@@ -11,9 +11,8 @@ import (
 
 type empty struct{}
 
-func errorf(format string, args ...any) {
-	format += "\n"
-	fmt.Fprintf(os.Stderr, format, args...)
+func errorf(path string, err error) {
+	fmt.Fprintf(os.Stderr, "%s FAILED: %s\n", path, err)
 }
 
 func usage(w io.Writer) {
@@ -45,14 +44,14 @@ func main() {
 		path := "stdin"
 		in, err := io.ReadAll(os.Stdin)
 		if err != nil {
-			errorf("%s FAILED: %s", path, err)
+			errorf(path, err)
 			os.Exit(1)
 		}
 
 		var e empty
 		err = yaml.Unmarshal(in, &e)
 		if err != nil {
-			errorf("%s FAILED: %s", path, err)
+			errorf(path, err)
 			os.Exit(1)
 		}
 
@@ -66,14 +65,14 @@ func main() {
 	for _, path := range flag.Args() {
 		in, err := os.ReadFile(path)
 		if err != nil {
-			errorf("%s FAILED: %s", path, err)
+			errorf(path, err)
 			continue
 		}
 
 		var e empty
 		err = yaml.Unmarshal(in, &e)
 		if err != nil {
-			errorf("%s FAILED: %s", path, err)
+			errorf(path, err)
 			continue
 		}
 

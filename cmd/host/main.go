@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -8,7 +9,8 @@ import (
 )
 
 func lookupHost(host string) error {
-	cname, err := net.LookupCNAME(host)
+	r := &net.Resolver{}
+	cname, err := r.LookupCNAME(context.Background(), host)
 	if err != nil {
 		return err
 	}
@@ -18,7 +20,7 @@ func lookupHost(host string) error {
 		host = cname
 	}
 
-	addrs, err := net.LookupHost(host)
+	addrs, err := r.LookupHost(context.Background(), host)
 	if err != nil {
 		return err
 	}

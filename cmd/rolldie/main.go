@@ -18,7 +18,7 @@ func rollDie(count, sides int) []int {
 	var rolls []int
 
 	for range count {
-		roll := rand.IntN(sides) + 1
+		roll := rand.IntN(sides) + 1 // #nosec G404
 		sum += roll
 		rolls = append(rolls, roll)
 	}

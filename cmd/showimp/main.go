@@ -75,13 +75,14 @@ func walkFile(path string, _ os.FileInfo, err error) error {
 
 	for _, importSpec := range f.Imports {
 		importPath := strings.Trim(importSpec.Path.Value, `"`)
-		if stdLibRegexp.MatchString(importPath) {
+		switch {
+		case stdLibRegexp.MatchString(importPath):
 			debug.Println("standard lib:", importPath)
 			continue
-		} else if strings.HasPrefix(importPath, project) {
+		case strings.HasPrefix(importPath, project):
 			debug.Println("internal import:", importPath)
 			continue
-		} else if strings.HasPrefix(importPath, "golang.org/") {
+		case strings.HasPrefix(importPath, "golang.org/"):
 			debug.Println("extended lib:", importPath)
 			continue
 		}

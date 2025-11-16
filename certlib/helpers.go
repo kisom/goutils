@@ -458,8 +458,6 @@ func GetKeyDERFromPEM(in []byte, password []byte) ([]byte, error) {
 	}
 	if procType, ok := keyDER.Headers["Proc-Type"]; ok && strings.Contains(procType, "ENCRYPTED") {
 		if password != nil {
-			// nolintlint requires rationale:
-			//nolint:staticcheck // legacy RFC1423 PEM encryption supported for backward compatibility when caller supplies a password
 			return x509.DecryptPEMBlock(keyDER, password)
 		}
 		return nil, certerr.DecodeError(certerr.ErrorSourcePrivateKey, certerr.ErrEncryptedPrivateKey)
