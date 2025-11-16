@@ -17,23 +17,6 @@ type Tee struct {
 	Verbose bool
 }
 
-func (t *Tee) Write(p []byte) (int, error) {
-	n, err := os.Stdout.Write(p)
-	if err != nil {
-		return n, err
-	}
-
-	if t.f != nil {
-		return t.f.Write(p)
-	}
-	return n, nil
-}
-
-// Close calls Close on the underlying file.
-func (t *Tee) Close() error {
-	return t.f.Close()
-}
-
 // NewOut writes to standard output only. The file is created, not
 // appended to.
 func NewOut(logFile string) (*Tee, error) {
@@ -48,9 +31,32 @@ func NewOut(logFile string) (*Tee, error) {
 	return &Tee{f: f}, nil
 }
 
+func (t *Tee) Write(p []byte) (int, error) {
+	n, err := os.Stdout.Write(p)
+	if err != nil {
+		return n, err
+	}
+
+	if t.f != nil {
+		return t.f.Write(p)
+	}
+	return n, nil
+}
+
+// Close calls Close on the underlying file if present.
+// It is safe to call Close on a Tee with no file; in that case, it returns nil.
+func (t *Tee) Close() error {
+	if t == nil || t.f == nil {
+		return nil
+	}
+	err := t.f.Close()
+	t.f = nil
+	return err
+}
+
 // Printf formats according to a format specifier and writes to the
 // tee instance.
-func (t *Tee) Printf(format string, args ...interface{}) (int, error) {
+func (t *Tee) Printf(format string, args ...any) (int, error) {
 	s := fmt.Sprintf(format, args...)
 	n, err := os.Stdout.WriteString(s)
 	if err != nil {
@@ -66,7 +72,7 @@ func (t *Tee) Printf(format string, args ...interface{}) (int, error) {
 
 // VPrintf is a variant of Printf that only prints if the Tee's
 // Verbose flag is set.
-func (t *Tee) VPrintf(format string, args ...interface{}) (int, error) {
+func (t *Tee) VPrintf(format string, args ...any) (int, error) {
 	if t.Verbose {
 		return t.Printf(format, args...)
 	}
@@ -87,12 +93,12 @@ func Open(logFile string) error {
 
 // Printf formats according to a format specifier and writes to the
 // global tee.
-func Printf(format string, args ...interface{}) (int, error) {
+func Printf(format string, args ...any) (int, error) {
 	return globalTee.Printf(format, args...)
 }
 
 // VPrintf calls VPrintf on the global tee instance.
-func VPrintf(format string, args ...interface{}) (int, error) {
+func VPrintf(format string, args ...any) (int, error) {
 	return globalTee.VPrintf(format, args...)
 }
 

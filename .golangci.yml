@@ -472,4 +472,5 @@ linters:
           - goconst
           - gosec
           - noctx
+          - reassign
           - wrapcheck
