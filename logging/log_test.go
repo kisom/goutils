@@ -1,30 +1,32 @@
-package logging
+package logging_test
 
 import (
 	"bytes"
 	"fmt"
 	"os"
 	"testing"
+
+	"git.wntrmute.dev/kyle/goutils/logging"
 )
 
 // A list of implementations that should be tested.
-var implementations []Logger
+var implementations []logging.Logger
 
 func init() {
-	lw := NewLogWriter(&bytes.Buffer{}, nil)
-	cw := NewConsole()
+	lw := logging.NewLogWriter(&bytes.Buffer{}, nil)
+	cw := logging.NewConsole()
 
 	implementations = append(implementations, lw)
 	implementations = append(implementations, cw)
 }
 
 func TestFileSetup(t *testing.T) {
-	fw1, err := NewFile("fw1.log", true)
+	fw1, err := logging.NewFile("fw1.log", true)
 	if err != nil {
 		t.Fatalf("failed to create new file logger: %v", err)
 	}
 
-	fw2, err := NewSplitFile("fw2.log", "fw2.err", true)
+	fw2, err := logging.NewSplitFile("fw2.log", "fw2.err", true)
 	if err != nil {
 		t.Fatalf("failed to create new split file logger: %v", err)
 	}
@@ -33,7 +35,7 @@ func TestFileSetup(t *testing.T) {
 	implementations = append(implementations, fw2)
 }
 
-func TestImplementations(t *testing.T) {
+func TestImplementations(_ *testing.T) {
 	for _, l := range implementations {
 		l.Info("TestImplementations", "Info message",
 			map[string]string{"type": fmt.Sprintf("%T", l)})
@@ -44,20 +46,30 @@ func TestImplementations(t *testing.T) {
 
 func TestCloseLoggers(t *testing.T) {
 	for _, l := range implementations {
-		l.Close()
+		if err := l.Close(); err != nil {
+			t.Errorf("failed to close logger: %v", err)
+		}
 	}
 }
 
 func TestDestroyLogFiles(t *testing.T) {
-	os.Remove("fw1.log")
-	os.Remove("fw2.log")
-	os.Remove("fw2.err")
+	if err := os.Remove("fw1.log"); err != nil {
+		t.Errorf("failed to remove fw1.log: %v", err)
+	}
+
+	if err := os.Remove("fw2.log"); err != nil {
+		t.Errorf("failed to remove fw2.log: %v", err)
+	}
+
+	if err := os.Remove("fw2.err"); err != nil {
+		t.Errorf("failed to remove fw2.err: %v", err)
+	}
 }
 
 func TestMulti(t *testing.T) {
-	c1 := NewConsole()
-	c2 := NewConsole()
-	m := NewMulti(c1, c2)
+	c1 := logging.NewConsole()
+	c2 := logging.NewConsole()
+	m := logging.NewMulti(c1, c2)
 	if !m.Good() {
 		t.Fatal("failed to set up multi logger")
 	}

@@ -25,8 +25,8 @@ func main() {
 
 	log.Info("example", "filelog test", nil)
 	exampleNewFromFile()
-	os.Remove("example.log")
-	os.Remove("example.err")
+	_ = os.Remove("example.log")
+	_ = os.Remove("example.err")
 }
 
 func exampleNewFromFile() {

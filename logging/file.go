@@ -1,27 +1,15 @@
 package logging
 
-import "os"
+import (
+	"os"
+
+	"github.com/pkg/errors"
+)
 
 // File writes its logs to file.
 type File struct {
 	fo, fe *os.File
 	*LogWriter
-}
-
-// Close calls close on the underlying log files.
-func (fl *File) Close() error {
-	if fl.fo != nil {
-		if err := fl.fo.Close(); err != nil {
-			return err
-		}
-		fl.fo = nil
-	}
-
-	if fl.fe != nil {
-		return fl.fe.Close()
-	}
-
-	return nil
 }
 
 // NewFile creates a new Logger that writes all logs to the file
@@ -36,7 +24,7 @@ func NewFile(path string, overwrite bool) (*File, error) {
 	if overwrite {
 		fl.fo, err = os.Create(path)
 	} else {
-		fl.fo, err = os.OpenFile(path, os.O_WRONLY|os.O_APPEND, 0644)
+		fl.fo, err = os.OpenFile(path, os.O_WRONLY|os.O_APPEND, 0600) // #nosec G302
 	}
 
 	if err != nil {
@@ -59,7 +47,7 @@ func NewSplitFile(outpath, errpath string, overwrite bool) (*File, error) {
 	if overwrite {
 		fl.fo, err = os.Create(outpath)
 	} else {
-		fl.fo, err = os.OpenFile(outpath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+		fl.fo, err = os.OpenFile(outpath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0600)
 	}
 
 	if err != nil {
@@ -69,14 +57,51 @@ func NewSplitFile(outpath, errpath string, overwrite bool) (*File, error) {
 	if overwrite {
 		fl.fe, err = os.Create(errpath)
 	} else {
-		fl.fe, err = os.OpenFile(errpath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+		fl.fe, err = os.OpenFile(errpath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0600)
 	}
 
 	if err != nil {
-		fl.Close()
+		if closeErr := fl.Close(); closeErr != nil {
+			return nil, errors.Wrap(err, closeErr.Error())
+		}
 		return nil, err
 	}
 
 	fl.LogWriter = NewLogWriter(fl.fo, fl.fe)
 	return fl, nil
+}
+
+// Close calls close on the underlying log files.
+func (fl *File) Close() error {
+	if fl.fo != nil {
+		if err := fl.fo.Close(); err != nil {
+			return err
+		}
+		fl.fo = nil
+	}
+
+	if fl.fe != nil {
+		return fl.fe.Close()
+	}
+
+	return nil
+}
+
+func (fl *File) Flush() error {
+	if err := fl.fo.Sync(); err != nil {
+		return err
+	}
+	return fl.fe.Sync()
+}
+
+func (fl *File) Chmod(mode os.FileMode) error {
+	if err := fl.fo.Chmod(mode); err != nil {
+		return errors.WithMessage(err, "failed to chmod output log")
+	}
+
+	if err := fl.fe.Chmod(mode); err != nil {
+		return errors.WithMessage(err, "failed to chmod error log")
+	}
+
+	return nil
 }
