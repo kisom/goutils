@@ -8,15 +8,15 @@ type mwc struct {
 }
 
 // Write implements the Writer interface.
-func (t *mwc) Write(p []byte) (n int, err error) {
+func (t *mwc) Write(p []byte) (int, error) {
 	for _, w := range t.wcs {
-		n, err = w.Write(p)
+		n, err := w.Write(p)
 		if err != nil {
-			return
+			return n, err
 		}
 		if n != len(p) {
 			err = io.ErrShortWrite
-			return
+			return n, err
 		}
 	}
 	return len(p), nil

@@ -1,10 +1,11 @@
-package mwc
+package mwc_test
 
 import (
 	"bytes"
 	"testing"
 
 	"git.wntrmute.dev/kyle/goutils/assert"
+	"git.wntrmute.dev/kyle/goutils/mwc"
 	"git.wntrmute.dev/kyle/goutils/testio"
 )
 
@@ -12,7 +13,7 @@ func TestMWC(t *testing.T) {
 	buf1 := testio.NewBufCloser(nil)
 	buf2 := testio.NewBufCloser(nil)
 
-	mwc := MultiWriteCloser(buf1, buf2)
+	mwc := mwc.MultiWriteCloser(buf1, buf2)
 
 	_, err := mwc.Write([]byte("hello, world"))
 	assert.NoErrorT(t, err)
@@ -30,15 +31,15 @@ func TestMWCShort(t *testing.T) {
 	buf3 := testio.NewBrokenWriter(5)
 	buf4 := testio.NewSilentBrokenWriter(5)
 
-	mwc := MultiWriteCloser(buf1, buf2, buf3)
-	defer mwc.Close()
+	multiWriter := mwc.MultiWriteCloser(buf1, buf2, buf3)
+	defer multiWriter.Close()
 
-	_, err := mwc.Write([]byte("hello, world"))
+	_, err := multiWriter.Write([]byte("hello, world"))
 	assert.ErrorT(t, err, "expected a short write error", "but no error occurred")
-	mwc.Close()
+	multiWriter.Close()
 
-	mwc = MultiWriteCloser(buf1, buf2, buf4)
-	_, err = mwc.Write([]byte("hello, world"))
+	multiWriter = mwc.MultiWriteCloser(buf1, buf2, buf4)
+	_, err = multiWriter.Write([]byte("hello, world"))
 	assert.ErrorT(t, err, "expected a short write error", "but no error occurred")
 }
 
@@ -47,7 +48,7 @@ func TestMWCClose(t *testing.T) {
 	buf2 := testio.NewBufCloser(nil)
 	buf3 := testio.NewBrokenCloser(nil)
 
-	mwc := MultiWriteCloser(buf1, buf2, buf3)
+	mwc := mwc.MultiWriteCloser(buf1, buf2, buf3)
 	_, err := mwc.Write([]byte("hello, world"))
 	assert.NoErrorT(t, err)
 
