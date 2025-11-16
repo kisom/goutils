@@ -16,15 +16,15 @@ func If(err error) {
 }
 
 // With prints the message to stderr, appending a newline, and exits.
-func With(fstr string, args any) {
+func With(fstr string, args ...any) {
 	out := fmt.Sprintf("[!] %s\n", fstr)
-	fmt.Fprintf(os.Stderr, out, args)
+	fmt.Fprintf(os.Stderr, out, args...)
 	os.Exit(1)
 }
 
 // When prints the error to stderr and exits if cond is true.
-func When(cond bool, fstr string, args any) {
+func When(cond bool, fstr string, args ...any) {
 	if cond {
-		With(fstr, args)
+		With(fstr, args...)
 	}
 }
