@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"git.wntrmute.dev/kyle/goutils/die"
 	"git.wntrmute.dev/kyle/goutils/fileutil"
@@ -48,7 +49,83 @@ func linkTarget(target, top string) string {
 		return target
 	}
 
-	return filepath.Clean(filepath.Join(target, top))
+	return filepath.Clean(filepath.Join(top, target))
+}
+
+// safeJoin joins base and elem and ensures the resulting path does not escape base.
+func safeJoin(base, elem string) (string, error) {
+	cleanBase := filepath.Clean(base)
+	joined := filepath.Clean(filepath.Join(cleanBase, elem))
+
+	absBase, err := filepath.Abs(cleanBase)
+	if err != nil {
+		return "", err
+	}
+	absJoined, err := filepath.Abs(joined)
+	if err != nil {
+		return "", err
+	}
+	rel, err := filepath.Rel(absBase, absJoined)
+	if err != nil {
+		return "", err
+	}
+	if rel == ".." || strings.HasPrefix(rel, ".."+string(os.PathSeparator)) {
+		return "", fmt.Errorf("path traversal detected: %s escapes %s", elem, base)
+	}
+	return joined, nil
+}
+
+func handleTypeReg(tfr *tar.Reader, hdr *tar.Header, filePath string) error {
+	file, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if _, err = io.Copy(file, tfr); err != nil {
+		return err
+	}
+	return setupFile(hdr, file)
+}
+
+func handleTypeLink(hdr *tar.Header, top, filePath string) error {
+	file, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	srcPath, err := safeJoin(top, hdr.Linkname)
+	if err != nil {
+		return err
+	}
+	source, err := os.Open(srcPath)
+	if err != nil {
+		return err
+	}
+	defer source.Close()
+
+	if _, err = io.Copy(file, source); err != nil {
+		return err
+	}
+	return setupFile(hdr, file)
+}
+
+func handleTypeSymlink(hdr *tar.Header, top, filePath string) error {
+	if !fileutil.ValidateSymlink(hdr.Linkname, top) {
+		return fmt.Errorf("symlink %s is outside the top-level %s", hdr.Linkname, top)
+	}
+	path := linkTarget(hdr.Linkname, top)
+	if ok, err := filepath.Match(top+"/*", filepath.Clean(path)); !ok {
+		return fmt.Errorf("symlink %s isn't in %s", hdr.Linkname, top)
+	} else if err != nil {
+		return err
+	}
+	return os.Symlink(linkTarget(hdr.Linkname, top), filePath)
+}
+
+func handleTypeDir(hdr *tar.Header, filePath string) error {
+	return os.MkdirAll(filePath, os.FileMode(hdr.Mode&0xFFFFFFFF)) // #nosec G115
 }
 
 func processFile(tfr *tar.Reader, hdr *tar.Header, top string) error {
@@ -56,67 +133,21 @@ func processFile(tfr *tar.Reader, hdr *tar.Header, top string) error {
 		fmt.Println(hdr.Name)
 	}
 
-	filePath := filepath.Clean(filepath.Join(top, hdr.Name))
+	filePath, err := safeJoin(top, hdr.Name)
+	if err != nil {
+		return err
+	}
 
 	switch hdr.Typeflag {
 	case tar.TypeReg:
-		file, err := os.Create(filePath)
-		if err != nil {
-			return err
-		}
-
-		_, err = io.Copy(file, tfr)
-		if err != nil {
-			return err
-		}
-
-		err = setupFile(hdr, file)
-		if err != nil {
-			return err
-		}
+		return handleTypeReg(tfr, hdr, filePath)
 	case tar.TypeLink:
-		file, err := os.Create(filePath)
-		if err != nil {
-			return err
-		}
-
-		source, err := os.Open(hdr.Linkname)
-		if err != nil {
-			return err
-		}
-
-		_, err = io.Copy(file, source)
-		if err != nil {
-			return err
-		}
-
-		err = setupFile(hdr, file)
-		if err != nil {
-			return err
-		}
+		return handleTypeLink(hdr, top, filePath)
 	case tar.TypeSymlink:
-		if !fileutil.ValidateSymlink(hdr.Linkname, top) {
-			return fmt.Errorf("symlink %s is outside the top-level %s",
-				hdr.Linkname, top)
-		}
-		path := linkTarget(hdr.Linkname, top)
-		if ok, err := filepath.Match(top+"/*", filepath.Clean(path)); !ok {
-			return fmt.Errorf("symlink %s isn't in %s", hdr.Linkname, top)
-		} else if err != nil {
-			return err
-		}
-
-		err := os.Symlink(linkTarget(hdr.Linkname, top), filePath)
-		if err != nil {
-			return err
-		}
+		return handleTypeSymlink(hdr, top, filePath)
 	case tar.TypeDir:
-		err := os.MkdirAll(filePath, os.FileMode(hdr.Mode&0xFFFFFFFF)) // #nosec G115
-		if err != nil {
-			return err
-		}
+		return handleTypeDir(hdr, filePath)
 	}
-
 	return nil
 }
 

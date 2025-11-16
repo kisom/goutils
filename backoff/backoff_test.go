@@ -91,7 +91,7 @@ func TestReset(t *testing.T) {
 	}
 }
 
-const decay = 5 * time.Millisecond
+const decay = 25 * time.Millisecond
 const maxDuration = 10 * time.Millisecond
 const interval = time.Millisecond
 

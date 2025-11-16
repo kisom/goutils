@@ -9,7 +9,6 @@ import (
 
 	"git.wntrmute.dev/kyle/goutils/certlib"
 	"git.wntrmute.dev/kyle/goutils/certlib/revoke"
-	"git.wntrmute.dev/kyle/goutils/die"
 	"git.wntrmute.dev/kyle/goutils/lib"
 )
 
@@ -29,83 +28,116 @@ func printRevocation(cert *x509.Certificate) {
 	}
 }
 
-func main() {
-	var caFile, intFile string
-	var forceIntermediateBundle, revexp, verbose bool
-	flag.StringVar(&caFile, "ca", "", "CA certificate `bundle`")
-	flag.StringVar(&intFile, "i", "", "intermediate `bundle`")
-	flag.BoolVar(&forceIntermediateBundle, "f", false,
+type appConfig struct {
+	caFile, intFile         string
+	forceIntermediateBundle bool
+	revexp, verbose         bool
+}
+
+func parseFlags() appConfig {
+	var cfg appConfig
+	flag.StringVar(&cfg.caFile, "ca", "", "CA certificate `bundle`")
+	flag.StringVar(&cfg.intFile, "i", "", "intermediate `bundle`")
+	flag.BoolVar(&cfg.forceIntermediateBundle, "f", false,
 		"force the use of the intermediate bundle, ignoring any intermediates bundled with certificate")
-	flag.BoolVar(&revexp, "r", false, "print revocation and expiry information")
-	flag.BoolVar(&verbose, "v", false, "verbose")
+	flag.BoolVar(&cfg.revexp, "r", false, "print revocation and expiry information")
+	flag.BoolVar(&cfg.verbose, "v", false, "verbose")
 	flag.Parse()
+	return cfg
+}
 
-	var roots *x509.CertPool
-	if caFile != "" {
-		var err error
-		if verbose {
-			fmt.Println("[+] loading root certificates from", caFile)
-		}
-		roots, err = certlib.LoadPEMCertPool(caFile)
-		die.If(err)
+func loadRoots(caFile string, verbose bool) (*x509.CertPool, error) {
+	if caFile == "" {
+		return x509.SystemCertPool()
 	}
 
-	var ints *x509.CertPool
-	if intFile != "" {
-		var err error
-		if verbose {
-			fmt.Println("[+] loading intermediate certificates from", intFile)
-		}
-		ints, err = certlib.LoadPEMCertPool(caFile)
-		die.If(err)
-	} else {
-		ints = x509.NewCertPool()
-	}
-
-	if flag.NArg() != 1 {
-		fmt.Fprintf(os.Stderr, "Usage: %s [-ca bundle] [-i bundle] cert",
-			lib.ProgName())
-	}
-
-	fileData, err := os.ReadFile(flag.Arg(0))
-	die.If(err)
-
-	chain, err := certlib.ParseCertificatesPEM(fileData)
-	die.If(err)
 	if verbose {
-		fmt.Printf("[+] %s has %d certificates\n", flag.Arg(0), len(chain))
+		fmt.Println("[+] loading root certificates from", caFile)
 	}
+	return certlib.LoadPEMCertPool(caFile)
+}
 
-	cert := chain[0]
-	if len(chain) > 1 {
-		if !forceIntermediateBundle {
-			for _, intermediate := range chain[1:] {
-				if verbose {
-					fmt.Printf("[+] adding intermediate with SKI %x\n", intermediate.SubjectKeyId)
-				}
+func loadIntermediates(intFile string, verbose bool) (*x509.CertPool, error) {
+	if intFile == "" {
+		return x509.NewCertPool(), nil
+	}
+	if verbose {
+		fmt.Println("[+] loading intermediate certificates from", intFile)
+	}
+	// Note: use intFile here (previously used caFile mistakenly)
+	return certlib.LoadPEMCertPool(intFile)
+}
 
-				ints.AddCert(intermediate)
-			}
+func addBundledIntermediates(chain []*x509.Certificate, pool *x509.CertPool, verbose bool) {
+	for _, intermediate := range chain[1:] {
+		if verbose {
+			fmt.Printf("[+] adding intermediate with SKI %x\n", intermediate.SubjectKeyId)
 		}
+		pool.AddCert(intermediate)
 	}
+}
 
+func verifyCert(cert *x509.Certificate, roots, ints *x509.CertPool) error {
 	opts := x509.VerifyOptions{
 		Intermediates: ints,
 		Roots:         roots,
 		KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
 	}
+	_, err := cert.Verify(opts)
+	return err
+}
 
-	_, err = cert.Verify(opts)
+func run(cfg appConfig) error {
+	roots, err := loadRoots(cfg.caFile, cfg.verbose)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Verification failed: %v\n", err)
-		os.Exit(1)
+		return err
 	}
 
-	if verbose {
+	ints, err := loadIntermediates(cfg.intFile, cfg.verbose)
+	if err != nil {
+		return err
+	}
+
+	if flag.NArg() != 1 {
+		fmt.Fprintf(os.Stderr, "Usage: %s [-ca bundle] [-i bundle] cert", lib.ProgName())
+	}
+
+	fileData, err := os.ReadFile(flag.Arg(0))
+	if err != nil {
+		return err
+	}
+
+	chain, err := certlib.ParseCertificatesPEM(fileData)
+	if err != nil {
+		return err
+	}
+	if cfg.verbose {
+		fmt.Printf("[+] %s has %d certificates\n", flag.Arg(0), len(chain))
+	}
+
+	cert := chain[0]
+	if len(chain) > 1 && !cfg.forceIntermediateBundle {
+		addBundledIntermediates(chain, ints, cfg.verbose)
+	}
+
+	if err = verifyCert(cert, roots, ints); err != nil {
+		return fmt.Errorf("certificate verification failed: %w", err)
+	}
+
+	if cfg.verbose {
 		fmt.Println("OK")
 	}
 
-	if revexp {
+	if cfg.revexp {
 		printRevocation(cert)
+	}
+	return nil
+}
+
+func main() {
+	cfg := parseFlags()
+	if err := run(cfg); err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
 	}
 }

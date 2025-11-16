@@ -96,6 +96,44 @@ func init() {
 	flag.Usage = func() { usage(os.Stdout) }
 }
 
+type options struct {
+	dryRun, force, printChanged, verbose bool
+}
+
+func processOne(file string, opt options) error {
+	renamed, err := newName(file)
+	if err != nil {
+		_, _ = lib.Warn(err, "failed to get new file name")
+		return err
+	}
+	if opt.verbose && !opt.printChanged {
+		fmt.Fprintln(os.Stdout, file)
+	}
+	if renamed == file {
+		return nil
+	}
+	if !opt.dryRun {
+		if err = move(renamed, file, opt.force); err != nil {
+			_, _ = lib.Warn(err, "failed to rename file from %s to %s", file, renamed)
+			return err
+		}
+	}
+	if opt.printChanged && !opt.verbose {
+		fmt.Fprintln(os.Stdout, file, "->", renamed)
+	}
+	return nil
+}
+
+func run(dryRun, force, printChanged, verbose bool, files []string) {
+	if verbose && printChanged {
+		printChanged = false
+	}
+	opt := options{dryRun: dryRun, force: force, printChanged: printChanged, verbose: verbose}
+	for _, file := range files {
+		_ = processOne(file, opt)
+	}
+}
+
 func main() {
 	var dryRun, force, printChanged, verbose bool
 	flag.BoolVar(&force, "f", false, "force overwriting of files if there is a collision")
@@ -104,34 +142,5 @@ func main() {
 	flag.BoolVar(&verbose, "v", false, "list all processed files")
 
 	flag.Parse()
-
-	if verbose && printChanged {
-		printChanged = false
-	}
-
-	for _, file := range flag.Args() {
-		renamed, err := newName(file)
-		if err != nil {
-			_, _ = lib.Warn(err, "failed to get new file name")
-			continue
-		}
-
-		if verbose && !printChanged {
-			fmt.Fprintln(os.Stdout, file)
-		}
-
-		if renamed != file {
-			if !dryRun {
-				err = move(renamed, file, force)
-				if err != nil {
-					_, _ = lib.Warn(err, "failed to rename file from %s to %s", file, renamed)
-					continue
-				}
-			}
-
-			if printChanged && !verbose {
-				fmt.Fprintln(os.Stdout, file, "->", renamed)
-			}
-		}
-	}
+	run(dryRun, force, printChanged, verbose, flag.Args())
 }
