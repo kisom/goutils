@@ -9,17 +9,17 @@ import (
 	"github.com/benbjohnson/clock"
 )
 
-type item struct {
-	V      any
+type item[V any] struct {
+	V      V
 	access int64
 }
 
 // A Cache is a map that retains a limited number of items. It must be
 // initialized with New, providing a maximum capacity for the cache.
 // Only the most recently used items are retained.
-type Cache struct {
-	store  map[string]*item
-	access *timestamps
+type Cache[K comparable, V any] struct {
+	store  map[K]*item[V]
+	access *timestamps[K]
 	cap    int
 	clock  clock.Clock
 	// All public methods that have the possibility of modifying the
@@ -28,31 +28,41 @@ type Cache struct {
 }
 
 // New must be used to create a new Cache.
-func New(icap int) *Cache {
-	return &Cache{
-		store:  map[string]*item{},
-		access: newTimestamps(icap),
+func New[K comparable, V any](icap int) *Cache[K, V] {
+	return &Cache[K, V]{
+		store:  map[K]*item[V]{},
+		access: newTimestamps[K](icap),
 		cap:    icap,
 		clock:  clock.New(),
 		mtx:    &sync.Mutex{},
 	}
 }
 
-func (c *Cache) lock() {
+// StringKeyCache is a convenience wrapper for cache keyed by string.
+type StringKeyCache[V any] struct {
+	*Cache[string, V]
+}
+
+// NewStringKeyCache creates a new MRU cache keyed by string.
+func NewStringKeyCache[V any](icap int) *StringKeyCache[V] {
+	return &StringKeyCache[V]{Cache: New[string, V](icap)}
+}
+
+func (c *Cache[K, V]) lock() {
 	c.mtx.Lock()
 }
 
-func (c *Cache) unlock() {
+func (c *Cache[K, V]) unlock() {
 	c.mtx.Unlock()
 }
 
 // Len returns the number of items currently in the cache.
-func (c *Cache) Len() int {
+func (c *Cache[K, V]) Len() int {
 	return len(c.store)
 }
 
 // evict should remove the least-recently-used cache item.
-func (c *Cache) evict() {
+func (c *Cache[K, V]) evict() {
 	if c.access.Len() == 0 {
 		return
 	}
@@ -62,7 +72,7 @@ func (c *Cache) evict() {
 }
 
 // evictKey should remove the entry given by the key item.
-func (c *Cache) evictKey(k string) {
+func (c *Cache[K, V]) evictKey(k K) {
 	delete(c.store, k)
 	i, ok := c.access.Find(k)
 	if !ok {
@@ -72,7 +82,7 @@ func (c *Cache) evictKey(k string) {
 	c.access.Delete(i)
 }
 
-func (c *Cache) sanityCheck() {
+func (c *Cache[K, V]) sanityCheck() {
 	if len(c.store) != c.access.Len() {
 		panic(fmt.Sprintf("MRU cache is out of sync; store len = %d, access len = %d",
 			len(c.store), c.access.Len()))
@@ -82,7 +92,7 @@ func (c *Cache) sanityCheck() {
 // ConsistencyCheck runs a series of checks to ensure that the cache's
 // data structures are consistent. It is not normally required, and it
 // is primarily used in testing.
-func (c *Cache) ConsistencyCheck() error {
+func (c *Cache[K, V]) ConsistencyCheck() error {
 	c.lock()
 	defer c.unlock()
 	if err := c.access.ConsistencyCheck(); err != nil {
@@ -114,7 +124,7 @@ func (c *Cache) ConsistencyCheck() error {
 }
 
 // Store adds the value v to the cache under the k.
-func (c *Cache) Store(k string, v any) {
+func (c *Cache[K, V]) Store(k K, v V) {
 	c.lock()
 	defer c.unlock()
 
@@ -128,7 +138,7 @@ func (c *Cache) Store(k string, v any) {
 		c.evictKey(k)
 	}
 
-	itm := &item{
+	itm := &item[V]{
 		V:      v,
 		access: c.clock.Now().UnixNano(),
 	}
@@ -139,7 +149,7 @@ func (c *Cache) Store(k string, v any) {
 
 // Get returns the value stored in the cache. If the item isn't present,
 // it will return false.
-func (c *Cache) Get(k string) (any, bool) {
+func (c *Cache[K, V]) Get(k K) (V, bool) {
 	c.lock()
 	defer c.unlock()
 
@@ -147,7 +157,8 @@ func (c *Cache) Get(k string) (any, bool) {
 
 	itm, ok := c.store[k]
 	if !ok {
-		return nil, false
+		var zero V
+		return zero, false
 	}
 
 	c.store[k].access = c.clock.Now().UnixNano()
@@ -157,7 +168,7 @@ func (c *Cache) Get(k string) (any, bool) {
 
 // Has returns true if the cache has an entry for k. It will not update
 // the timestamp on the item.
-func (c *Cache) Has(k string) bool {
+func (c *Cache[K, V]) Has(k K) bool {
 	// Don't need to lock as we don't modify anything.
 
 	c.sanityCheck()

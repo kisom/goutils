@@ -10,45 +10,45 @@ import (
 // timestamps contains datastructures for maintaining a list of keys sortable
 // by timestamp.
 
-type timestamp struct {
+type timestamp[K comparable] struct {
 	t int64
-	k string
+	k K
 }
 
-type timestamps struct {
-	ts  []timestamp
+type timestamps[K comparable] struct {
+	ts  []timestamp[K]
 	cap int
 }
 
-func newTimestamps(icap int) *timestamps {
-	return &timestamps{
-		ts:  make([]timestamp, 0, icap),
+func newTimestamps[K comparable](icap int) *timestamps[K] {
+	return &timestamps[K]{
+		ts:  make([]timestamp[K], 0, icap),
 		cap: icap,
 	}
 }
 
-func (ts *timestamps) K(i int) string {
+func (ts *timestamps[K]) K(i int) K {
 	return ts.ts[i].k
 }
 
-func (ts *timestamps) T(i int) int64 {
+func (ts *timestamps[K]) T(i int) int64 {
 	return ts.ts[i].t
 }
 
-func (ts *timestamps) Len() int {
+func (ts *timestamps[K]) Len() int {
 	return len(ts.ts)
 }
 
-func (ts *timestamps) Less(i, j int) bool {
+func (ts *timestamps[K]) Less(i, j int) bool {
 	return ts.ts[i].t < ts.ts[j].t
 }
 
-func (ts *timestamps) Swap(i, j int) {
+func (ts *timestamps[K]) Swap(i, j int) {
 	ts.ts[i], ts.ts[j] = ts.ts[j], ts.ts[i]
 }
 
-func (ts *timestamps) Find(k string) (int, bool) {
-	for i := range len(ts.ts) {
+func (ts *timestamps[K]) Find(k K) (int, bool) {
+	for i := range ts.ts {
 		if ts.ts[i].k == k {
 			return i, true
 		}
@@ -56,10 +56,10 @@ func (ts *timestamps) Find(k string) (int, bool) {
 	return -1, false
 }
 
-func (ts *timestamps) Update(k string, t int64) bool {
+func (ts *timestamps[K]) Update(k K, t int64) bool {
 	i, ok := ts.Find(k)
 	if !ok {
-		ts.ts = append(ts.ts, timestamp{t, k})
+		ts.ts = append(ts.ts, timestamp[K]{t, k})
 		sort.Sort(ts)
 		return false
 	}
@@ -69,15 +69,15 @@ func (ts *timestamps) Update(k string, t int64) bool {
 	return true
 }
 
-func (ts *timestamps) ConsistencyCheck() error {
+func (ts *timestamps[K]) ConsistencyCheck() error {
 	if !sort.IsSorted(ts) {
 		return errors.New("mru: timestamps are not sorted")
 	}
 
-	keys := map[string]bool{}
+	keys := map[K]bool{}
 	for i := range ts.ts {
 		if keys[ts.ts[i].k] {
-			return fmt.Errorf("duplicate key %s detected", ts.ts[i].k)
+			return fmt.Errorf("duplicate key %v detected", ts.ts[i].k)
 		}
 		keys[ts.ts[i].k] = true
 	}
@@ -90,12 +90,12 @@ func (ts *timestamps) ConsistencyCheck() error {
 	return nil
 }
 
-func (ts *timestamps) Delete(i int) {
+func (ts *timestamps[K]) Delete(i int) {
 	ts.ts = append(ts.ts[:i], ts.ts[i+1:]...)
 }
 
-func (ts *timestamps) Dump(w io.Writer) {
+func (ts *timestamps[K]) Dump(w io.Writer) {
 	for i := range ts.ts {
-		fmt.Fprintf(w, "%d: %s, %d\n", i, ts.K(i), ts.T(i))
+		fmt.Fprintf(w, "%d: %v, %d\n", i, ts.K(i), ts.T(i))
 	}
 }

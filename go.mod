@@ -12,6 +12,7 @@ require (
 )
 
 require (
+	github.com/benbjohnson/clock v1.3.5
 	github.com/davecgh/go-spew v1.1.1
 	github.com/google/certificate-transparency-go v1.0.21
 )
