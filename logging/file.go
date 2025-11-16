@@ -1,9 +1,9 @@
 package logging
 
 import (
-    "errors"
-    "fmt"
-    "os"
+	"errors"
+	"fmt"
+	"os"
 )
 
 // File writes its logs to file.
@@ -60,12 +60,12 @@ func NewSplitFile(outpath, errpath string, overwrite bool) (*File, error) {
 		fl.fe, err = os.OpenFile(errpath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0600)
 	}
 
- if err != nil {
-        if closeErr := fl.Close(); closeErr != nil {
-            return nil, fmt.Errorf("failed to open error log: %w", errors.Join(closeErr, err))
-        }
-        return nil, fmt.Errorf("failed to open error log: %w", err)
-    }
+	if err != nil {
+		if closeErr := fl.Close(); closeErr != nil {
+			return nil, fmt.Errorf("failed to open error log: %w", errors.Join(closeErr, err))
+		}
+		return nil, fmt.Errorf("failed to open error log: %w", err)
+	}
 
 	fl.LogWriter = NewLogWriter(fl.fo, fl.fe)
 	return fl, nil
@@ -95,13 +95,13 @@ func (fl *File) Flush() error {
 }
 
 func (fl *File) Chmod(mode os.FileMode) error {
-    if err := fl.fo.Chmod(mode); err != nil {
-        return fmt.Errorf("failed to chmod output log: %w", err)
-    }
+	if err := fl.fo.Chmod(mode); err != nil {
+		return fmt.Errorf("failed to chmod output log: %w", err)
+	}
 
-    if err := fl.fe.Chmod(mode); err != nil {
-        return fmt.Errorf("failed to chmod error log: %w", err)
-    }
+	if err := fl.fe.Chmod(mode); err != nil {
+		return fmt.Errorf("failed to chmod error log: %w", err)
+	}
 
-    return nil
+	return nil
 }

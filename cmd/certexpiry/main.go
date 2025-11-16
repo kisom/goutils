@@ -1,17 +1,17 @@
 package main
 
 import (
-    "crypto/x509"
-    "crypto/x509/pkix"
-    "flag"
-    "fmt"
-    "os"
-    "strings"
-    "time"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"flag"
+	"fmt"
+	"os"
+	"strings"
+	"time"
 
-    "git.wntrmute.dev/kyle/goutils/certlib"
-    "git.wntrmute.dev/kyle/goutils/die"
-    "git.wntrmute.dev/kyle/goutils/lib"
+	"git.wntrmute.dev/kyle/goutils/certlib"
+	"git.wntrmute.dev/kyle/goutils/die"
+	"git.wntrmute.dev/kyle/goutils/lib"
 )
 
 var warnOnly bool
@@ -53,7 +53,7 @@ func displayName(name pkix.Name) string {
 }
 
 func expires(cert *x509.Certificate) time.Duration {
-	return cert.NotAfter.Sub(time.Now())
+	return time.Until(cert.NotAfter)
 }
 
 func inDanger(cert *x509.Certificate) bool {
@@ -79,21 +79,21 @@ func main() {
 	flag.DurationVar(&leeway, "t", leeway, "warn if certificates are closer than this to expiring")
 	flag.Parse()
 
-    for _, file := range flag.Args() {
-        in, err := os.ReadFile(file)
-        if err != nil {
-            _, _ = lib.Warn(err, "failed to read file")
-            continue
-        }
+	for _, file := range flag.Args() {
+		in, err := os.ReadFile(file)
+		if err != nil {
+			_, _ = lib.Warn(err, "failed to read file")
+			continue
+		}
 
-        certs, err := certlib.ParseCertificatesPEM(in)
-        if err != nil {
-            _, _ = lib.Warn(err, "while parsing certificates")
-            continue
-        }
+		certs, err := certlib.ParseCertificatesPEM(in)
+		if err != nil {
+			_, _ = lib.Warn(err, "while parsing certificates")
+			continue
+		}
 
-        for _, cert := range certs {
-            checkCert(cert)
-        }
-    }
+		for _, cert := range certs {
+			checkCert(cert)
+		}
+	}
 }

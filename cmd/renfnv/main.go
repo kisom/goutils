@@ -43,7 +43,7 @@ func newName(path string) (string, error) {
 	return hashName(path, encodedHash), nil
 }
 
-func move(dst, src string, force bool) (err error) {
+func move(dst, src string, force bool) error {
 	if fileutil.FileDoesExist(dst) && !force {
 		return fmt.Errorf("%s exists (pass the -f flag to overwrite)", dst)
 	}
@@ -52,21 +52,23 @@ func move(dst, src string, force bool) (err error) {
 		return err
 	}
 
-	defer func(e error) {
+	var retErr error
+	defer func(e *error) {
 		dstFile.Close()
-		if e != nil {
+		if *e != nil {
 			os.Remove(dst)
 		}
-	}(err)
+	}(&retErr)
 
 	srcFile, err := os.Open(src)
 	if err != nil {
+		retErr = err
 		return err
 	}
 	defer srcFile.Close()
 
-	_, err = io.Copy(dstFile, srcFile)
-	if err != nil {
+	if _, err = io.Copy(dstFile, srcFile); err != nil {
+		retErr = err
 		return err
 	}
 
@@ -109,27 +111,27 @@ func main() {
 
 	for _, file := range flag.Args() {
 		renamed, err := newName(file)
-  if err != nil {
-            _, _ = lib.Warn(err, "failed to get new file name")
-            continue
-        }
+		if err != nil {
+			_, _ = lib.Warn(err, "failed to get new file name")
+			continue
+		}
 
-  if verbose && !printChanged {
-            fmt.Fprintln(os.Stdout, file)
-        }
+		if verbose && !printChanged {
+			fmt.Fprintln(os.Stdout, file)
+		}
 
 		if renamed != file {
 			if !dryRun {
 				err = move(renamed, file, force)
-    if err != nil {
-                    _, _ = lib.Warn(err, "failed to rename file from %s to %s", file, renamed)
-                    continue
-                }
+				if err != nil {
+					_, _ = lib.Warn(err, "failed to rename file from %s to %s", file, renamed)
+					continue
+				}
 			}
 
-   if printChanged && !verbose {
-                fmt.Fprintln(os.Stdout, file, "->", renamed)
-            }
+			if printChanged && !verbose {
+				fmt.Fprintln(os.Stdout, file, "->", renamed)
+			}
 		}
 	}
 }

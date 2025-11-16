@@ -1,20 +1,21 @@
 package main
 
 import (
-    "crypto/tls"
-    "crypto/x509"
-    "errors"
-    "flag"
-    "fmt"
-    "net"
-    "os"
-    "strings"
-    "time"
+	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"errors"
+	"flag"
+	"fmt"
+	"net"
+	"os"
+	"strings"
+	"time"
 
-    "git.wntrmute.dev/kyle/goutils/certlib"
-    hosts "git.wntrmute.dev/kyle/goutils/certlib/hosts"
-    "git.wntrmute.dev/kyle/goutils/certlib/revoke"
-    "git.wntrmute.dev/kyle/goutils/fileutil"
+	"git.wntrmute.dev/kyle/goutils/certlib"
+	hosts "git.wntrmute.dev/kyle/goutils/certlib/hosts"
+	"git.wntrmute.dev/kyle/goutils/certlib/revoke"
+	"git.wntrmute.dev/kyle/goutils/fileutil"
 )
 
 var (
@@ -78,17 +79,17 @@ func processTarget(target string) (string, error) {
 }
 
 func checkFile(path string) (string, error) {
-    // Prefer high-level helpers from certlib to load certificates from disk
-    if certs, err := certlib.LoadCertificates(path); err == nil && len(certs) > 0 {
-        // Evaluate the first certificate (leaf) by default
-        return evaluateCert(certs[0])
-    }
+	// Prefer high-level helpers from certlib to load certificates from disk
+	if certs, err := certlib.LoadCertificates(path); err == nil && len(certs) > 0 {
+		// Evaluate the first certificate (leaf) by default
+		return evaluateCert(certs[0])
+	}
 
-    cert, err := certlib.LoadCertificate(path)
-    if err != nil || cert == nil {
-        return strUnknown, err
-    }
-    return evaluateCert(cert)
+	cert, err := certlib.LoadCertificate(path)
+	if err != nil || cert == nil {
+		return strUnknown, err
+	}
+	return evaluateCert(cert)
 }
 
 func checkSite(hostport string) (string, error) {
@@ -99,18 +100,27 @@ func checkSite(hostport string) (string, error) {
 	}
 
 	d := &net.Dialer{Timeout: timeout}
-	conn, err := tls.DialWithDialer(
-		d,
-		"tcp",
-		target.String(),
-		&tls.Config{InsecureSkipVerify: true, ServerName: target.Host}, // #nosec G402
-	)
+	tcfg := &tls.Config{
+		InsecureSkipVerify: true,
+		ServerName:         target.Host,
+	} // #nosec G402 -- CLI tool only verifies revocation
+	td := &tls.Dialer{NetDialer: d, Config: tcfg}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	conn, err := td.DialContext(ctx, "tcp", target.String())
 	if err != nil {
 		return strUnknown, err
 	}
 	defer conn.Close()
 
-	state := conn.ConnectionState()
+	tconn, ok := conn.(*tls.Conn)
+	if !ok {
+		return strUnknown, errors.New("connection is not TLS")
+	}
+
+	state := tconn.ConnectionState()
 	if len(state.PeerCertificates) == 0 {
 		return strUnknown, errors.New("no peer certificates presented")
 	}
@@ -118,23 +128,24 @@ func checkSite(hostport string) (string, error) {
 }
 
 func evaluateCert(cert *x509.Certificate) (string, error) {
-    // Delegate validity and revocation checks to certlib/revoke helper.
-    // It returns revoked=true for both revoked and expired/not-yet-valid.
-    // Map those cases back to our statuses using the returned error text.
-    revoked, ok, err := revoke.VerifyCertificateError(cert)
-    if revoked {
-        if err != nil {
-            msg := err.Error()
-            if strings.Contains(msg, "expired") || strings.Contains(msg, "isn't valid until") || strings.Contains(msg, "not valid until") {
-                return strExpired, err
-            }
-        }
-        return strRevoked, err
-    }
-    if !ok {
-        // Revocation status could not be determined
-        return strUnknown, err
-    }
+	// Delegate validity and revocation checks to certlib/revoke helper.
+	// It returns revoked=true for both revoked and expired/not-yet-valid.
+	// Map those cases back to our statuses using the returned error text.
+	revoked, ok, err := revoke.VerifyCertificateError(cert)
+	if revoked {
+		if err != nil {
+			msg := err.Error()
+			if strings.Contains(msg, "expired") || strings.Contains(msg, "isn't valid until") ||
+				strings.Contains(msg, "not valid until") {
+				return strExpired, err
+			}
+		}
+		return strRevoked, err
+	}
+	if !ok {
+		// Revocation status could not be determined
+		return strUnknown, err
+	}
 
-    return strOK, nil
+	return strOK, nil
 }

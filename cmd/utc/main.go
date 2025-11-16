@@ -201,10 +201,6 @@ func init() {
 			os.Exit(1)
 		}
 
-		if fromLoc == time.UTC {
-
-		}
-
 		toLoc = time.UTC
 	}
 

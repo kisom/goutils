@@ -45,18 +45,18 @@ func main() {
 		os.Exit(1)
 	}
 	cfg.Certificates = append(cfg.Certificates, cert)
- if sysRoot != "" {
-        pemList, err := os.ReadFile(sysRoot)
-        die.If(err)
+	if sysRoot != "" {
+		pemList, err := os.ReadFile(sysRoot)
+		die.If(err)
 
-        roots := x509.NewCertPool()
-        if !roots.AppendCertsFromPEM(pemList) {
-            fmt.Printf("[!] no valid roots found")
-            roots = nil
-        }
+		roots := x509.NewCertPool()
+		if !roots.AppendCertsFromPEM(pemList) {
+			fmt.Printf("[!] no valid roots found")
+			roots = nil
+		}
 
-        cfg.RootCAs = roots
-    }
+		cfg.RootCAs = roots
+	}
 
 	l, err := net.Listen("tcp", listenAddr)
 	if err != nil {
@@ -64,46 +64,46 @@ func main() {
 		os.Exit(1)
 	}
 
-    for {
-        conn, err := l.Accept()
-        if err != nil {
-            fmt.Println(err.Error())
-            continue
-        }
-        handleConn(conn, cfg)
-    }
+	for {
+		conn, err := l.Accept()
+		if err != nil {
+			fmt.Println(err.Error())
+			continue
+		}
+		handleConn(conn, cfg)
+	}
 }
 
 // handleConn performs a TLS handshake, extracts the peer chain, and writes it to a file.
 func handleConn(conn net.Conn, cfg *tls.Config) {
-    defer conn.Close()
-    raddr := conn.RemoteAddr()
-    tconn := tls.Server(conn, cfg)
-    if err := tconn.Handshake(); err != nil {
-        fmt.Printf("[+] %v: failed to complete handshake: %v\n", raddr, err)
-        return
-    }
-    cs := tconn.ConnectionState()
-    if len(cs.PeerCertificates) == 0 {
-        fmt.Printf("[+] %v: no chain presented\n", raddr)
-        return
-    }
+	defer conn.Close()
+	raddr := conn.RemoteAddr()
+	tconn := tls.Server(conn, cfg)
+	if err := tconn.Handshake(); err != nil {
+		fmt.Printf("[+] %v: failed to complete handshake: %v\n", raddr, err)
+		return
+	}
+	cs := tconn.ConnectionState()
+	if len(cs.PeerCertificates) == 0 {
+		fmt.Printf("[+] %v: no chain presented\n", raddr)
+		return
+	}
 
-    var chain []byte
-    for _, cert := range cs.PeerCertificates {
-        p := &pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw}
-        chain = append(chain, pem.EncodeToMemory(p)...)
-    }
+	var chain []byte
+	for _, cert := range cs.PeerCertificates {
+		p := &pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw}
+		chain = append(chain, pem.EncodeToMemory(p)...)
+	}
 
-    var nonce [16]byte
-    if _, err := rand.Read(nonce[:]); err != nil {
-        fmt.Printf("[+] %v: failed to generate filename nonce: %v\n", raddr, err)
-        return
-    }
-    fname := fmt.Sprintf("%v-%v.pem", raddr, hex.EncodeToString(nonce[:]))
-    if err := os.WriteFile(fname, chain, 0o644); err != nil {
-        fmt.Printf("[+] %v: failed to write %v: %v\n", raddr, fname, err)
-        return
-    }
-    fmt.Printf("%v: [+] wrote %v.\n", raddr, fname)
+	var nonce [16]byte
+	if _, err := rand.Read(nonce[:]); err != nil {
+		fmt.Printf("[+] %v: failed to generate filename nonce: %v\n", raddr, err)
+		return
+	}
+	fname := fmt.Sprintf("%v-%v.pem", raddr, hex.EncodeToString(nonce[:]))
+	if err := os.WriteFile(fname, chain, 0o644); err != nil {
+		fmt.Printf("[+] %v: failed to write %v: %v\n", raddr, fname, err)
+		return
+	}
+	fmt.Printf("%v: [+] wrote %v.\n", raddr, fname)
 }

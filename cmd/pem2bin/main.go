@@ -4,14 +4,13 @@ import (
 	"encoding/pem"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 )
 
 var ext = ".bin"
 
 func stripPEM(path string) error {
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
@@ -22,7 +21,7 @@ func stripPEM(path string) error {
 		fmt.Fprintf(os.Stderr, "          (only the first object will be decoded)\n")
 	}
 
-	return ioutil.WriteFile(path+ext, p.Bytes, 0644)
+	return os.WriteFile(path+ext, p.Bytes, 0644)
 }
 
 func main() {

@@ -8,9 +8,9 @@ import (
 )
 
 func TestBasicCacheEviction(t *testing.T) {
-    mock := clock.NewMock()
-    c := NewStringKeyCache[int](2)
-    c.clock = mock
+	mock := clock.NewMock()
+	c := NewStringKeyCache[int](2)
+	c.clock = mock
 
 	if err := c.ConsistencyCheck(); err != nil {
 		t.Fatal(err)
@@ -55,18 +55,18 @@ func TestBasicCacheEviction(t *testing.T) {
 	}
 
 	mock.Add(time.Second)
- v, ok := c.Get("owl")
- if !ok {
-     t.Fatal("store should have an entry for owl")
- }
- if err := c.ConsistencyCheck(); err != nil {
-     t.Fatal(err)
- }
+	v, ok := c.Get("owl")
+	if !ok {
+		t.Fatal("store should have an entry for owl")
+	}
+	if err := c.ConsistencyCheck(); err != nil {
+		t.Fatal(err)
+	}
 
- itm := v
- if err := c.ConsistencyCheck(); err != nil {
-     t.Fatal(err)
- }
+	itm := v
+	if err := c.ConsistencyCheck(); err != nil {
+		t.Fatal(err)
+	}
 
 	if itm != 2 {
 		t.Fatalf("stored item should be 2, have %d", itm)

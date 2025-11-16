@@ -3,28 +3,30 @@ package main
 import (
 	"flag"
 	"fmt"
-	"git.wntrmute.dev/kyle/goutils/die"
 	"io"
 	"os"
+	"strings"
+
+	"git.wntrmute.dev/kyle/goutils/die"
 )
 
 func usage(w io.Writer, exc int) {
-	fmt.Fprintln(w, `usage: dumpbytes <file>`)
+	fmt.Fprintln(w, `usage: dumpbytes -n tabs <file>`)
 	os.Exit(exc)
 }
 
 func printBytes(buf []byte) {
 	fmt.Printf("\t")
-	for i := 0; i < len(buf); i++ {
+	for i := range buf {
 		fmt.Printf("0x%02x, ", buf[i])
 	}
 	fmt.Println()
 }
 
 func dumpFile(path string, indentLevel int) error {
-	indent := ""
-	for i := 0; i < indentLevel; i++ {
-		indent += "\t"
+	var indent strings.Builder
+	for range indentLevel {
+		indent.WriteByte('\t')
 	}
 
 	file, err := os.Open(path)
@@ -34,13 +36,13 @@ func dumpFile(path string, indentLevel int) error {
 
 	defer file.Close()
 
-	fmt.Printf("%svar buffer = []byte{\n", indent)
+	fmt.Printf("%svar buffer = []byte{\n", indent.String())
 	for {
 		buf := make([]byte, 8)
 		n, err := file.Read(buf)
 		if err == io.EOF {
 			if n > 0 {
-				fmt.Printf("%s", indent)
+				fmt.Printf("%s", indent.String())
 				printBytes(buf[:n])
 			}
 			break
@@ -50,11 +52,11 @@ func dumpFile(path string, indentLevel int) error {
 			return err
 		}
 
-		fmt.Printf("%s", indent)
+		fmt.Printf("%s", indent.String())
 		printBytes(buf[:n])
 	}
 
-	fmt.Printf("%s}\n", indent)
+	fmt.Printf("%s}\n", indent.String())
 	return nil
 }
 

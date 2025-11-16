@@ -80,7 +80,7 @@ func main() {
 	var fmtStr string
 
 	if !*quiet {
-		maxLine := fmt.Sprintf("%d", len(lines))
+		maxLine := strconv.Itoa(len(lines))
 		fmtStr = fmt.Sprintf("%%0%dd: %%s", len(maxLine))
 	}
 
@@ -95,12 +95,12 @@ func main() {
 		return false
 	}
 
-    fmtStr += "\n"
-    for i := start; !endFunc(i); i++ {
-        if *quiet {
-            fmt.Fprintln(os.Stdout, lines[i])
-        } else {
-            fmt.Fprintf(os.Stdout, fmtStr, i, lines[i])
-        }
-    }
+	fmtStr += "\n"
+	for i := start; !endFunc(i); i++ {
+		if *quiet {
+			fmt.Fprintln(os.Stdout, lines[i])
+		} else {
+			fmt.Fprintf(os.Stdout, fmtStr, i, lines[i])
+		}
+	}
 }

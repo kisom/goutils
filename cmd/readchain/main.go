@@ -1,25 +1,25 @@
 package main
 
 import (
-    "crypto/x509"
-    "encoding/pem"
-    "flag"
-    "fmt"
-    "os"
+	"crypto/x509"
+	"encoding/pem"
+	"flag"
+	"fmt"
+	"os"
 )
 
 func main() {
 	flag.Parse()
 
 	for _, fileName := range flag.Args() {
-  data, err := os.ReadFile(fileName)
+		data, err := os.ReadFile(fileName)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "[!] %s: %v\n", fileName, err)
 			continue
 		}
 
-  fmt.Fprintf(os.Stdout, "[+] %s:\n", fileName)
-		rest := data[:]
+		fmt.Fprintf(os.Stdout, "[+] %s:\n", fileName)
+		rest := data
 		for {
 			var p *pem.Block
 			p, rest = pem.Decode(rest)
@@ -33,7 +33,7 @@ func main() {
 				break
 			}
 
-   fmt.Fprintf(os.Stdout, "\t%+v\n", cert.Subject.CommonName)
+			fmt.Fprintf(os.Stdout, "\t%+v\n", cert.Subject.CommonName)
 		}
 	}
 }

@@ -7,7 +7,7 @@ import (
 	"git.wntrmute.dev/kyle/goutils/die"
 )
 
-// size of a kilobit in bytes
+// size of a kilobit in bytes.
 const kilobit = 128
 const pageSize = 4096
 
@@ -29,7 +29,7 @@ func main() {
 	fillByte := uint8(*fill)
 
 	buf := make([]byte, pageSize)
-	for i := 0; i < pageSize; i++ {
+	for i := range pageSize {
 		buf[i] = fillByte
 	}
 
@@ -40,7 +40,7 @@ func main() {
 	die.If(err)
 	defer file.Close()
 
-	for i := 0; i < pages; i++ {
+	for range pages {
 		_, err = file.Write(buf)
 		die.If(err)
 	}

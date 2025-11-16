@@ -4,7 +4,6 @@ import (
 	"crypto/x509"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -68,7 +67,7 @@ func main() {
 			lib.ProgName())
 	}
 
-	fileData, err := ioutil.ReadFile(flag.Arg(0))
+	fileData, err := os.ReadFile(flag.Arg(0))
 	die.If(err)
 
 	chain, err := certlib.ParseCertificatesPEM(fileData)

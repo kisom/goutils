@@ -86,7 +86,6 @@ linters:
     - godoclint # checks Golang's documentation practice
     - godot # checks if comments end in a period
     - gomoddirectives # manages the use of 'replace', 'retract', and 'excludes' directives in go.mod
-    - goprintffuncname # checks that printf-like functions are named with f at the end
     - gosec # inspects source code for security problems
     - govet # reports suspicious constructs, such as Printf calls whose arguments do not align with the format string
     - iface # checks the incorrect use of interfaces, helping developers avoid interface pollution
@@ -465,6 +464,8 @@ linters:
         linters: [ testableexamples ]
       - path: 'main.go'
         linters: [ forbidigo, mnd, reassign ]
+      - path: 'cmd/cruntar/main.go'
+        linters: [ unparam ]
       - source: 'TODO'
         linters: [ godot ]
       - text: 'should have a package comment'

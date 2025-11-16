@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 
 	"git.wntrmute.dev/kyle/goutils/die"
 )
@@ -27,13 +28,15 @@ func main() {
 		die.If(err)
 
 		details := conn.ConnectionState()
+		var chainSb30 strings.Builder
 		for _, cert := range details.PeerCertificates {
 			p := pem.Block{
 				Type:  "CERTIFICATE",
 				Bytes: cert.Raw,
 			}
-			chain += string(pem.EncodeToMemory(&p))
+			chainSb30.WriteString(string(pem.EncodeToMemory(&p)))
 		}
+		chain += chainSb30.String()
 
 		fmt.Fprintln(os.Stdout, chain)
 	}

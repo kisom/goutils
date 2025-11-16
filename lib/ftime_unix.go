@@ -1,4 +1,4 @@
-// +build unix linux openbsd darwin,amd64
+//go:build unix || linux || openbsd || (darwin && amd64)
 
 package lib
 
@@ -18,7 +18,7 @@ type FileTime struct {
 
 func timeSpecToTime(ts unix.Timespec) time.Time {
 	// The casts to int64 are needed because on 386, these are int32s.
-	return time.Unix(int64(ts.Sec), int64(ts.Nsec))
+	return time.Unix(ts.Sec, ts.Nsec)
 }
 
 // LoadFileTime returns a FileTime associated with the file.

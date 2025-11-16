@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -47,7 +46,7 @@ func help(w io.Writer) {
 }
 
 func loadDatabase() {
-	data, err := ioutil.ReadFile(dbFile)
+	data, err := os.ReadFile(dbFile)
 	if err != nil && os.IsNotExist(err) {
 		partsDB = &database{
 			Version: dbVersion,
@@ -74,7 +73,7 @@ func writeDB() {
 	data, err := json.Marshal(partsDB)
 	die.If(err)
 
-	err = ioutil.WriteFile(dbFile, data, 0644)
+	err = os.WriteFile(dbFile, data, 0644)
 	die.If(err)
 }
 

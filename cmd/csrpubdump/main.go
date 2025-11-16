@@ -47,8 +47,8 @@ func main() {
 			Bytes: out,
 		}
 
-  err = os.WriteFile(fileName+".pub", pem.EncodeToMemory(p), 0o644)
-  die.If(err)
-  fmt.Fprintf(os.Stdout, "[+] wrote %s.\n", fileName+".pub")
+		err = os.WriteFile(fileName+".pub", pem.EncodeToMemory(p), 0o644)
+		die.If(err)
+		fmt.Fprintf(os.Stdout, "[+] wrote %s.\n", fileName+".pub")
 	}
 }

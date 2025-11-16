@@ -6,7 +6,6 @@ import (
 	"encoding/pem"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"os"
 
@@ -23,7 +22,7 @@ func main() {
 	flag.Parse()
 
 	if sysRoot != "" {
-		pemList, err := ioutil.ReadFile(sysRoot)
+		pemList, err := os.ReadFile(sysRoot)
 		die.If(err)
 
 		roots := x509.NewCertPool()
@@ -61,7 +60,7 @@ func main() {
 			chain = append(chain, pem.EncodeToMemory(p)...)
 		}
 
-		err = ioutil.WriteFile(site+".pem", chain, 0644)
+		err = os.WriteFile(site+".pem", chain, 0644)
 		die.If(err)
 		fmt.Printf("[+] wrote %s.pem.\n", site)
 	}

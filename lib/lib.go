@@ -10,6 +10,12 @@ import (
 
 var progname = filepath.Base(os.Args[0])
 
+const (
+	daysInYear        = 365
+	digitWidth        = 10
+	hoursInQuarterDay = 6
+)
+
 // ProgName returns what lib thinks the program name is, namely the
 // basename of argv0.
 //
@@ -20,7 +26,7 @@ func ProgName() string {
 
 // Warnx displays a formatted error message to standard error, à la
 // warnx(3).
-func Warnx(format string, a ...interface{}) (int, error) {
+func Warnx(format string, a ...any) (int, error) {
 	format = fmt.Sprintf("[%s] %s", progname, format)
 	format += "\n"
 	return fmt.Fprintf(os.Stderr, format, a...)
@@ -28,7 +34,7 @@ func Warnx(format string, a ...interface{}) (int, error) {
 
 // Warn displays a formatted error message to standard output,
 // appending the error string, à la warn(3).
-func Warn(err error, format string, a ...interface{}) (int, error) {
+func Warn(err error, format string, a ...any) (int, error) {
 	format = fmt.Sprintf("[%s] %s", progname, format)
 	format += ": %v\n"
 	a = append(a, err)
@@ -37,7 +43,7 @@ func Warn(err error, format string, a ...interface{}) (int, error) {
 
 // Errx displays a formatted error message to standard error and exits
 // with the status code from `exit`, à la errx(3).
-func Errx(exit int, format string, a ...interface{}) {
+func Errx(exit int, format string, a ...any) {
 	format = fmt.Sprintf("[%s] %s", progname, format)
 	format += "\n"
 	fmt.Fprintf(os.Stderr, format, a...)
@@ -47,7 +53,7 @@ func Errx(exit int, format string, a ...interface{}) {
 // Err displays a formatting error message to standard error,
 // appending the error string, and exits with the status code from
 // `exit`, à la err(3).
-func Err(exit int, err error, format string, a ...interface{}) {
+func Err(exit int, err error, format string, a ...any) {
 	format = fmt.Sprintf("[%s] %s", progname, format)
 	format += ": %v\n"
 	a = append(a, err)
@@ -62,31 +68,31 @@ func Itoa(i int, wid int) string {
 	// Assemble decimal in reverse order.
 	var b [20]byte
 	bp := len(b) - 1
-	for i >= 10 || wid > 1 {
+	for i >= digitWidth || wid > 1 {
 		wid--
-		q := i / 10
-		b[bp] = byte('0' + i - q*10)
+		q := i / digitWidth
+		b[bp] = byte('0' + i - q*digitWidth)
 		bp--
 		i = q
 	}
-	// i < 10
+
 	b[bp] = byte('0' + i)
 	return string(b[bp:])
 }
 
 var (
 	dayDuration  = 24 * time.Hour
-	yearDuration = (365 * dayDuration) + (6 * time.Hour)
+	yearDuration = (daysInYear * dayDuration) + (hoursInQuarterDay * time.Hour)
 )
 
 // Duration returns a prettier string for time.Durations.
 func Duration(d time.Duration) string {
-    var s string
-    if d >= yearDuration {
-        years := int64(d / yearDuration)
-        s += fmt.Sprintf("%dy", years)
-        d -= time.Duration(years) * yearDuration
-    }
+	var s string
+	if d >= yearDuration {
+		years := int64(d / yearDuration)
+		s += fmt.Sprintf("%dy", years)
+		d -= time.Duration(years) * yearDuration
+	}
 
 	if d >= dayDuration {
 		days := d / dayDuration
@@ -97,9 +103,9 @@ func Duration(d time.Duration) string {
 		return s
 	}
 
- d %= 1 * time.Second
- hours := int64(d / time.Hour)
- d -= time.Duration(hours) * time.Hour
+	d %= 1 * time.Second
+	hours := int64(d / time.Hour)
+	d -= time.Duration(hours) * time.Hour
 	s += fmt.Sprintf("%dh%s", hours, d)
 	return s
 }

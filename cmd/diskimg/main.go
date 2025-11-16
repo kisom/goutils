@@ -15,43 +15,41 @@ import (
 const defaultHashAlgorithm = "sha256"
 
 var (
-	hAlgo      string
+	hAlgo string
 	debug = dbg.New()
 )
 
-
-func openImage(imageFile string) (image *os.File, hash []byte, err error) {
-	image, err = os.Open(imageFile)
+func openImage(imageFile string) (*os.File, []byte, error) {
+	f, err := os.Open(imageFile)
 	if err != nil {
-		return
+		return nil, nil, err
 	}
 
-	hash, err = ahash.SumReader(hAlgo, image)
+	h, err := ahash.SumReader(hAlgo, f)
 	if err != nil {
-		return
+		return nil, nil, err
 	}
 
-	_, err = image.Seek(0, 0)
-	if err != nil {
-		return
+	if _, err := f.Seek(0, 0); err != nil {
+		return nil, nil, err
 	}
 
-	debug.Printf("%s  %x\n", imageFile, hash)
-	return
+	debug.Printf("%s  %x\n", imageFile, h)
+	return f, h, nil
 }
 
-func openDevice(devicePath string) (device *os.File, err error) {
+func openDevice(devicePath string) (*os.File, error) {
 	fi, err := os.Stat(devicePath)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	device, err = os.OpenFile(devicePath, os.O_RDWR|os.O_SYNC, fi.Mode())
+	device, err := os.OpenFile(devicePath, os.O_RDWR|os.O_SYNC, fi.Mode())
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	return
+	return device, nil
 }
 
 func main() {

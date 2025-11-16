@@ -1,4 +1,4 @@
-// +build freebsd darwin,386 netbsd
+//go:build bsd
 
 package lib
 

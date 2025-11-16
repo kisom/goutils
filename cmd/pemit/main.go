@@ -70,7 +70,7 @@ func main() {
 			lib.Err(lib.ExitFailure, err, "failed to read input")
 		}
 	case argc > 1:
-		for i := 0; i < argc; i++ {
+		for i := range argc {
 			path := flag.Arg(i)
 			err = copyFile(path, buf)
 			if err != nil {

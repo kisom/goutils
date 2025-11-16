@@ -40,14 +40,14 @@ func main() {
 		usage()
 	}
 
-	min, err := strconv.Atoi(flag.Arg(1))
+	minVal, err := strconv.Atoi(flag.Arg(1))
 	dieIf(err)
 
-	max, err := strconv.Atoi(flag.Arg(2))
+	maxVal, err := strconv.Atoi(flag.Arg(2))
 	dieIf(err)
 
-    code := kind << 6
-    code += (min << 3)
-    code += max
-    fmt.Fprintf(os.Stdout, "%0o\n", code)
+	code := kind << 6
+	code += (minVal << 3)
+	code += maxVal
+	fmt.Fprintf(os.Stdout, "%0o\n", code)
 }

@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 
 	"gopkg.in/yaml.v2"
@@ -12,7 +11,7 @@ import (
 
 type empty struct{}
 
-func errorf(format string, args ...interface{}) {
+func errorf(format string, args ...any) {
 	format += "\n"
 	fmt.Fprintf(os.Stderr, format, args...)
 }
@@ -44,7 +43,7 @@ func main() {
 
 	if flag.NArg() == 1 && flag.Arg(0) == "-" {
 		path := "stdin"
-		in, err := ioutil.ReadAll(os.Stdin)
+		in, err := io.ReadAll(os.Stdin)
 		if err != nil {
 			errorf("%s FAILED: %s", path, err)
 			os.Exit(1)
@@ -65,7 +64,7 @@ func main() {
 	}
 
 	for _, path := range flag.Args() {
-		in, err := ioutil.ReadFile(path)
+		in, err := os.ReadFile(path)
 		if err != nil {
 			errorf("%s FAILED: %s", path, err)
 			continue

@@ -262,15 +262,14 @@ func main() {
 
 	tfr := tar.NewReader(r)
 	for {
-  hdr, err := tfr.Next()
-  if errors.Is(err, io.EOF) {
-      break
-  }
-  die.If(err)
+		hdr, err := tfr.Next()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		die.If(err)
 
 		err = processFile(tfr, hdr, top)
 		die.If(err)
-
 	}
 
 	r.Close()

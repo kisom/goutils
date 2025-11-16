@@ -163,7 +163,6 @@ func init() {
 }
 
 func main() {
-
 	var logLevel, mountDir, syncDir, target string
 	var dryRun, quietMode, noSyslog, verboseRsync bool
 

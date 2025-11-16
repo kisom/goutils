@@ -37,7 +37,6 @@ func printConnectionDetails(state tls.ConnectionState) {
 
 func tlsVersion(version uint16) string {
 	switch version {
-
 	case tls.VersionTLS13:
 		return "TLS 1.3"
 	case tls.VersionTLS12:

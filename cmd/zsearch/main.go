@@ -18,7 +18,7 @@ import (
 
 const defaultDirectory = ".git/objects"
 
-func errorf(format string, a ...interface{}) {
+func errorf(format string, a ...any) {
 	fmt.Fprintf(os.Stderr, format, a...)
 	if format[len(format)-1] != '\n' {
 		fmt.Fprintf(os.Stderr, "\n")
@@ -93,7 +93,7 @@ func searchFile(path string, search *regexp.Regexp) error {
 }
 
 func buildWalker(searchExpr *regexp.Regexp) filepath.WalkFunc {
-	return func(path string, info os.FileInfo, err error) error {
+	return func(path string, info os.FileInfo, _ error) error {
 		if info.Mode().IsRegular() {
 			return searchFile(path, searchExpr)
 		}

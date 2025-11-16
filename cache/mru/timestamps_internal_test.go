@@ -8,8 +8,8 @@ import (
 )
 
 func TestTimestamps(t *testing.T) {
-    ts := newTimestamps[string](3)
-    mock := clock.NewMock()
+	ts := newTimestamps[string](3)
+	mock := clock.NewMock()
 
 	// raven
 	ts.Update("raven", mock.Now().UnixNano())

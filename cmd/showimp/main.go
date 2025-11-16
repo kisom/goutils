@@ -53,7 +53,7 @@ func init() {
 	project = wd[len(gopath):]
 }
 
-func walkFile(path string, info os.FileInfo, err error) error {
+func walkFile(path string, _ os.FileInfo, err error) error {
 	if ignores[path] {
 		return filepath.SkipDir
 	}
@@ -62,11 +62,15 @@ func walkFile(path string, info os.FileInfo, err error) error {
 		return nil
 	}
 
-	debug.Println(path)
-
-	f, err := parser.ParseFile(fset, path, nil, parser.ImportsOnly)
 	if err != nil {
 		return err
+	}
+
+	debug.Println(path)
+
+	f, err2 := parser.ParseFile(fset, path, nil, parser.ImportsOnly)
+	if err2 != nil {
+		return err2
 	}
 
 	for _, importSpec := range f.Imports {
@@ -102,7 +106,7 @@ func main() {
 		ignores["vendor"] = true
 	}
 
-	for _, word := range strings.Split(ignoreLine, ",") {
+	for word := range strings.SplitSeq(ignoreLine, ",") {
 		ignores[strings.TrimSpace(word)] = true
 	}
 
