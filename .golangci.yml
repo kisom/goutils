@@ -446,6 +446,8 @@ linters:
         linters: [ testpackage ]
       - path: 'dbg/dbg_test.go'
         linters: [ testpackage ]
+      - path: 'log/logger.go'
+        linters: [ forbidigo ]
       - path: 'logging/example_test.go'
         linters: [ testableexamples ]
       - source: 'TODO'

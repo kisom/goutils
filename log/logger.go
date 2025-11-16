@@ -1,4 +1,4 @@
-// Package syslog is a syslog-type facility for logging.
+// Package log is a syslog-type facility for logging.
 package log
 
 import (
@@ -17,7 +17,7 @@ type logger struct {
 	writeConsole bool
 }
 
-func (log *logger) printf(p gsyslog.Priority, format string, args ...interface{}) {
+func (log *logger) printf(p gsyslog.Priority, format string, args ...any) {
 	if !strings.HasSuffix(format, "\n") {
 		format += "\n"
 	}
@@ -28,33 +28,33 @@ func (log *logger) printf(p gsyslog.Priority, format string, args ...interface{}
 	}
 
 	if log.l != nil {
-		log.l.WriteLevel(p, []byte(fmt.Sprintf(format, args...)))
+		_ = log.l.WriteLevel(p, fmt.Appendf(nil, format, args...))
 	}
 }
 
-func (log *logger) print(p gsyslog.Priority, args ...interface{}) {
+func (log *logger) print(p gsyslog.Priority, args ...any) {
 	if p <= log.p && log.writeConsole {
 		fmt.Printf("%s [%s] ", prioritiev[p], timestamp())
 		fmt.Print(args...)
 	}
 
 	if log.l != nil {
-		log.l.WriteLevel(p, []byte(fmt.Sprint(args...)))
+		_ = log.l.WriteLevel(p, fmt.Append(nil, args...))
 	}
 }
 
-func (log *logger) println(p gsyslog.Priority, args ...interface{}) {
+func (log *logger) println(p gsyslog.Priority, args ...any) {
 	if p <= log.p && log.writeConsole {
 		fmt.Printf("%s [%s] ", prioritiev[p], timestamp())
 		fmt.Println(args...)
 	}
 
 	if log.l != nil {
-		log.l.WriteLevel(p, []byte(fmt.Sprintln(args...)))
+		_ = log.l.WriteLevel(p, fmt.Appendln(nil, args...))
 	}
 }
 
-func (log *logger) spew(args ...interface{}) {
+func (log *logger) spew(args ...any) {
 	if log.p == gsyslog.LOG_DEBUG {
 		spew.Dump(args...)
 	}
@@ -160,109 +160,109 @@ func Setup(opts *Options) error {
 	return nil
 }
 
-func Debug(args ...interface{}) {
+func Debug(args ...any) {
 	log.print(gsyslog.LOG_DEBUG, args...)
 }
 
-func Info(args ...interface{}) {
+func Info(args ...any) {
 	log.print(gsyslog.LOG_INFO, args...)
 }
 
-func Notice(args ...interface{}) {
+func Notice(args ...any) {
 	log.print(gsyslog.LOG_NOTICE, args...)
 }
 
-func Warning(args ...interface{}) {
+func Warning(args ...any) {
 	log.print(gsyslog.LOG_WARNING, args...)
 }
 
-func Err(args ...interface{}) {
+func Err(args ...any) {
 	log.print(gsyslog.LOG_ERR, args...)
 }
 
-func Crit(args ...interface{}) {
+func Crit(args ...any) {
 	log.print(gsyslog.LOG_CRIT, args...)
 }
 
-func Alert(args ...interface{}) {
+func Alert(args ...any) {
 	log.print(gsyslog.LOG_ALERT, args...)
 }
 
-func Emerg(args ...interface{}) {
+func Emerg(args ...any) {
 	log.print(gsyslog.LOG_EMERG, args...)
 }
 
-func Debugln(args ...interface{}) {
+func Debugln(args ...any) {
 	log.println(gsyslog.LOG_DEBUG, args...)
 }
 
-func Infoln(args ...interface{}) {
+func Infoln(args ...any) {
 	log.println(gsyslog.LOG_INFO, args...)
 }
 
-func Noticeln(args ...interface{}) {
+func Noticeln(args ...any) {
 	log.println(gsyslog.LOG_NOTICE, args...)
 }
 
-func Warningln(args ...interface{}) {
+func Warningln(args ...any) {
 	log.print(gsyslog.LOG_WARNING, args...)
 }
 
-func Errln(args ...interface{}) {
+func Errln(args ...any) {
 	log.println(gsyslog.LOG_ERR, args...)
 }
 
-func Critln(args ...interface{}) {
+func Critln(args ...any) {
 	log.println(gsyslog.LOG_CRIT, args...)
 }
 
-func Alertln(args ...interface{}) {
+func Alertln(args ...any) {
 	log.println(gsyslog.LOG_ALERT, args...)
 }
 
-func Emergln(args ...interface{}) {
+func Emergln(args ...any) {
 	log.println(gsyslog.LOG_EMERG, args...)
 }
 
-func Debugf(format string, args ...interface{}) {
+func Debugf(format string, args ...any) {
 	log.printf(gsyslog.LOG_DEBUG, format, args...)
 }
 
-func Infof(format string, args ...interface{}) {
+func Infof(format string, args ...any) {
 	log.printf(gsyslog.LOG_INFO, format, args...)
 }
 
-func Noticef(format string, args ...interface{}) {
+func Noticef(format string, args ...any) {
 	log.printf(gsyslog.LOG_NOTICE, format, args...)
 }
 
-func Warningf(format string, args ...interface{}) {
+func Warningf(format string, args ...any) {
 	log.printf(gsyslog.LOG_WARNING, format, args...)
 }
 
-func Errf(format string, args ...interface{}) {
+func Errf(format string, args ...any) {
 	log.printf(gsyslog.LOG_ERR, format, args...)
 }
 
-func Critf(format string, args ...interface{}) {
+func Critf(format string, args ...any) {
 	log.printf(gsyslog.LOG_CRIT, format, args...)
 }
 
-func Alertf(format string, args ...interface{}) {
+func Alertf(format string, args ...any) {
 	log.printf(gsyslog.LOG_ALERT, format, args...)
 }
 
-func Emergf(format string, args ...interface{}) {
+func Emergf(format string, args ...any) {
 	log.printf(gsyslog.LOG_EMERG, format, args...)
 	os.Exit(1)
 }
 
-func Fatal(args ...interface{}) {
+func Fatal(args ...any) {
 	log.println(gsyslog.LOG_ERR, args...)
 	os.Exit(1)
 }
 
-func Fatalf(format string, args ...interface{}) {
+func Fatalf(format string, args ...any) {
 	log.printf(gsyslog.LOG_ERR, format, args...)
 	os.Exit(1)
 }
@@ -279,7 +279,7 @@ func FatalError(err error, message string) {
 }
 
 // Spew will pretty print the args if the logger is set to DEBUG priority.
-func Spew(args ...interface{}) {
+func Spew(args ...any) {
 	log.spew(args...)
 }
 
