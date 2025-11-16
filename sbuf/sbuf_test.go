@@ -1,15 +1,16 @@
-package sbuf
+package sbuf_test
 
 import (
 	"bytes"
 	"crypto/rand"
 	"testing"
 
+	"git.wntrmute.dev/kyle/goutils/sbuf"
 	"golang.org/x/crypto/nacl/box"
 )
 
 var (
-	buf          = &Buffer{}
+	buf          = &sbuf.Buffer{}
 	testMessage1 = []byte("round and round and round we go, where we stop, no one knows")
 	testMessage2 = []byte("the deconstruction of falling stars")
 )
@@ -113,23 +114,23 @@ func TestShortRead(t *testing.T) {
 }
 
 func TestNewBuffer(t *testing.T) {
-	buf := NewBuffer(32)
-	if len(buf.buf) != 0 {
+	testBuffer := sbuf.NewBuffer(32)
+	if testBuffer.Len() != 0 {
 		t.Fatalf("expected new buffer length to be 0, have %d",
-			len(buf.buf))
+			testBuffer.Len())
 	}
 
-	if cap(buf.buf) != 32 {
+	if testBuffer.Cap() != 32 {
 		t.Fatalf("expected new buffer capacity to be 0, have %d",
-			cap(buf.buf))
+			testBuffer.Cap())
 	}
 }
 
 func TestNewBufferFrom(t *testing.T) {
 	p := make([]byte, len(testMessage1))
 	copy(p, testMessage1)
-	buf := NewBufferFrom(p)
-	if !bytes.Equal(buf.buf, testMessage1) {
+	testBuffer := sbuf.NewBufferFrom(p)
+	if !bytes.Equal(testBuffer.Bytes(), testMessage1) {
 		t.Fatal("new buffer wasn't constructed properly")
 	}
 }
@@ -137,10 +138,10 @@ func TestNewBufferFrom(t *testing.T) {
 func TestBytes(t *testing.T) {
 	p := make([]byte, len(testMessage1))
 	copy(p, testMessage1)
-	buf := NewBufferFrom(p)
+	testBuffer := sbuf.NewBufferFrom(p)
 
-	out := buf.Bytes()
-	if buf.buf != nil {
+	out := testBuffer.Bytes()
+	if testBuffer.Len() != 0 {
 		t.Fatal("buffer was not closed")
 	}
 
@@ -148,21 +149,21 @@ func TestBytes(t *testing.T) {
 		t.Fatal("buffer did not return the right data")
 	}
 
-	out = buf.Bytes()
+	out = testBuffer.Bytes()
 	if out != nil {
 		t.Fatal("a closed buffer should return nil for Bytes")
 	}
 }
 
 func TestRWByte(t *testing.T) {
-	buf := NewBuffer(0)
+	testBuffer := sbuf.NewBuffer(0)
 	c := byte(42)
-	err := buf.WriteByte(c)
+	err := testBuffer.WriteByte(c)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
 
-	c, err = buf.ReadByte()
+	c, err = testBuffer.ReadByte()
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
@@ -171,22 +172,21 @@ func TestRWByte(t *testing.T) {
 		t.Fatalf("Expected 42, have %d", c)
 	}
 
-	_, err = buf.ReadByte()
+	_, err = testBuffer.ReadByte()
 	if err == nil {
 		t.Fatal("Expected EOF")
 	}
 }
 
 func BenchmarkRead(b *testing.B) {
-	b.N = 2000
 	pub, priv, err := box.GenerateKey(rand.Reader)
 	if err != nil {
 		b.Fatalf("%v", err)
 	}
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
-		_, err := buf.Write(priv[:])
+	for b.Loop() {
+		_, err = buf.Write(priv[:])
 		if err != nil {
 			b.Fatalf("%v", err)
 		}
@@ -204,11 +204,11 @@ func BenchmarkFixed(b *testing.B) {
 		b.Fatalf("%v", err)
 	}
 
-	buf = NewBuffer(64 * b.N)
+	buf = sbuf.NewBuffer(64 * b.N)
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
-		_, err := buf.Write(priv[:])
+	for b.Loop() {
+		_, err = buf.Write(priv[:])
 		if err != nil {
 			b.Fatalf("%v", err)
 		}

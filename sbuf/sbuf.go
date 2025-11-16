@@ -15,7 +15,7 @@ func zero(in []byte, n int) {
 		stop = len(in)
 	}
 
-	for i := 0; i < stop; i++ {
+	for i := range stop {
 		in[i] ^= in[i]
 	}
 }
@@ -37,7 +37,10 @@ func NewBuffer(n int) *Buffer {
 // original data will be wiped.
 func NewBufferFrom(p []byte) *Buffer {
 	buf := NewBuffer(len(p))
-	buf.Write(p)
+	_, err := buf.Write(p)
+	if err != nil {
+		return nil
+	}
 	zero(p, len(p))
 	return buf
 }
@@ -54,10 +57,7 @@ func (buf *Buffer) Read(p []byte) (int, error) {
 		return 0, io.EOF
 	}
 
-	copyLength := len(p)
-	if copyLength > len(buf.buf) {
-		copyLength = len(buf.buf)
-	}
+	copyLength := min(len(p), len(buf.buf))
 
 	copy(p, buf.buf)
 	zero(buf.buf, len(p))
@@ -91,10 +91,7 @@ func (buf *Buffer) Write(p []byte) (int, error) {
 	r := len(buf.buf) + len(p)
 	if cap(buf.buf) < r {
 		l := r
-		for {
-			if l > r {
-				break
-			}
+		for l <= r {
 			l *= 2
 		}
 		buf.grow(l - cap(buf.buf))
@@ -107,7 +104,7 @@ func (buf *Buffer) Write(p []byte) (int, error) {
 func (buf *Buffer) WriteByte(c byte) error {
 	r := len(buf.buf) + 1
 	if cap(buf.buf) < r {
-		l := r * 2
+		l := r << 1
 		buf.grow(l - cap(buf.buf))
 	}
 	buf.buf = append(buf.buf, c)
@@ -138,7 +135,7 @@ func (buf *Buffer) Bytes() []byte {
 	}
 
 	p := make([]byte, buf.Len())
-	buf.Read(p)
+	_, _ = buf.Read(p)
 	buf.Close()
 	return p
 }

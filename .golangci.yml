@@ -228,6 +228,8 @@ linters:
       # Such cases aren't reported by default.
       # Default: false
       check-type-assertions: true
+      exclude-functions:
+        - (*git.wntrmute.dev/kyle/goutils/sbuf.Buffer).Write
 
     exhaustive:
       # Program elements to check for exhaustiveness.
