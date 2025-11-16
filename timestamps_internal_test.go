@@ -46,5 +46,4 @@ func TestTimestamps(t *testing.T) {
 	if ts.K(2) != "owl" {
 		t.Fatalf("third key should be owl, have %s", ts.K(2))
 	}
-
 }

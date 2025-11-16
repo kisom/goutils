@@ -10,7 +10,7 @@ import (
 )
 
 type item struct {
-	V      interface{}
+	V      any
 	access int64
 }
 
@@ -28,11 +28,11 @@ type Cache struct {
 }
 
 // New must be used to create a new Cache.
-func New(cap int) *Cache {
+func New(icap int) *Cache {
 	return &Cache{
 		store:  map[string]*item{},
-		access: newTimestamps(cap),
-		cap:    cap,
+		access: newTimestamps(icap),
+		cap:    icap,
 		clock:  clock.New(),
 		mtx:    &sync.Mutex{},
 	}
@@ -114,7 +114,7 @@ func (c *Cache) ConsistencyCheck() error {
 }
 
 // Store adds the value v to the cache under the k.
-func (c *Cache) Store(k string, v interface{}) {
+func (c *Cache) Store(k string, v any) {
 	c.lock()
 	defer c.unlock()
 
@@ -139,7 +139,7 @@ func (c *Cache) Store(k string, v interface{}) {
 
 // Get returns the value stored in the cache. If the item isn't present,
 // it will return false.
-func (c *Cache) Get(k string) (interface{}, bool) {
+func (c *Cache) Get(k string) (any, bool) {
 	c.lock()
 	defer c.unlock()
 

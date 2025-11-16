@@ -3,6 +3,7 @@ package mru
 import (
 	"errors"
 	"fmt"
+	"io"
 	"sort"
 )
 
@@ -19,10 +20,10 @@ type timestamps struct {
 	cap int
 }
 
-func newTimestamps(cap int) *timestamps {
+func newTimestamps(icap int) *timestamps {
 	return &timestamps{
-		ts:  make([]timestamp, 0, cap),
-		cap: cap,
+		ts:  make([]timestamp, 0, icap),
+		cap: icap,
 	}
 }
 
@@ -47,7 +48,7 @@ func (ts *timestamps) Swap(i, j int) {
 }
 
 func (ts *timestamps) Find(k string) (int, bool) {
-	for i := 0; i < len(ts.ts); i++ {
+	for i := range len(ts.ts) {
 		if ts.ts[i].k == k {
 			return i, true
 		}
@@ -93,8 +94,8 @@ func (ts *timestamps) Delete(i int) {
 	ts.ts = append(ts.ts[:i], ts.ts[i+1:]...)
 }
 
-func (ts *timestamps) Dump() {
+func (ts *timestamps) Dump(w io.Writer) {
 	for i := range ts.ts {
-		fmt.Printf("%d: %s, %d\n", i, ts.K(i), ts.T(i))
+		fmt.Fprintf(w, "%d: %s, %d\n", i, ts.K(i), ts.T(i))
 	}
 }
