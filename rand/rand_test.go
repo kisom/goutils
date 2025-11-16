@@ -27,7 +27,7 @@ func TestCryptoUint64(t *testing.T) {
 func TestIntn(t *testing.T) {
 	expected := []int{3081, 4887, 4847, 1059, 3081}
 	mrand.Seed(1)
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		n := Intn2(1000, 5000)
 
 		if n != expected[i] {
