@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+const defaultHTTPSPort = 443
+
 type Target struct {
 	Host string
 	Port int
@@ -29,29 +31,29 @@ func parseURL(host string) (string, int, error) {
 	}
 
 	if url.Port() == "" {
-		return url.Hostname(), 443, nil
+		return url.Hostname(), defaultHTTPSPort, nil
 	}
 
-	port, err := strconv.ParseInt(url.Port(), 10, 16)
-	if err != nil {
+	portInt, err2 := strconv.ParseInt(url.Port(), 10, 16)
+	if err2 != nil {
 		return "", 0, fmt.Errorf("certlib/hosts: invalid port: %s", url.Port())
 	}
 
-	return url.Hostname(), int(port), nil
+	return url.Hostname(), int(portInt), nil
 }
 
 func parseHostPort(host string) (string, int, error) {
 	host, sport, err := net.SplitHostPort(host)
 	if err == nil {
-		port, err := strconv.ParseInt(sport, 10, 16)
-		if err != nil {
+		portInt, err2 := strconv.ParseInt(sport, 10, 16)
+		if err2 != nil {
 			return "", 0, fmt.Errorf("certlib/hosts: invalid port: %s", sport)
 		}
 
-		return host, int(port), nil
+		return host, int(portInt), nil
 	}
 
-	return host, 443, nil
+	return host, defaultHTTPSPort, nil
 }
 
 func ParseHost(host string) (*Target, error) {

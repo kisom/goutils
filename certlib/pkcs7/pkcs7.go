@@ -158,9 +158,9 @@ type EncryptedContentInfo struct {
 	EncryptedContent           []byte `asn1:"tag:0,optional"`
 }
 
-func unmarshalInit(raw []byte) (init initPKCS7, err error) {
-	_, err = asn1.Unmarshal(raw, &init)
-	if err != nil {
+func unmarshalInit(raw []byte) (initPKCS7, error) {
+	var init initPKCS7
+	if _, err := asn1.Unmarshal(raw, &init); err != nil {
 		return initPKCS7{}, certerr.ParsingError(certerr.ErrorSourceCertificate, err)
 	}
 	return init, nil
@@ -218,28 +218,28 @@ func populateEncryptedData(msg *PKCS7, contentBytes []byte) error {
 
 // ParsePKCS7 attempts to parse the DER encoded bytes of a
 // PKCS7 structure.
-func ParsePKCS7(raw []byte) (msg *PKCS7, err error) {
+func ParsePKCS7(raw []byte) (*PKCS7, error) {
 	pkcs7, err := unmarshalInit(raw)
 	if err != nil {
 		return nil, err
 	}
 
-	msg = new(PKCS7)
+	msg := new(PKCS7)
 	msg.Raw = pkcs7.Raw
 	msg.ContentInfo = pkcs7.ContentType.String()
 
 	switch msg.ContentInfo {
 	case ObjIDData:
-		if err := populateData(msg, pkcs7.Content); err != nil {
-			return nil, err
+		if e := populateData(msg, pkcs7.Content); e != nil {
+			return nil, e
 		}
 	case ObjIDSignedData:
-		if err := populateSignedData(msg, pkcs7.Content.Bytes); err != nil {
-			return nil, err
+		if e := populateSignedData(msg, pkcs7.Content.Bytes); e != nil {
+			return nil, e
 		}
 	case ObjIDEncryptedData:
-		if err := populateEncryptedData(msg, pkcs7.Content.Bytes); err != nil {
-			return nil, err
+		if e := populateEncryptedData(msg, pkcs7.Content.Bytes); e != nil {
+			return nil, e
 		}
 	default:
 		return nil, certerr.ParsingError(

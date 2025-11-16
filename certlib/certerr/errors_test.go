@@ -1,3 +1,4 @@
+//nolint:testpackage // keep tests in the same package for internal symbol access
 package certerr
 
 import (

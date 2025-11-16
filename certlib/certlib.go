@@ -11,7 +11,7 @@ import (
 
 // ReadCertificate reads a DER or PEM-encoded certificate from the
 // byte slice.
-func ReadCertificate(in []byte) (cert *x509.Certificate, rest []byte, err error) {
+func ReadCertificate(in []byte) (*x509.Certificate, []byte, error) {
 	if len(in) == 0 {
 		return nil, nil, certerr.ParsingError(certerr.ErrorSourceCertificate, certerr.ErrEmptyCertificate)
 	}
@@ -22,7 +22,7 @@ func ReadCertificate(in []byte) (cert *x509.Certificate, rest []byte, err error)
 			return nil, nil, certerr.ParsingError(certerr.ErrorSourceCertificate, errors.New("invalid PEM file"))
 		}
 
-		rest = remaining
+		rest := remaining
 		if p.Type != "CERTIFICATE" {
 			return nil, rest, certerr.ParsingError(
 				certerr.ErrorSourceCertificate,
@@ -31,19 +31,26 @@ func ReadCertificate(in []byte) (cert *x509.Certificate, rest []byte, err error)
 		}
 
 		in = p.Bytes
+		cert, err := x509.ParseCertificate(in)
+		if err != nil {
+			return nil, rest, certerr.ParsingError(certerr.ErrorSourceCertificate, err)
+		}
+		return cert, rest, nil
 	}
 
-	cert, err = x509.ParseCertificate(in)
+	cert, err := x509.ParseCertificate(in)
 	if err != nil {
-		return nil, rest, certerr.ParsingError(certerr.ErrorSourceCertificate, err)
+		return nil, nil, certerr.ParsingError(certerr.ErrorSourceCertificate, err)
 	}
-	return cert, rest, nil
+	return cert, nil, nil
 }
 
 // ReadCertificates tries to read all the certificates in a
 // PEM-encoded collection.
-func ReadCertificates(in []byte) (certs []*x509.Certificate, err error) {
+func ReadCertificates(in []byte) ([]*x509.Certificate, error) {
 	var cert *x509.Certificate
+	var certs []*x509.Certificate
+	var err error
 	for {
 		cert, in, err = ReadCertificate(in)
 		if err != nil {

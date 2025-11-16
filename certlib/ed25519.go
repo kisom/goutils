@@ -65,12 +65,14 @@ func MarshalEd25519PublicKey(pk crypto.PublicKey) ([]byte, error) {
 		return nil, errEd25519WrongKeyType
 	}
 
+	const bitsPerByte = 8
+
 	spki := subjectPublicKeyInfo{
 		Algorithm: pkix.AlgorithmIdentifier{
 			Algorithm: ed25519OID,
 		},
 		PublicKey: asn1.BitString{
-			BitLength: len(pub) * 8,
+			BitLength: len(pub) * bitsPerByte,
 			Bytes:     pub,
 		},
 	}
@@ -91,7 +93,8 @@ func ParseEd25519PublicKey(der []byte) (crypto.PublicKey, error) {
 		return nil, errEd25519WrongID
 	}
 
-	if spki.PublicKey.BitLength != ed25519.PublicKeySize*8 {
+	const bitsPerByte = 8
+	if spki.PublicKey.BitLength != ed25519.PublicKeySize*bitsPerByte {
 		return nil, errors.New("SubjectPublicKeyInfo PublicKey length mismatch")
 	}
 

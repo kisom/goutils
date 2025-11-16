@@ -79,24 +79,23 @@ func (e *Error) Error() string {
 
 func (e *Error) Unwrap() error { return e.Err }
 
-// InvalidPEMType is used to indicate that we were expecting one type of PEM
+// InvalidPEMTypeError is used to indicate that we were expecting one type of PEM
 // file, but saw another.
-type InvalidPEMType struct {
+type InvalidPEMTypeError struct {
 	have string
 	want []string
 }
 
-func (err *InvalidPEMType) Error() string {
+func (err *InvalidPEMTypeError) Error() string {
 	if len(err.want) == 1 {
 		return fmt.Sprintf("invalid PEM type: have %s, expected %s", err.have, err.want[0])
-	} else {
-		return fmt.Sprintf("invalid PEM type: have %s, expected one of %s", err.have, strings.Join(err.want, ", "))
 	}
+	return fmt.Sprintf("invalid PEM type: have %s, expected one of %s", err.have, strings.Join(err.want, ", "))
 }
 
-// ErrInvalidPEMType returns a new InvalidPEMType error.
+// ErrInvalidPEMType returns a new InvalidPEMTypeError error.
 func ErrInvalidPEMType(have string, want ...string) error {
-	return &InvalidPEMType{
+	return &InvalidPEMTypeError{
 		have: have,
 		want: want,
 	}

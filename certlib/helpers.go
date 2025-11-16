@@ -49,14 +49,14 @@ import (
 	"strings"
 	"time"
 
-	"git.wntrmute.dev/kyle/goutils/certlib/certerr"
-	"git.wntrmute.dev/kyle/goutils/certlib/pkcs7"
-
 	ct "github.com/google/certificate-transparency-go"
 	cttls "github.com/google/certificate-transparency-go/tls"
 	ctx509 "github.com/google/certificate-transparency-go/x509"
 	"golang.org/x/crypto/ocsp"
 	"golang.org/x/crypto/pkcs12"
+
+	"git.wntrmute.dev/kyle/goutils/certlib/certerr"
+	"git.wntrmute.dev/kyle/goutils/certlib/pkcs7"
 )
 
 // OneYear is a time.Duration representing a year's worth of seconds.
@@ -68,7 +68,7 @@ const OneDay = 24 * time.Hour
 // DelegationUsage  is the OID for the DelegationUseage extensions.
 var DelegationUsage = asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 44363, 44}
 
-// DelegationExtension.
+// DelegationExtension is a non-critical extension marking delegation usage.
 var DelegationExtension = pkix.Extension{
 	Id:       DelegationUsage,
 	Critical: false,
@@ -81,13 +81,19 @@ func InclusiveDate(year int, month time.Month, day int) time.Time {
 	return time.Date(year, month, day, 0, 0, 0, 0, time.UTC).Add(-1 * time.Nanosecond)
 }
 
+const (
+	year2012 = 2012
+	year2015 = 2015
+	day1     = 1
+)
+
 // Jul2012 is the July 2012 CAB Forum deadline for when CAs must stop
 // issuing certificates valid for more than 5 years.
-var Jul2012 = InclusiveDate(2012, time.July, 01)
+var Jul2012 = InclusiveDate(year2012, time.July, day1)
 
 // Apr2015 is the April 2015 CAB Forum deadline for when CAs must stop
 // issuing certificates valid for more than 39 months.
-var Apr2015 = InclusiveDate(2015, time.April, 01)
+var Apr2015 = InclusiveDate(year2015, time.April, day1)
 
 // KeyLength returns the bit size of ECDSA or RSA PublicKey.
 func KeyLength(key any) int {
@@ -108,11 +114,11 @@ func KeyLength(key any) int {
 }
 
 // ExpiryTime returns the time when the certificate chain is expired.
-func ExpiryTime(chain []*x509.Certificate) (notAfter time.Time) {
+func ExpiryTime(chain []*x509.Certificate) time.Time {
+	var notAfter time.Time
 	if len(chain) == 0 {
 		return notAfter
 	}
-
 	notAfter = chain[0].NotAfter
 	for _, cert := range chain {
 		if notAfter.After(cert.NotAfter) {
@@ -158,18 +164,23 @@ func ValidExpiry(c *x509.Certificate) bool {
 // SignatureString returns the TLS signature string corresponding to
 // an X509 signature algorithm.
 var signatureString = map[x509.SignatureAlgorithm]string{
-	x509.MD2WithRSA:      "MD2WithRSA",
-	x509.MD5WithRSA:      "MD5WithRSA",
-	x509.SHA1WithRSA:     "SHA1WithRSA",
-	x509.SHA256WithRSA:   "SHA256WithRSA",
-	x509.SHA384WithRSA:   "SHA384WithRSA",
-	x509.SHA512WithRSA:   "SHA512WithRSA",
-	x509.DSAWithSHA1:     "DSAWithSHA1",
-	x509.DSAWithSHA256:   "DSAWithSHA256",
-	x509.ECDSAWithSHA1:   "ECDSAWithSHA1",
-	x509.ECDSAWithSHA256: "ECDSAWithSHA256",
-	x509.ECDSAWithSHA384: "ECDSAWithSHA384",
-	x509.ECDSAWithSHA512: "ECDSAWithSHA512",
+	x509.UnknownSignatureAlgorithm: "Unknown Signature",
+	x509.MD2WithRSA:                "MD2WithRSA",
+	x509.MD5WithRSA:                "MD5WithRSA",
+	x509.SHA1WithRSA:               "SHA1WithRSA",
+	x509.SHA256WithRSA:             "SHA256WithRSA",
+	x509.SHA384WithRSA:             "SHA384WithRSA",
+	x509.SHA512WithRSA:             "SHA512WithRSA",
+	x509.SHA256WithRSAPSS:          "SHA256WithRSAPSS",
+	x509.SHA384WithRSAPSS:          "SHA384WithRSAPSS",
+	x509.SHA512WithRSAPSS:          "SHA512WithRSAPSS",
+	x509.DSAWithSHA1:               "DSAWithSHA1",
+	x509.DSAWithSHA256:             "DSAWithSHA256",
+	x509.ECDSAWithSHA1:             "ECDSAWithSHA1",
+	x509.ECDSAWithSHA256:           "ECDSAWithSHA256",
+	x509.ECDSAWithSHA384:           "ECDSAWithSHA384",
+	x509.ECDSAWithSHA512:           "ECDSAWithSHA512",
+	x509.PureEd25519:               "PureEd25519",
 }
 
 // SignatureString returns the TLS signature string corresponding to
@@ -184,18 +195,23 @@ func SignatureString(alg x509.SignatureAlgorithm) string {
 // HashAlgoString returns the hash algorithm name contains in the signature
 // method.
 var hashAlgoString = map[x509.SignatureAlgorithm]string{
-	x509.MD2WithRSA:      "MD2",
-	x509.MD5WithRSA:      "MD5",
-	x509.SHA1WithRSA:     "SHA1",
-	x509.SHA256WithRSA:   "SHA256",
-	x509.SHA384WithRSA:   "SHA384",
-	x509.SHA512WithRSA:   "SHA512",
-	x509.DSAWithSHA1:     "SHA1",
-	x509.DSAWithSHA256:   "SHA256",
-	x509.ECDSAWithSHA1:   "SHA1",
-	x509.ECDSAWithSHA256: "SHA256",
-	x509.ECDSAWithSHA384: "SHA384",
-	x509.ECDSAWithSHA512: "SHA512",
+	x509.UnknownSignatureAlgorithm: "Unknown Hash Algorithm",
+	x509.MD2WithRSA:                "MD2",
+	x509.MD5WithRSA:                "MD5",
+	x509.SHA1WithRSA:               "SHA1",
+	x509.SHA256WithRSA:             "SHA256",
+	x509.SHA384WithRSA:             "SHA384",
+	x509.SHA512WithRSA:             "SHA512",
+	x509.SHA256WithRSAPSS:          "SHA256",
+	x509.SHA384WithRSAPSS:          "SHA384",
+	x509.SHA512WithRSAPSS:          "SHA512",
+	x509.DSAWithSHA1:               "SHA1",
+	x509.DSAWithSHA256:             "SHA256",
+	x509.ECDSAWithSHA1:             "SHA1",
+	x509.ECDSAWithSHA256:           "SHA256",
+	x509.ECDSAWithSHA384:           "SHA384",
+	x509.ECDSAWithSHA512:           "SHA512",
+	x509.PureEd25519:               "SHA512", // per x509 docs Ed25519 uses SHA-512 internally
 }
 
 // HashAlgoString returns the hash algorithm name contains in the signature
@@ -273,7 +289,7 @@ func ParseCertificatesPEM(certsPEM []byte) ([]*x509.Certificate, error) {
 
 // ParseCertificatesDER parses a DER encoding of a certificate object and possibly private key,
 // either PKCS #7, PKCS #12, or raw x509.
-func ParseCertificatesDER(certsDER []byte, password string) (certs []*x509.Certificate, key crypto.Signer, err error) {
+func ParseCertificatesDER(certsDER []byte, password string) ([]*x509.Certificate, crypto.Signer, error) {
 	certsDER = bytes.TrimSpace(certsDER)
 
 	// First, try PKCS #7
@@ -284,7 +300,7 @@ func ParseCertificatesDER(certsDER []byte, password string) (certs []*x509.Certi
 				errors.New("can only extract certificates from signed data content info"),
 			)
 		}
-		certs = pkcs7data.Content.SignedData.Certificates
+		certs := pkcs7data.Content.SignedData.Certificates
 		if certs == nil {
 			return nil, nil, certerr.DecodeError(certerr.ErrorSourceCertificate, errors.New("no certificates decoded"))
 		}
@@ -304,7 +320,7 @@ func ParseCertificatesDER(certsDER []byte, password string) (certs []*x509.Certi
 	}
 
 	// Finally, attempt to parse raw X.509 certificates
-	certs, err = x509.ParseCertificates(certsDER)
+	certs, err := x509.ParseCertificates(certsDER)
 	if err != nil {
 		return nil, nil, certerr.DecodeError(certerr.ErrorSourceCertificate, err)
 	}
@@ -318,7 +334,8 @@ func ParseSelfSignedCertificatePEM(certPEM []byte) (*x509.Certificate, error) {
 		return nil, err
 	}
 
-	if err := cert.CheckSignature(cert.SignatureAlgorithm, cert.RawTBSCertificate, cert.Signature); err != nil {
+	err = cert.CheckSignature(cert.SignatureAlgorithm, cert.RawTBSCertificate, cert.Signature)
+	if err != nil {
 		return nil, certerr.VerifyError(certerr.ErrorSourceCertificate, err)
 	}
 	return cert, nil
@@ -362,8 +379,8 @@ func ParseOneCertificateFromPEM(certsPEM []byte) ([]*x509.Certificate, []byte, e
 
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
-		pkcs7data, err := pkcs7.ParsePKCS7(block.Bytes)
-		if err != nil {
+		pkcs7data, err2 := pkcs7.ParsePKCS7(block.Bytes)
+		if err2 != nil {
 			return nil, rest, err
 		}
 		if pkcs7data.ContentInfo != "SignedData" {
@@ -382,7 +399,7 @@ func ParseOneCertificateFromPEM(certsPEM []byte) ([]*x509.Certificate, []byte, e
 // LoadPEMCertPool loads a pool of PEM certificates from file.
 func LoadPEMCertPool(certsFile string) (*x509.CertPool, error) {
 	if certsFile == "" {
-		return nil, nil
+		return nil, nil //nolint:nilnil // no CA file provided -> treat as no pool and no error
 	}
 	pemCerts, err := os.ReadFile(certsFile)
 	if err != nil {
@@ -395,7 +412,7 @@ func LoadPEMCertPool(certsFile string) (*x509.CertPool, error) {
 // PEMToCertPool concerts PEM certificates to a CertPool.
 func PEMToCertPool(pemCerts []byte) (*x509.CertPool, error) {
 	if len(pemCerts) == 0 {
-		return nil, nil
+		return nil, nil //nolint:nilnil // empty input means no pool needed
 	}
 
 	certPool := x509.NewCertPool()
@@ -409,14 +426,14 @@ func PEMToCertPool(pemCerts []byte) (*x509.CertPool, error) {
 // ParsePrivateKeyPEM parses and returns a PEM-encoded private
 // key. The private key may be either an unencrypted PKCS#8, PKCS#1,
 // or elliptic private key.
-func ParsePrivateKeyPEM(keyPEM []byte) (key crypto.Signer, err error) {
+func ParsePrivateKeyPEM(keyPEM []byte) (crypto.Signer, error) {
 	return ParsePrivateKeyPEMWithPassword(keyPEM, nil)
 }
 
 // ParsePrivateKeyPEMWithPassword parses and returns a PEM-encoded private
 // key. The private key may be a potentially encrypted PKCS#8, PKCS#1,
 // or elliptic private key.
-func ParsePrivateKeyPEMWithPassword(keyPEM []byte, password []byte) (key crypto.Signer, err error) {
+func ParsePrivateKeyPEMWithPassword(keyPEM []byte, password []byte) (crypto.Signer, error) {
 	keyDER, err := GetKeyDERFromPEM(keyPEM, password)
 	if err != nil {
 		return nil, err
@@ -436,47 +453,49 @@ func GetKeyDERFromPEM(in []byte, password []byte) ([]byte, error) {
 			break
 		}
 	}
-	if keyDER != nil {
-		if procType, ok := keyDER.Headers["Proc-Type"]; ok {
-			if strings.Contains(procType, "ENCRYPTED") {
-				if password != nil {
-					return x509.DecryptPEMBlock(keyDER, password)
-				}
-				return nil, certerr.DecodeError(certerr.ErrorSourcePrivateKey, certerr.ErrEncryptedPrivateKey)
-			}
-		}
-		return keyDER.Bytes, nil
+	if keyDER == nil {
+		return nil, certerr.DecodeError(certerr.ErrorSourcePrivateKey, errors.New("failed to decode private key"))
 	}
-
-	return nil, certerr.DecodeError(certerr.ErrorSourcePrivateKey, errors.New("failed to decode private key"))
+	if procType, ok := keyDER.Headers["Proc-Type"]; ok && strings.Contains(procType, "ENCRYPTED") {
+		if password != nil {
+			// nolintlint requires rationale:
+			//nolint:staticcheck // legacy RFC1423 PEM encryption supported for backward compatibility when caller supplies a password
+			return x509.DecryptPEMBlock(keyDER, password)
+		}
+		return nil, certerr.DecodeError(certerr.ErrorSourcePrivateKey, certerr.ErrEncryptedPrivateKey)
+	}
+	return keyDER.Bytes, nil
 }
 
 // ParseCSR parses a PEM- or DER-encoded PKCS #10 certificate signing request.
-func ParseCSR(in []byte) (csr *x509.CertificateRequest, rest []byte, err error) {
+func ParseCSR(in []byte) (*x509.CertificateRequest, []byte, error) {
 	in = bytes.TrimSpace(in)
 	p, rest := pem.Decode(in)
-	if p != nil {
-		if p.Type != "NEW CERTIFICATE REQUEST" && p.Type != "CERTIFICATE REQUEST" {
-			return nil, rest, certerr.ParsingError(
-				certerr.ErrorSourceCSR,
-				certerr.ErrInvalidPEMType(p.Type, "NEW CERTIFICATE REQUEST", "CERTIFICATE REQUEST"),
-			)
+	if p == nil {
+		csr, err := x509.ParseCertificateRequest(in)
+		if err != nil {
+			return nil, rest, certerr.ParsingError(certerr.ErrorSourceCSR, err)
 		}
-
-		csr, err = x509.ParseCertificateRequest(p.Bytes)
-	} else {
-		csr, err = x509.ParseCertificateRequest(in)
+		if sigErr := csr.CheckSignature(); sigErr != nil {
+			return nil, rest, certerr.VerifyError(certerr.ErrorSourceCSR, sigErr)
+		}
+		return csr, rest, nil
 	}
 
+	if p.Type != "NEW CERTIFICATE REQUEST" && p.Type != "CERTIFICATE REQUEST" {
+		return nil, rest, certerr.ParsingError(
+			certerr.ErrorSourceCSR,
+			certerr.ErrInvalidPEMType(p.Type, "NEW CERTIFICATE REQUEST", "CERTIFICATE REQUEST"),
+		)
+	}
+
+	csr, err := x509.ParseCertificateRequest(p.Bytes)
 	if err != nil {
 		return nil, rest, certerr.ParsingError(certerr.ErrorSourceCSR, err)
 	}
-
-	err = csr.CheckSignature()
-	if err != nil {
-		return nil, rest, certerr.VerifyError(certerr.ErrorSourceCSR, err)
+	if sigErr := csr.CheckSignature(); sigErr != nil {
+		return nil, rest, certerr.VerifyError(certerr.ErrorSourceCSR, sigErr)
 	}
-
 	return csr, rest, nil
 }
 
@@ -484,7 +503,7 @@ func ParseCSR(in []byte) (csr *x509.CertificateRequest, rest []byte, err error) 
 // It does not check the signature. This is useful for dumping data from a CSR
 // locally.
 func ParseCSRPEM(csrPEM []byte) (*x509.CertificateRequest, error) {
-	block, _ := pem.Decode([]byte(csrPEM))
+	block, _ := pem.Decode(csrPEM)
 	if block == nil {
 		return nil, certerr.DecodeError(certerr.ErrorSourceCSR, errors.New("PEM block is empty"))
 	}
@@ -499,15 +518,20 @@ func ParseCSRPEM(csrPEM []byte) (*x509.CertificateRequest, error) {
 
 // SignerAlgo returns an X.509 signature algorithm from a crypto.Signer.
 func SignerAlgo(priv crypto.Signer) x509.SignatureAlgorithm {
+	const (
+		rsaBits2048 = 2048
+		rsaBits3072 = 3072
+		rsaBits4096 = 4096
+	)
 	switch pub := priv.Public().(type) {
 	case *rsa.PublicKey:
 		bitLength := pub.N.BitLen()
 		switch {
-		case bitLength >= 4096:
+		case bitLength >= rsaBits4096:
 			return x509.SHA512WithRSA
-		case bitLength >= 3072:
+		case bitLength >= rsaBits3072:
 			return x509.SHA384WithRSA
-		case bitLength >= 2048:
+		case bitLength >= rsaBits2048:
 			return x509.SHA256WithRSA
 		default:
 			return x509.SHA1WithRSA
@@ -537,7 +561,7 @@ func LoadClientCertificate(certFile string, keyFile string) (*tls.Certificate, e
 		}
 		return &cert, nil
 	}
-	return nil, nil
+	return nil, nil //nolint:nilnil // absence of client cert is not an error
 }
 
 // CreateTLSConfig creates a tls.Config object from certs and roots.
@@ -549,6 +573,7 @@ func CreateTLSConfig(remoteCAs *x509.CertPool, cert *tls.Certificate) *tls.Confi
 	return &tls.Config{
 		Certificates: certs,
 		RootCAs:      remoteCAs,
+		MinVersion:   tls.VersionTLS12, // secure default
 	}
 }
 
@@ -582,11 +607,11 @@ func DeserializeSCTList(serializedSCTList []byte) ([]ct.SignedCertificateTimesta
 	list := make([]ct.SignedCertificateTimestamp, len(sctList.SCTList))
 	for i, serializedSCT := range sctList.SCTList {
 		var sct ct.SignedCertificateTimestamp
-		rest, err := cttls.Unmarshal(serializedSCT.Val, &sct)
-		if err != nil {
-			return nil, err
+		rest2, err2 := cttls.Unmarshal(serializedSCT.Val, &sct)
+		if err2 != nil {
+			return nil, err2
 		}
-		if len(rest) != 0 {
+		if len(rest2) != 0 {
 			return nil, certerr.ParsingError(
 				certerr.ErrorSourceSCTList,
 				errors.New("serialized SCT list contained trailing garbage"),
@@ -602,12 +627,12 @@ func DeserializeSCTList(serializedSCTList []byte) ([]ct.SignedCertificateTimesta
 // unmarshalled.
 func SCTListFromOCSPResponse(response *ocsp.Response) ([]ct.SignedCertificateTimestamp, error) {
 	// This loop finds the SCTListExtension in the OCSP response.
-	var SCTListExtension, ext pkix.Extension
+	var sctListExtension, ext pkix.Extension
 	for _, ext = range response.Extensions {
 		// sctExtOid is the ObjectIdentifier of a Signed Certificate Timestamp.
 		sctExtOid := asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 11129, 2, 4, 5}
 		if ext.Id.Equal(sctExtOid) {
-			SCTListExtension = ext
+			sctListExtension = ext
 			break
 		}
 	}
@@ -615,10 +640,10 @@ func SCTListFromOCSPResponse(response *ocsp.Response) ([]ct.SignedCertificateTim
 	// This code block extracts the sctList from the SCT extension.
 	var sctList []ct.SignedCertificateTimestamp
 	var err error
-	if numBytes := len(SCTListExtension.Value); numBytes != 0 {
+	if numBytes := len(sctListExtension.Value); numBytes != 0 {
 		var serializedSCTList []byte
 		rest := make([]byte, numBytes)
-		copy(rest, SCTListExtension.Value)
+		copy(rest, sctListExtension.Value)
 		for len(rest) != 0 {
 			rest, err = asn1.Unmarshal(rest, &serializedSCTList)
 			if err != nil {

@@ -38,6 +38,7 @@ import (
 	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/x509"
+	"errors"
 	"fmt"
 
 	"git.wntrmute.dev/kyle/goutils/certlib/certerr"
@@ -47,29 +48,36 @@ import (
 // private key. The key must not be in PEM format. If an error is returned, it
 // may contain information about the private key, so care should be taken when
 // displaying it directly.
-func ParsePrivateKeyDER(keyDER []byte) (key crypto.Signer, err error) {
-	generalKey, err := x509.ParsePKCS8PrivateKey(keyDER)
-	if err != nil {
-		generalKey, err = x509.ParsePKCS1PrivateKey(keyDER)
-		if err != nil {
-			generalKey, err = x509.ParseECPrivateKey(keyDER)
-			if err != nil {
-				generalKey, err = ParseEd25519PrivateKey(keyDER)
-				if err != nil {
-					return nil, certerr.ParsingError(certerr.ErrorSourcePrivateKey, err)
-				}
-			}
+func ParsePrivateKeyDER(keyDER []byte) (crypto.Signer, error) {
+	// Try common encodings in order without deep nesting.
+	if k, err := x509.ParsePKCS8PrivateKey(keyDER); err == nil {
+		switch kk := k.(type) {
+		case *rsa.PrivateKey:
+			return kk, nil
+		case *ecdsa.PrivateKey:
+			return kk, nil
+		case ed25519.PrivateKey:
+			return kk, nil
+		default:
+			return nil, certerr.ParsingError(certerr.ErrorSourcePrivateKey, fmt.Errorf("unknown key type %T", k))
 		}
 	}
-
-	switch generalKey := generalKey.(type) {
-	case *rsa.PrivateKey:
-		return generalKey, nil
-	case *ecdsa.PrivateKey:
-		return generalKey, nil
-	case ed25519.PrivateKey:
-		return generalKey, nil
-	default:
-		return nil, certerr.ParsingError(certerr.ErrorSourcePrivateKey, fmt.Errorf("unknown key type %t", generalKey))
+	if k, err := x509.ParsePKCS1PrivateKey(keyDER); err == nil {
+		return k, nil
 	}
+	if k, err := x509.ParseECPrivateKey(keyDER); err == nil {
+		return k, nil
+	}
+	if k, err := ParseEd25519PrivateKey(keyDER); err == nil {
+		if kk, ok := k.(ed25519.PrivateKey); ok {
+			return kk, nil
+		}
+		return nil, certerr.ParsingError(certerr.ErrorSourcePrivateKey, fmt.Errorf("unknown key type %T", k))
+	}
+	// If all parsers failed, return the last error from Ed25519 attempt (approximate cause).
+	if _, err := ParseEd25519PrivateKey(keyDER); err != nil {
+		return nil, certerr.ParsingError(certerr.ErrorSourcePrivateKey, err)
+	}
+	// Fallback (should be unreachable)
+	return nil, certerr.ParsingError(certerr.ErrorSourcePrivateKey, errors.New("unknown key encoding"))
 }
