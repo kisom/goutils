@@ -1,13 +1,15 @@
-package testio
+package testio_test
 
 import (
 	"bytes"
 	"os"
 	"testing"
+
+	"git.wntrmute.dev/kyle/goutils/testio"
 )
 
 func TestBrokenWriter(t *testing.T) {
-	buf := NewBrokenWriter(2)
+	buf := testio.NewBrokenWriter(2)
 	data := []byte{1, 2}
 
 	n, err := buf.Write(data)
@@ -39,7 +41,7 @@ func TestBufCloser(t *testing.T) {
 	var data = []byte{1, 2}
 	var read = make([]byte, 2)
 
-	buf := NewBufCloser(data)
+	buf := testio.NewBufCloser(data)
 	_, err := buf.Read(read)
 	if err != nil {
 		t.Fatalf("%v", err)
@@ -54,7 +56,7 @@ func TestBufCloser(t *testing.T) {
 	buf.Reset()
 
 	s := "hi"
-	buf = NewBufCloserString(s)
+	buf = testio.NewBufCloserString(s)
 
 	read = buf.Bytes()
 	if string(read) != s {
@@ -65,7 +67,7 @@ func TestBufCloser(t *testing.T) {
 func TestLoggingBuffer(t *testing.T) {
 	src := &bytes.Buffer{}
 	data := []byte("AB")
-	lb := NewLoggingBuffer(src)
+	lb := testio.NewLoggingBuffer(src)
 	_, err := lb.Write(data)
 	if err != nil {
 		t.Fatalf("%v", err)
@@ -82,8 +84,8 @@ func TestLoggingBuffer(t *testing.T) {
 	}
 
 	expected := "[TEST] [WRITE] 4142\n"
-	if string(out.Bytes()) != expected {
-		t.Fatalf("expected '%s', have '%s'", expected, string(out.Bytes()))
+	if out.String() != expected {
+		t.Fatalf("expected '%s', have '%s'", expected, out.String())
 	}
 
 	out.Reset()
@@ -96,8 +98,8 @@ func TestLoggingBuffer(t *testing.T) {
 	}
 
 	expected = "[TEST] [READ] 4142\n"
-	if string(out.Bytes()) != expected {
-		t.Fatalf("expected '%s', have '%s'", expected, string(out.Bytes()))
+	if out.String() != expected {
+		t.Fatalf("expected '%s', have '%s'", expected, out.String())
 	}
 
 	out.Reset()
@@ -112,8 +114,8 @@ func TestLoggingBuffer(t *testing.T) {
 	}
 
 	expected = "[READ] 4142\n"
-	if string(out.Bytes()) != expected {
-		t.Fatalf("expected '%s', have '%s'", expected, string(out.Bytes()))
+	if out.String() != expected {
+		t.Fatalf("expected '%s', have '%s'", expected, out.String())
 	}
 
 	src.Reset()
@@ -124,8 +126,8 @@ func TestLoggingBuffer(t *testing.T) {
 }
 
 func TestBrokenReadWriter(t *testing.T) {
-	brw := NewBrokenReadWriter(0, 0)
-	lb := NewLoggingBuffer(brw)
+	brw := testio.NewBrokenReadWriter(0, 0)
+	lb := testio.NewLoggingBuffer(brw)
 
 	var p = make([]byte, 2)
 	var data = []byte("HI")
@@ -177,7 +179,7 @@ func TestBrokenReadWriter(t *testing.T) {
 }
 
 func TestBufferConn(t *testing.T) {
-	bc := NewBufferConn()
+	bc := testio.NewBufferConn()
 
 	client := []byte("AB")
 	peer := []byte("XY")

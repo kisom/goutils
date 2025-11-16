@@ -169,6 +169,26 @@ type BufCloser struct {
 	buf *bytes.Buffer
 }
 
+// NewBufCloser creates and initializes a new BufCloser using buf as
+// its initial contents. It is intended to prepare a BufCloser to read
+// existing data. It can also be used to size the internal buffer for
+// writing. To do that, buf should have the desired capacity but a
+// length of zero.
+func NewBufCloser(buf []byte) *BufCloser {
+	bc := new(BufCloser)
+	bc.buf = bytes.NewBuffer(buf)
+	return bc
+}
+
+// NewBufCloserString creates and initializes a new Buffer using
+// string s as its initial contents. It is intended to prepare a
+// buffer to read an existing string.
+func NewBufCloserString(s string) *BufCloser {
+	buf := new(BufCloser)
+	buf.buf = bytes.NewBufferString(s)
+	return buf
+}
+
 // Write writes the data to the BufCloser.
 func (buf *BufCloser) Write(p []byte) (int, error) {
 	return buf.buf.Write(p)
@@ -197,26 +217,6 @@ func (buf *BufCloser) Bytes() []byte {
 // Len returns the length of the buffer.
 func (buf *BufCloser) Len() int {
 	return buf.buf.Len()
-}
-
-// NewBufCloser creates and initializes a new BufCloser using buf as
-// its initial contents. It is intended to prepare a BufCloser to read
-// existing data. It can also be used to size the internal buffer for
-// writing. To do that, buf should have the desired capacity but a
-// length of zero.
-func NewBufCloser(buf []byte) *BufCloser {
-	bc := new(BufCloser)
-	bc.buf = bytes.NewBuffer(buf)
-	return bc
-}
-
-// NewBufCloserString creates and initializes a new Buffer using
-// string s as its initial contents. It is intended to prepare a
-// buffer to read an existing string.
-func NewBufCloserString(s string) *BufCloser {
-	buf := new(BufCloser)
-	buf.buf = bytes.NewBufferString(s)
-	return buf
 }
 
 // A LoggingBuffer is an io.ReadWriter that prints the hex value of
@@ -323,6 +323,26 @@ type BrokenCloser struct {
 	buf *bytes.Buffer
 }
 
+// NewBrokenCloser creates and initializes a new BrokenCloser using buf as
+// its initial contents. It is intended to prepare a BrokenCloser to read
+// existing data. It can also be used to size the internal buffer for
+// writing. To do that, buf should have the desired capacity but a
+// length of zero.
+func NewBrokenCloser(buf []byte) *BrokenCloser {
+	bc := new(BrokenCloser)
+	bc.buf = bytes.NewBuffer(buf)
+	return bc
+}
+
+// NewBrokenCloserString creates and initializes a new Buffer using
+// string s as its initial contents. It is intended to prepare a
+// buffer to read an existing string.
+func NewBrokenCloserString(s string) *BrokenCloser {
+	buf := new(BrokenCloser)
+	buf.buf = bytes.NewBufferString(s)
+	return buf
+}
+
 // Write writes the data to the BrokenCloser.
 func (buf *BrokenCloser) Write(p []byte) (int, error) {
 	return buf.buf.Write(p)
@@ -346,24 +366,4 @@ func (buf *BrokenCloser) Reset() {
 // Bytes returns the contents of the buffer as a byte slice.
 func (buf *BrokenCloser) Bytes() []byte {
 	return buf.buf.Bytes()
-}
-
-// NewBrokenCloser creates and initializes a new BrokenCloser using buf as
-// its initial contents. It is intended to prepare a BrokenCloser to read
-// existing data. It can also be used to size the internal buffer for
-// writing. To do that, buf should have the desired capacity but a
-// length of zero.
-func NewBrokenCloser(buf []byte) *BrokenCloser {
-	bc := new(BrokenCloser)
-	bc.buf = bytes.NewBuffer(buf)
-	return bc
-}
-
-// NewBrokenCloserString creates and initializes a new Buffer using
-// string s as its initial contents. It is intended to prepare a
-// buffer to read an existing string.
-func NewBrokenCloserString(s string) *BrokenCloser {
-	buf := new(BrokenCloser)
-	buf.buf = bytes.NewBufferString(s)
-	return buf
 }
