@@ -1,5 +1,15 @@
 CHANGELOG
 
+v1.11.2 - 2025-11-16
+
+Changed
+- cmd/ski, cmd/csrpubdump, cmd/tlskeypair: centralize
+  certificate/private-key/CSR parsing by reusing certlib helpers.
+  This reduces duplication and improves consistency across commands.
+- csr: CSR parsing in the above commands now uses certlib.ParseCSR,
+  which verifies CSR signatures (behavioral hardening compared to
+  prior parsing without signature verification).
+
 v1.11.1 - 2025-11-16
 
 Changed
