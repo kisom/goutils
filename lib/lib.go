@@ -11,7 +11,7 @@ import (
 var progname = filepath.Base(os.Args[0])
 
 // ProgName returns what lib thinks the program name is, namely the
-// basename of of argv0.
+// basename of argv0.
 //
 // It is similar to the Linux __progname function.
 func ProgName() string {
