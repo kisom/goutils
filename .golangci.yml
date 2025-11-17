@@ -390,6 +390,9 @@ linters:
         - 3
         - 4
         - 8
+        - 24
+        - 30
+        - 365
 
     nakedret:
       # Make an issue if func has more lines of code than this setting, and it has naked returns.
