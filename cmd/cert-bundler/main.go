@@ -17,8 +17,9 @@ import (
 	"strings"
 	"time"
 
-	"git.wntrmute.dev/kyle/goutils/certlib"
 	"gopkg.in/yaml.v2"
+
+	"git.wntrmute.dev/kyle/goutils/certlib"
 )
 
 // Config represents the top-level YAML configuration.

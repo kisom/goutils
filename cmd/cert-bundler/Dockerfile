@@ -10,12 +10,8 @@ FROM golang:1.24.3-alpine AS build
 WORKDIR /src
 
 # Copy go module files and download dependencies first for better caching
-COPY go.mod go.sum ./
-RUN go mod download
-
-# Copy the rest of the source and build the cert-bundler binary
-COPY . .
-RUN go build -o /bin/cert-bundler ./cmd/cert-bundler
+RUN go install git.wntrmute.dev/kyle/goutils/cmd/cert-bundler@v1.13.1 && \
+    mv /go/bin/cert-bundler /usr/local/bin/cert-bundler
 
 # Runtime stage (kept as golang:alpine per requirement)
 FROM golang:1.24.3-alpine
@@ -25,7 +21,7 @@ WORKDIR /work
 VOLUME ["/work"]
 
 # Copy the built binary from the builder stage
-COPY --from=build /bin/cert-bundler /usr/local/bin/cert-bundler
+COPY --from=build /usr/local/bin/cert-bundler /usr/local/bin/cert-bundler
 
 # Default command: read bundle.yaml from current directory and output to ./bundle
 ENTRYPOINT ["/usr/local/bin/cert-bundler"]
