@@ -52,10 +52,11 @@ func TestHotpBadRFC(t *testing.T) {
 	otp := NewHOTP(testKey, 0, 6)
 	for i := 0; i < len(rfcHotpExpected); i++ {
 		code := otp.OTP()
-		if code == "" {
+		switch code {
+		case "":
 			fmt.Printf("twofactor: failed to produce an OTP\n")
 			t.FailNow()
-		} else if code == rfcHotpExpected[i] {
+		case rfcHotpExpected[i]:
 			fmt.Printf("twofactor: should not have received a valid OTP\n")
 			t.FailNow()
 		}

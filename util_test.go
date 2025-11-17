@@ -22,7 +22,7 @@ func TestPadding(t *testing.T) {
 	for i := 0; i < 300; i++ {
 		b := randString()
 		origEncoding := string(b)
-		modEncoding := strings.Replace(string(b), "=", "", -1)
+		modEncoding := strings.ReplaceAll(string(b), "=", "")
 		str, err := base32.StdEncoding.DecodeString(origEncoding)
 		if err != nil {
 			fmt.Println("Can't decode: ", string(b))

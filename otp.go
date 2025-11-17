@@ -75,10 +75,10 @@ func FromURL(URL string) (OTP, string, error) {
 		return nil, "", ErrInvalidURL
 	}
 
-	switch {
-	case u.Host == "totp":
+	switch u.Host {
+	case "totp":
 		return totpFromURL(u)
-	case u.Host == "hotp":
+	case "hotp":
 		return hotpFromURL(u)
 	default:
 		return nil, "", ErrInvalidURL

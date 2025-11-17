@@ -71,10 +71,10 @@ func (o OATH) URL(t Type, label string) string {
 		v.Add("digits", fmt.Sprintf("%d", o.Size()))
 	}
 
-	switch {
-	case o.algo == crypto.SHA256:
+	switch o.algo {
+	case crypto.SHA256:
 		v.Add("algorithm", "SHA256")
-	case o.algo == crypto.SHA512:
+	case crypto.SHA512:
 		v.Add("algorithm", "SHA512")
 	}
 
