@@ -1,5 +1,11 @@
 CHANGELOG
 
+v1.12.2 - 2025-11-16
+
+Changed:
+
+- add rsc.io/qr dependency for twofactor.
+
 v1.12.1 - 2025-11-16
 
 Changed:
