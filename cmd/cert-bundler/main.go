@@ -299,11 +299,17 @@ func prepareArchiveFiles(
 ) ([]fileEntry, error) {
 	var archiveFiles []fileEntry
 
+	// Track used filenames to avoid collisions inside archives
+	usedNames := make(map[string]int)
+
 	// Handle a single bundle file
 	if outputs.IncludeSingle && len(singleFileCerts) > 0 {
 		files, err := encodeCertsToFiles(singleFileCerts, "bundle", encoding, true)
 		if err != nil {
 			return nil, fmt.Errorf("failed to encode single bundle: %w", err)
+		}
+		for i := range files {
+			files[i].name = makeUniqueName(files[i].name, usedNames)
 		}
 		archiveFiles = append(archiveFiles, files...)
 	}
@@ -316,6 +322,9 @@ func prepareArchiveFiles(
 			if err != nil {
 				return nil, fmt.Errorf("failed to encode individual cert %s: %w", cp.path, err)
 			}
+			for i := range files {
+				files[i].name = makeUniqueName(files[i].name, usedNames)
+			}
 			archiveFiles = append(archiveFiles, files...)
 		}
 	}
@@ -323,8 +332,9 @@ func prepareArchiveFiles(
 	// Generate manifest if requested
 	if outputs.Manifest {
 		manifestContent := generateManifest(archiveFiles)
+		manifestName := makeUniqueName("MANIFEST", usedNames)
 		archiveFiles = append(archiveFiles, fileEntry{
-			name:    "MANIFEST",
+			name:    manifestName,
 			content: manifestContent,
 		})
 	}
@@ -572,4 +582,34 @@ func generateHashFile(path string, files []string) error {
 	}
 
 	return nil
+}
+
+
+// makeUniqueName ensures that each file name within the archive is unique by appending
+// an incremental numeric suffix before the extension when collisions occur.
+// Example: "root.pem" -> "root-2.pem", "root-3.pem", etc.
+func makeUniqueName(name string, used map[string]int) string {
+	// If unused, mark and return as-is
+	if _, ok := used[name]; !ok {
+		used[name] = 1
+		return name
+	}
+
+	ext := filepath.Ext(name)
+	base := strings.TrimSuffix(name, ext)
+	// Track a counter per base+ext key
+	key := base + ext
+	counter := used[key]
+	if counter < 1 {
+		counter = 1
+	}
+	for {
+		counter++
+		candidate := fmt.Sprintf("%s-%d%s", base, counter, ext)
+		if _, exists := used[candidate]; !exists {
+			used[key] = counter
+			used[candidate] = 1
+			return candidate
+		}
+	}
 }
