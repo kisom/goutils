@@ -1,5 +1,14 @@
 CHANGELOG
 
+v1.13.2 - 2025-11-17
+
+Add:
+- certlib/bundler: refactor certificate bundling from cmd/cert-bundler
+  into a separate package.
+
+Changed:
+- cmd/cert-bundler: refactor to use bundler package, and update Dockerfile.
+
 v1.13.1 - 2025-11-17
 
 Add:

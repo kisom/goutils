@@ -10,7 +10,7 @@ FROM golang:1.24.3-alpine AS build
 WORKDIR /src
 
 # Copy go module files and download dependencies first for better caching
-RUN go install git.wntrmute.dev/kyle/goutils/cmd/cert-bundler@v1.13.1 && \
+RUN go install git.wntrmute.dev/kyle/goutils/cmd/cert-bundler@v1.13.2 && \
     mv /go/bin/cert-bundler /usr/local/bin/cert-bundler
 
 # Runtime stage (kept as golang:alpine per requirement)
