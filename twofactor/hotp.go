@@ -2,7 +2,7 @@ package twofactor
 
 import (
 	"crypto"
-	"crypto/sha1"
+	"crypto/sha1" // #nosec G505 - required by RFC
 	"encoding/base32"
 	"io"
 	"net/url"
@@ -13,11 +13,6 @@ import (
 // HOTP represents an RFC-4226 Hash-based One Time Password instance.
 type HOTP struct {
 	*OATH
-}
-
-// Type returns OATH_HOTP.
-func (otp *HOTP) Type() Type {
-	return OATH_HOTP
 }
 
 // NewHOTP takes the key, the initial counter value, and the number
@@ -32,6 +27,11 @@ func NewHOTP(key []byte, counter uint64, digits int) *HOTP {
 			algo:    crypto.SHA1,
 		},
 	}
+}
+
+// Type returns OATH_HOTP.
+func (otp *HOTP) Type() Type {
+	return OATH_HOTP
 }
 
 // OTP returns the next OTP and increments the counter.
@@ -79,7 +79,7 @@ func hotpFromURL(u *url.URL) (*HOTP, string, error) {
 		digits = int(tmpDigits)
 	}
 
-	var counter uint64 = 0
+	var counter uint64
 	if scounter := v.Get("counter"); scounter != "" {
 		var err error
 		counter, err = strconv.ParseUint(scounter, 10, 64)

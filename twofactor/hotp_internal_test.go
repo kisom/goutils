@@ -1,7 +1,6 @@
 package twofactor
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -25,22 +24,19 @@ var rfcHotpExpected = []string{
 // ensures that this implementation is in compliance.
 func TestHotpRFC(t *testing.T) {
 	otp := NewHOTP(rfcHotpKey, 0, 6)
-	for i := 0; i < len(rfcHotpExpected); i++ {
+	for i := range rfcHotpExpected {
 		if otp.Counter() != uint64(i) {
-			fmt.Printf("twofactor: invalid counter (should be %d, is %d",
+			t.Fatalf("twofactor: invalid counter (should be %d, is %d",
 				i, otp.Counter())
-			t.FailNow()
 		}
 		code := otp.OTP()
 		if code == "" {
-			fmt.Printf("twofactor: failed to produce an OTP\n")
-			t.FailNow()
+			t.Fatal("twofactor: failed to produce an OTP")
 		} else if code != rfcHotpExpected[i] {
-			fmt.Printf("twofactor: invalid OTP\n")
-			fmt.Printf("\tExpected: %s\n", rfcHotpExpected[i])
-			fmt.Printf("\t  Actual: %s\n", code)
-			fmt.Printf("\t Counter: %d\n", otp.counter)
-			t.FailNow()
+			t.Logf("twofactor: invalid OTP\n")
+			t.Logf("\tExpected: %s\n", rfcHotpExpected[i])
+			t.Logf("\t  Actual: %s\n", code)
+			t.Fatalf("\t Counter: %d\n", otp.counter)
 		}
 	}
 }
@@ -50,15 +46,13 @@ func TestHotpRFC(t *testing.T) {
 // expected.
 func TestHotpBadRFC(t *testing.T) {
 	otp := NewHOTP(testKey, 0, 6)
-	for i := 0; i < len(rfcHotpExpected); i++ {
+	for i := range rfcHotpExpected {
 		code := otp.OTP()
 		switch code {
 		case "":
-			fmt.Printf("twofactor: failed to produce an OTP\n")
-			t.FailNow()
+			t.Error("twofactor: failed to produce an OTP")
 		case rfcHotpExpected[i]:
-			fmt.Printf("twofactor: should not have received a valid OTP\n")
-			t.FailNow()
+			t.Error("twofactor: should not have received a valid OTP")
 		}
 	}
 }

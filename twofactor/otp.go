@@ -24,7 +24,7 @@ var (
 	ErrInvalidAlgo = errors.New("twofactor: invalid algorithm")
 )
 
-// Type OTP represents a one-time password token -- whether a
+// OTP represents a one-time password token -- whether a
 // software taken (as in the case of Google Authenticator) or a
 // hardware token (as in the case of a YubiKey).
 type OTP interface {
@@ -65,8 +65,8 @@ func otpString(otp OTP) string {
 }
 
 // FromURL constructs a new OTP token from a URL string.
-func FromURL(URL string) (OTP, string, error) {
-	u, err := url.Parse(URL)
+func FromURL(otpURL string) (OTP, string, error) {
+	u, err := url.Parse(otpURL)
 	if err != nil {
 		return nil, "", err
 	}

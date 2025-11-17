@@ -1,7 +1,6 @@
 package twofactor
 
 import (
-	"fmt"
 	"io"
 	"testing"
 )
@@ -10,8 +9,7 @@ func TestHOTPString(t *testing.T) {
 	hotp := NewHOTP(nil, 0, 6)
 	hotpString := otpString(hotp)
 	if hotpString != "OATH-HOTP, 6" {
-		fmt.Println("twofactor: invalid OTP string")
-		t.FailNow()
+		t.Fatal("twofactor: invalid OTP string")
 	}
 }
 
@@ -23,35 +21,32 @@ func TestURL(t *testing.T) {
 	otp := NewHOTP(testKey, 0, 6)
 	url := otp.URL("testuser@foo")
 	otp2, id, err := FromURL(url)
-	if err != nil {
-		fmt.Printf("hotp: failed to parse HOTP URL\n")
-		t.FailNow()
-	} else if id != ident {
-		fmt.Printf("hotp: bad label\n")
-		fmt.Printf("\texpected: %s\n", ident)
-		fmt.Printf("\t  actual: %s\n", id)
-		t.FailNow()
-	} else if otp2.Counter() != otp.Counter() {
-		fmt.Printf("hotp: OTP counters aren't synced\n")
-		fmt.Printf("\toriginal: %d\n", otp.Counter())
-		fmt.Printf("\t  second: %d\n", otp2.Counter())
-		t.FailNow()
+	switch {
+	case err != nil:
+		t.Fatal("hotp: failed to parse HOTP URL\n")
+	case id != ident:
+		t.Logf("hotp: bad label\n")
+		t.Logf("\texpected: %s\n", ident)
+		t.Fatalf("\t  actual: %s\n", id)
+	case otp2.Counter() != otp.Counter():
+		t.Logf("hotp: OTP counters aren't synced\n")
+		t.Logf("\toriginal: %d\n", otp.Counter())
+		t.Fatalf("\t  second: %d\n", otp2.Counter())
 	}
 
 	code1 := otp.OTP()
 	code2 := otp2.OTP()
 	if code1 != code2 {
-		fmt.Printf("hotp: mismatched OTPs\n")
-		fmt.Printf("\texpected: %s\n", code1)
-		fmt.Printf("\t  actual: %s\n", code2)
+		t.Logf("hotp: mismatched OTPs\n")
+		t.Logf("\texpected: %s\n", code1)
+		t.Fatalf("\t  actual: %s\n", code2)
 	}
 
 	// There's not much we can do test the QR code, except to
 	// ensure it doesn't fail.
 	_, err = otp.QR(ident)
 	if err != nil {
-		fmt.Printf("hotp: failed to generate QR code PNG (%v)\n", err)
-		t.FailNow()
+		t.Fatalf("hotp: failed to generate QR code PNG (%v)\n", err)
 	}
 
 	// This should fail because the maximum size of an alphanumeric
@@ -63,16 +58,14 @@ func TestURL(t *testing.T) {
 	var tooBigIdent = make([]byte, 8192)
 	_, err = io.ReadFull(PRNG, tooBigIdent)
 	if err != nil {
-		fmt.Printf("hotp: failed to read identity (%v)\n", err)
-		t.FailNow()
+		t.Fatalf("hotp: failed to read identity (%v)\n", err)
 	} else if _, err = otp.QR(string(tooBigIdent)); err == nil {
-		fmt.Println("hotp: QR code should fail to encode oversized URL")
-		t.FailNow()
+		t.Fatal("hotp: QR code should fail to encode oversized URL")
 	}
 }
 
 // This test makes sure we can generate codes for padded and non-padded
-// entries
+// entries.
 func TestPaddedURL(t *testing.T) {
 	var urlList = []string{
 		"otpauth://hotp/?secret=ME",
@@ -95,17 +88,15 @@ func TestPaddedURL(t *testing.T) {
 
 	for i := range urlList {
 		if o, id, err := FromURL(urlList[i]); err != nil {
-			fmt.Println("hotp: URL should have parsed successfully (id=", id, ")")
-			fmt.Printf("\turl was: %s\n", urlList[i])
-			t.FailNow()
-			fmt.Printf("\t%s, %s\n", o.OTP(), id)
+			t.Log("hotp: URL should have parsed successfully (id=", id, ")")
+			t.Logf("\turl was: %s\n", urlList[i])
+			t.Fatalf("\t%s, %s\n", o.OTP(), id)
 		} else {
 			code2 := o.OTP()
 			if code2 != codeList[i] {
-				fmt.Printf("hotp: mismatched OTPs\n")
-				fmt.Printf("\texpected: %s\n", codeList[i])
-				fmt.Printf("\t  actual: %s\n", code2)
-				t.FailNow()
+				t.Logf("hotp: mismatched OTPs\n")
+				t.Logf("\texpected: %s\n", codeList[i])
+				t.Fatalf("\t  actual: %s\n", code2)
 			}
 		}
 	}
@@ -128,9 +119,8 @@ func TestBadURL(t *testing.T) {
 
 	for i := range urlList {
 		if _, _, err := FromURL(urlList[i]); err == nil {
-			fmt.Println("hotp: URL should not have parsed successfully")
-			fmt.Printf("\turl was: %s\n", urlList[i])
-			t.FailNow()
+			t.Log("hotp: URL should not have parsed successfully")
+			t.Fatalf("\turl was: %s\n", urlList[i])
 		}
 	}
 }

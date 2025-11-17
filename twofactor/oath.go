@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"hash"
 	"net/url"
+	"strconv"
 
 	"rsc.io/qr"
 )
@@ -25,12 +26,12 @@ type OATH struct {
 }
 
 // Size returns the output size (in characters) of the password.
-func (o OATH) Size() int {
+func (o *OATH) Size() int {
 	return o.size
 }
 
 // Counter returns the OATH token's counter.
-func (o OATH) Counter() uint64 {
+func (o *OATH) Counter() uint64 {
 	return o.counter
 }
 
@@ -40,18 +41,18 @@ func (o *OATH) SetCounter(counter uint64) {
 }
 
 // Key returns the token's secret key.
-func (o OATH) Key() []byte {
-	return o.key[:]
+func (o *OATH) Key() []byte {
+	return o.key
 }
 
 // Hash returns the token's hash function.
-func (o OATH) Hash() func() hash.Hash {
+func (o *OATH) Hash() func() hash.Hash {
 	return o.hash
 }
 
 // URL constructs a URL appropriate for the token (i.e. for use in a
 // QR code).
-func (o OATH) URL(t Type, label string) string {
+func (o *OATH) URL(t Type, label string) string {
 	secret := base32.StdEncoding.EncodeToString(o.key)
 	u := url.URL{}
 	v := url.Values{}
@@ -65,10 +66,10 @@ func (o OATH) URL(t Type, label string) string {
 	u.Path = label
 	v.Add("secret", secret)
 	if o.Counter() != 0 && t == OATH_HOTP {
-		v.Add("counter", fmt.Sprintf("%d", o.Counter()))
+		v.Add("counter", strconv.FormatUint(o.Counter(), 10))
 	}
 	if o.Size() != defaultSize {
-		v.Add("digits", fmt.Sprintf("%d", o.Size()))
+		v.Add("digits", strconv.Itoa(o.Size()))
 	}
 
 	switch o.algo {
@@ -84,7 +85,6 @@ func (o OATH) URL(t Type, label string) string {
 
 	u.RawQuery = v.Encode()
 	return u.String()
-
 }
 
 var digits = []int64{
@@ -101,10 +101,10 @@ var digits = []int64{
 	10: 10000000000,
 }
 
-// The top-level type should provide a counter; for example, HOTP
+// OTP top-level type should provide a counter; for example, HOTP
 // will provide the counter directly while TOTP will provide the
 // time-stepped counter.
-func (o OATH) OTP(counter uint64) string {
+func (o *OATH) OTP(counter uint64) string {
 	var ctr [8]byte
 	binary.BigEndian.PutUint64(ctr[:], counter)
 
@@ -140,7 +140,7 @@ func truncate(in []byte) int64 {
 
 // QR generates a byte slice containing the a QR code encoded as a
 // PNG with level Q error correction.
-func (o OATH) QR(t Type, label string) ([]byte, error) {
+func (o *OATH) QR(t Type, label string) ([]byte, error) {
 	u := o.URL(t, label)
 	code, err := qr.Encode(u, qr.Q)
 	if err != nil {

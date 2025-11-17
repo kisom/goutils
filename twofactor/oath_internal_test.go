@@ -1,7 +1,6 @@
 package twofactor
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -17,14 +16,12 @@ var truncExpect int64 = 0x50ef7f19
 // This test runs through the truncation example given in the RFC.
 func TestTruncate(t *testing.T) {
 	if result := truncate(sha1Hmac); result != truncExpect {
-		fmt.Printf("hotp: expected truncate -> %d, saw %d\n",
+		t.Fatalf("hotp: expected truncate -> %d, saw %d\n",
 			truncExpect, result)
-		t.FailNow()
 	}
 
 	sha1Hmac[19]++
 	if result := truncate(sha1Hmac); result == truncExpect {
-		fmt.Println("hotp: expected truncation to fail")
-		t.FailNow()
+		t.Fatal("hotp: expected truncation to fail")
 	}
 }

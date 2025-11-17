@@ -1,5 +1,13 @@
 CHANGELOG
 
+v1.12.4 - 2025-11-16
+
+Changed:
+
+- Linting fixes for twofactor that were previously masked.
+
+v1.12.3 erroneously tagged and pushed
+
 v1.12.2 - 2025-11-16
 
 Changed:

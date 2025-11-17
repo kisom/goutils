@@ -1,11 +1,12 @@
-package twofactor
+package twofactor_test
 
 import (
 	"encoding/base32"
-	"fmt"
 	"math/rand"
 	"strings"
 	"testing"
+
+	"git.wntrmute.dev/kyle/goutils/twofactor"
 )
 
 const letters = "1234567890!@#$%^&*()abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -19,34 +20,31 @@ func randString() string {
 }
 
 func TestPadding(t *testing.T) {
-	for i := 0; i < 300; i++ {
+	for range 300 {
 		b := randString()
-		origEncoding := string(b)
-		modEncoding := strings.ReplaceAll(string(b), "=", "")
+		origEncoding := b
+		modEncoding := strings.ReplaceAll(b, "=", "")
 		str, err := base32.StdEncoding.DecodeString(origEncoding)
 		if err != nil {
-			fmt.Println("Can't decode: ", string(b))
-			t.FailNow()
+			t.Fatal("Can't decode: ", b)
 		}
 
-		paddedEncoding := Pad(modEncoding)
+		paddedEncoding := twofactor.Pad(modEncoding)
 		if origEncoding != paddedEncoding {
-			fmt.Println("Padding failed:")
-			fmt.Printf("Expected: '%s'", origEncoding)
-			fmt.Printf("Got: '%s'", paddedEncoding)
-			t.FailNow()
+			t.Log("Padding failed:")
+			t.Logf("Expected: '%s'", origEncoding)
+			t.Fatalf("Got: '%s'", paddedEncoding)
 		} else {
-			mstr, err := base32.StdEncoding.DecodeString(paddedEncoding)
+			var mstr []byte
+			mstr, err = base32.StdEncoding.DecodeString(paddedEncoding)
 			if err != nil {
-				fmt.Println("Can't decode: ", paddedEncoding)
-				t.FailNow()
+				t.Fatal("Can't decode: ", paddedEncoding)
 			}
 
 			if string(mstr) != string(str) {
-				fmt.Println("Re-padding failed:")
-				fmt.Printf("Expected: '%s'", str)
-				fmt.Printf("Got: '%s'", mstr)
-				t.FailNow()
+				t.Log("Re-padding failed:")
+				t.Logf("Expected: '%s'", str)
+				t.Fatalf("Got: '%s'", mstr)
 			}
 		}
 	}

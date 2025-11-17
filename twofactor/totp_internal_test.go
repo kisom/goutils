@@ -2,7 +2,6 @@ package twofactor
 
 import (
 	"crypto"
-	"fmt"
 	"testing"
 	"time"
 
@@ -14,6 +13,7 @@ var rfcTotpKey = map[crypto.Hash][]byte{
 	crypto.SHA256: []byte("12345678901234567890123456789012"),
 	crypto.SHA512: []byte("1234567890123456789012345678901234567890123456789012345678901234"),
 }
+
 var rfcTotpStep uint64 = 30
 
 var rfcTotpTests = []struct {
@@ -46,17 +46,15 @@ func TestTotpRFC(t *testing.T) {
 	for _, tc := range rfcTotpTests {
 		otp := NewTOTP(rfcTotpKey[tc.Algo], 0, rfcTotpStep, 8, tc.Algo)
 		if otp.otpCounter(tc.Time) != tc.T {
-			fmt.Printf("twofactor: invalid TOTP (t=%d, h=%d)\n", tc.Time, tc.Algo)
-			fmt.Printf("\texpected: %d\n", tc.T)
-			fmt.Printf("\t  actual: %d\n", otp.otpCounter(tc.Time))
-			t.Fail()
+			t.Logf("twofactor: invalid TOTP (t=%d, h=%d)\n", tc.Time, tc.Algo)
+			t.Logf("\texpected: %d\n", tc.T)
+			t.Errorf("\t  actual: %d\n", otp.otpCounter(tc.Time))
 		}
 
 		if code := otp.otp(otp.otpCounter(tc.Time)); code != tc.Code {
-			fmt.Printf("twofactor: invalid TOTP (t=%d, h=%d)\n", tc.Time, tc.Algo)
-			fmt.Printf("\texpected: %s\n", tc.Code)
-			fmt.Printf("\t  actual: %s\n", code)
-			t.Fail()
+			t.Logf("twofactor: invalid TOTP (t=%d, h=%d)\n", tc.Time, tc.Algo)
+			t.Logf("\texpected: %s\n", tc.Code)
+			t.Errorf("\t  actual: %s\n", code)
 		}
 	}
 }

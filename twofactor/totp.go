@@ -2,7 +2,7 @@ package twofactor
 
 import (
 	"crypto"
-	"crypto/sha1"
+	"crypto/sha1" // #nosec G505 - required by RFC
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/base32"
@@ -21,6 +21,42 @@ var timeSource = clock.New()
 type TOTP struct {
 	*OATH
 	step uint64
+}
+
+// NewTOTP takes a new key, a starting time, a step, the number of
+// digits of output (typically 6 or 8) and the hash algorithm to
+// use, and builds a new OTP.
+func NewTOTP(key []byte, start uint64, step uint64, digits int, algo crypto.Hash) *TOTP {
+	h := hashFromAlgo(algo)
+	if h == nil {
+		return nil
+	}
+
+	return &TOTP{
+		OATH: &OATH{
+			key:     key,
+			counter: start,
+			size:    digits,
+			hash:    h,
+			algo:    algo,
+		},
+		step: step,
+	}
+}
+
+// NewGoogleTOTP takes a secret as a base32-encoded string and
+// returns an appropriate Google Authenticator TOTP instance.
+func NewGoogleTOTP(secret string) (*TOTP, error) {
+	key, err := base32.StdEncoding.DecodeString(secret)
+	if err != nil {
+		return nil, err
+	}
+	return NewTOTP(key, 0, 30, 6, crypto.SHA1), nil
+}
+
+// NewTOTPSHA1 will build a new TOTP using SHA-1.
+func NewTOTPSHA1(key []byte, start uint64, step uint64, digits int) *TOTP {
+	return NewTOTP(key, start, step, digits, crypto.SHA1)
 }
 
 // Type returns OATH_TOTP.
@@ -53,34 +89,7 @@ func (otp *TOTP) otpCounter(t uint64) uint64 {
 
 // OTPCounter returns the current time value for the OTP.
 func (otp *TOTP) OTPCounter() uint64 {
-	return otp.otpCounter(uint64(timeSource.Now().Unix()))
-}
-
-// NewTOTP takes a new key, a starting time, a step, the number of
-// digits of output (typically 6 or 8) and the hash algorithm to
-// use, and builds a new OTP.
-func NewTOTP(key []byte, start uint64, step uint64, digits int, algo crypto.Hash) *TOTP {
-	h := hashFromAlgo(algo)
-	if h == nil {
-		return nil
-	}
-
-	return &TOTP{
-		OATH: &OATH{
-			key:     key,
-			counter: start,
-			size:    digits,
-			hash:    h,
-			algo:    algo,
-		},
-		step: step,
-	}
-
-}
-
-// NewTOTPSHA1 will build a new TOTP using SHA-1.
-func NewTOTPSHA1(key []byte, start uint64, step uint64, digits int) *TOTP {
-	return NewTOTP(key, start, step, digits, crypto.SHA1)
+	return otp.otpCounter(uint64(timeSource.Now().Unix() & 0x7FFFFFFF)) //#nosec G115 - masked out overflow bits
 }
 
 func hashFromAlgo(algo crypto.Hash) func() hash.Hash {
@@ -105,16 +114,6 @@ func GenerateGoogleTOTP() *TOTP {
 	return NewTOTP(key, 0, 30, 6, crypto.SHA1)
 }
 
-// NewGoogleTOTP takes a secret as a base32-encoded string and
-// returns an appropriate Google Authenticator TOTP instance.
-func NewGoogleTOTP(secret string) (*TOTP, error) {
-	key, err := base32.StdEncoding.DecodeString(secret)
-	if err != nil {
-		return nil, err
-	}
-	return NewTOTP(key, 0, 30, 6, crypto.SHA1), nil
-}
-
 func totpFromURL(u *url.URL) (*TOTP, string, error) {
 	label := u.Path[1:]
 	v := u.Query()
@@ -126,11 +125,12 @@ func totpFromURL(u *url.URL) (*TOTP, string, error) {
 
 	var algo = crypto.SHA1
 	if algorithm := v.Get("algorithm"); algorithm != "" {
-		if strings.EqualFold(algorithm, "SHA256") {
+		switch {
+		case strings.EqualFold(algorithm, "SHA256"):
 			algo = crypto.SHA256
-		} else if strings.EqualFold(algorithm, "SHA512") {
+		case strings.EqualFold(algorithm, "SHA512"):
 			algo = crypto.SHA512
-		} else if !strings.EqualFold(algorithm, "SHA1") {
+		case !strings.EqualFold(algorithm, "SHA1"):
 			return nil, "", ErrInvalidAlgo
 		}
 	}

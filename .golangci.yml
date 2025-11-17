@@ -12,6 +12,12 @@
 
 version: "2"
 
+output:
+  sort-order:
+    - file
+    - linter
+    - severity
+
 issues:
   # Maximum count of issues with the same text.
   # Set to 0 to disable.
@@ -454,6 +460,8 @@ linters:
         - -QF1008
         # We often explicitly enable old/deprecated ciphers for research.
         - -SA1019
+        # Covered by revive.
+        - -ST1003
 
     usetesting:
       # Enable/disable `os.TempDir()` detections.
@@ -472,6 +480,8 @@ linters:
     rules:
       - path: 'ahash/ahash.go'
         linters: [ staticcheck, gosec ]
+      - path: 'twofactor/.*.go'
+        linters: [ exhaustive, mnd, revive ]
       - path: 'backoff/backoff_test.go'
         linters: [ testpackage ]
       - path: 'dbg/dbg_test.go'
