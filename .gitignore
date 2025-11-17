@@ -1,1 +1,2 @@
 .idea
+cmd/cert-bundler/testdata/pkg/*

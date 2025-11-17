@@ -584,7 +584,6 @@ func generateHashFile(path string, files []string) error {
 	return nil
 }
 
-
 // makeUniqueName ensures that each file name within the archive is unique by appending
 // an incremental numeric suffix before the extension when collisions occur.
 // Example: "root.pem" -> "root-2.pem", "root-3.pem", etc.
@@ -599,10 +598,7 @@ func makeUniqueName(name string, used map[string]int) string {
 	base := strings.TrimSuffix(name, ext)
 	// Track a counter per base+ext key
 	key := base + ext
-	counter := used[key]
-	if counter < 1 {
-		counter = 1
-	}
+	counter := max(used[key], 1)
 	for {
 		counter++
 		candidate := fmt.Sprintf("%s-%d%s", base, counter, ext)

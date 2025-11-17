@@ -2,6 +2,19 @@ config:
   hashes: bundle.sha256
   expiry: 1y
 chains:
+  weird:
+    certs:
+      - root: pems/gts-r1.pem
+        intermediates:
+          - pems/goog-wr2.pem
+      - root: pems/isrg-root-x1.pem
+    outputs:
+      include_single: true
+      include_individual: true
+      manifest: true
+      formats:
+        - zip
+        - tgz
   core_certs:
     certs:
       - root: pems/gts-r1.pem
