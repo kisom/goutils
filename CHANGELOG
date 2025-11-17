@@ -1,5 +1,10 @@
 CHANGELOG
 
+v1.12.1 - 2025-11-16
+
+Changed:
+- twofactor: Remove go.{mod,sum}.
+
 v1.12.0 - 2025-11-16
 
 Added
