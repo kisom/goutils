@@ -2,9 +2,11 @@
 package lib
 
 import (
+	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -108,4 +110,112 @@ func Duration(d time.Duration) string {
 	d -= time.Duration(hours) * time.Hour
 	s += fmt.Sprintf("%dh%s", hours, d)
 	return s
+}
+
+type HexEncodeMode uint8
+
+const (
+	// HexEncodeLower prints the bytes as lowercase hexadecimal.
+	HexEncodeLower HexEncodeMode = iota + 1
+	// HexEncodeUpper prints the bytes as uppercase hexadecimal.
+	HexEncodeUpper
+	// HexEncodeLowerColon prints the bytes as lowercase hexadecimal
+	// with colons between each pair of bytes.
+	HexEncodeLowerColon
+	// HexEncodeUpperColon prints the bytes as uppercase hexadecimal
+	// with colons between each pair of bytes.
+	HexEncodeUpperColon
+)
+
+func (m HexEncodeMode) String() string {
+	switch m {
+	case HexEncodeLower:
+		return "lower"
+	case HexEncodeUpper:
+		return "upper"
+	case HexEncodeLowerColon:
+		return "lcolon"
+	case HexEncodeUpperColon:
+		return "ucolon"
+	default:
+		panic("invalid hex encode mode")
+	}
+}
+
+func ParseHexEncodeMode(s string) HexEncodeMode {
+	switch strings.ToLower(s) {
+	case "lower":
+		return HexEncodeLower
+	case "upper":
+		return HexEncodeUpper
+	case "lcolon":
+		return HexEncodeLowerColon
+	case "ucolon":
+		return HexEncodeUpperColon
+	}
+
+	panic("invalid hex encode mode")
+}
+
+func hexColons(s string) string {
+	if len(s)%2 != 0 {
+		fmt.Fprintf(os.Stderr, "hex string: %s\n", s)
+		fmt.Fprintf(os.Stderr, "hex length: %d\n", len(s))
+		panic("invalid hex string length")
+	}
+
+	n := len(s)
+	if n <= 2 {
+		return s
+	}
+
+	pairCount := n / 2
+	if n%2 != 0 {
+		pairCount++
+	}
+
+	var b strings.Builder
+	b.Grow(n + pairCount - 1)
+
+	for i := 0; i < n; i += 2 {
+		b.WriteByte(s[i])
+
+		if i+1 < n {
+			b.WriteByte(s[i+1])
+		}
+
+		if i+2 < n {
+			b.WriteByte(':')
+		}
+	}
+
+	return b.String()
+}
+
+func hexEncode(b []byte) string {
+	s := hex.EncodeToString(b)
+
+	if len(s)%2 != 0 {
+		s = "0" + s
+	}
+
+	return s
+}
+
+// HexEncode encodes the given bytes as a hexadecimal string.
+func HexEncode(b []byte, mode HexEncodeMode) string {
+	str := hexEncode(b)
+
+	switch mode {
+	case HexEncodeLower:
+		return str
+	case HexEncodeUpper:
+		return strings.ToUpper(str)
+	case HexEncodeLowerColon:
+		return hexColons(str)
+	case HexEncodeUpperColon:
+		return strings.ToUpper(hexColons(str))
+	default:
+		panic("invalid hex encode mode")
+	}
 }

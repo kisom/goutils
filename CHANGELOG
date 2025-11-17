@@ -1,5 +1,12 @@
 CHANGELOG
 
+v1.13.0 - 2025-11-16
+
+Add:
+- cmd/certser: print serial numbers for certificates.
+- lib/HexEncode: add a new hex encode function handling multiple output
+  formats, including with and without colons.
+
 v1.12.4 - 2025-11-16
 
 Changed:

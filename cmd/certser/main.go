@@ -2,52 +2,38 @@ package main
 
 import (
 	"crypto/x509"
-	"encoding/hex"
 	"flag"
 	"fmt"
 	"strings"
 
 	"git.wntrmute.dev/kyle/goutils/certlib"
 	"git.wntrmute.dev/kyle/goutils/die"
+	"git.wntrmute.dev/kyle/goutils/lib"
 )
 
-const (
-	displayInt = iota + 1
-	displayLHex
-	displayUHex
-)
+const displayInt lib.HexEncodeMode = iota
 
-func parseDisplayMode(mode string) int {
+func parseDisplayMode(mode string) lib.HexEncodeMode {
 	mode = strings.ToLower(mode)
-	switch mode {
-	case "int":
+
+	if mode == "int" {
 		return displayInt
-	case "hex":
-		return displayLHex
-	case "uhex":
-		return displayUHex
-	default:
-		die.With("invalid display mode ", mode)
 	}
 
-	return displayInt
+	return lib.ParseHexEncodeMode(mode)
 }
 
-func serialString(cert *x509.Certificate, mode int) string {
-	switch mode {
-	case displayInt:
-		return cert.SerialNumber.String()
-	case displayLHex:
-		return hex.EncodeToString(cert.SerialNumber.Bytes())
-	case displayUHex:
-		return strings.ToUpper(hex.EncodeToString(cert.SerialNumber.Bytes()))
-	default:
+func serialString(cert *x509.Certificate, mode lib.HexEncodeMode) string {
+	if mode == displayInt {
 		return cert.SerialNumber.String()
 	}
+
+	return lib.HexEncode(cert.SerialNumber.Bytes(), mode)
 }
 
 func main() {
 	displayAs := flag.String("d", "int", "display mode (int, hex, uhex)")
+	showExpiry := flag.Bool("e", false, "show expiry date")
 	flag.Parse()
 
 	displayMode := parseDisplayMode(*displayAs)
@@ -56,6 +42,10 @@ func main() {
 		cert, err := certlib.LoadCertificate(arg)
 		die.If(err)
 
-		fmt.Printf("%s: %x\n", arg, serialString(cert, displayMode))
+		fmt.Printf("%s: %s", arg, serialString(cert, displayMode))
+		if *showExpiry {
+			fmt.Printf(" (%s)", cert.NotAfter.Format("2006-01-02"))
+		}
+		fmt.Println()
 	}
 }
