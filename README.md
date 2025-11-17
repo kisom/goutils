@@ -20,7 +20,7 @@ Contents:
         atping/     Automated TCP ping, meant for putting in cronjobs.
         ca-signed/  Validate whether a certificate is signed by a CA.
         cert-bundler/
-                    Create certificate bundles from a source of PEM 
+                    Create certificate bundles from a source of PEM
                     certificates.
         cert-revcheck/
                     Check whether a certificate has been revoked or is
@@ -64,7 +64,7 @@ Contents:
         sprox/      Simple TCP proxy.
         stealchain/ Dump the verified chain from a TLS connection to a
                     server.
-        stealchain-server/ 
+        stealchain-server/
                     Dump the verified chain from a TLS connection from
                     from a client.
         subjhash/   Print or match subject info from a certificate.
@@ -90,6 +90,7 @@ Contents:
     syslog/         Syslog-type logging.
     tee/            Emulate tee(1)'s functionality in io.Writers.
     testio/         Various I/O utilities useful during testing.
+	twofactor/      Two-factor authentication.
 
 Each program should have a small README in the directory with more
 information.
