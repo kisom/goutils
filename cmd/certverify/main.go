@@ -29,9 +29,9 @@ func printRevocation(cert *x509.Certificate) {
 }
 
 type appConfig struct {
-	caFile, intFile         string
-	forceIntermediateBundle bool
-	revexp, verbose         bool
+	caFile, intFile             string
+	forceIntermediateBundle     bool
+	revexp, skipVerify, verbose bool
 }
 
 func parseFlags() appConfig {
@@ -40,6 +40,7 @@ func parseFlags() appConfig {
 	flag.StringVar(&cfg.intFile, "i", "", "intermediate `bundle`")
 	flag.BoolVar(&cfg.forceIntermediateBundle, "f", false,
 		"force the use of the intermediate bundle, ignoring any intermediates bundled with certificate")
+	flag.BoolVar(&cfg.skipVerify, "k", false, "skip CA verification")
 	flag.BoolVar(&cfg.revexp, "r", false, "print revocation and expiry information")
 	flag.BoolVar(&cfg.verbose, "v", false, "verbose")
 	flag.Parse()
@@ -102,12 +103,17 @@ func run(cfg appConfig) error {
 		fmt.Fprintf(os.Stderr, "Usage: %s [-ca bundle] [-i bundle] cert", lib.ProgName())
 	}
 
-	fileData, err := os.ReadFile(flag.Arg(0))
+	combinedPool, err := certlib.LoadFullCertPool(cfg.caFile, cfg.intFile)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to build combined pool: %w", err)
 	}
 
-	chain, err := certlib.ParseCertificatesPEM(fileData)
+	opts := &certlib.FetcherOpts{
+		Roots:      combinedPool,
+		SkipVerify: cfg.skipVerify,
+	}
+
+	chain, err := certlib.GetCertificateChain(flag.Arg(0), opts)
 	if err != nil {
 		return err
 	}

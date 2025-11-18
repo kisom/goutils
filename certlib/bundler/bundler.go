@@ -12,6 +12,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -483,11 +484,19 @@ func encodeCertsToPEM(certs []*x509.Certificate) []byte {
 }
 
 func generateManifest(files []fileEntry) []byte {
-	var manifest strings.Builder
-	for _, file := range files {
-		if file.name == "MANIFEST" {
+	// Build a sorted list of files by filename to ensure deterministic manifest ordering
+	sorted := make([]fileEntry, 0, len(files))
+	for _, f := range files {
+		// Defensive: skip any existing manifest entry
+		if f.name == "MANIFEST" {
 			continue
 		}
+		sorted = append(sorted, f)
+	}
+	sort.Slice(sorted, func(i, j int) bool { return sorted[i].name < sorted[j].name })
+
+	var manifest strings.Builder
+	for _, file := range sorted {
 		hash := sha256.Sum256(file.content)
 		manifest.WriteString(fmt.Sprintf("%x  %s\n", hash, file.name))
 	}

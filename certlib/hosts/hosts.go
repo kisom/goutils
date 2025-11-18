@@ -26,8 +26,14 @@ func parseURL(host string) (string, int, error) {
 		return "", 0, fmt.Errorf("certlib/hosts: invalid host: %s", host)
 	}
 
-	if strings.ToLower(url.Scheme) != "https" {
+	switch strings.ToLower(url.Scheme) {
+	case "https":
+	// OK
+	case "tls":
+	// OK
+	default:
 		return "", 0, errors.New("certlib/hosts: only https scheme supported")
+
 	}
 
 	if url.Port() == "" {
@@ -43,28 +49,28 @@ func parseURL(host string) (string, int, error) {
 }
 
 func parseHostPort(host string) (string, int, error) {
-	host, sport, err := net.SplitHostPort(host)
+	shost, sport, err := net.SplitHostPort(host)
 	if err == nil {
 		portInt, err2 := strconv.ParseInt(sport, 10, 16)
 		if err2 != nil {
 			return "", 0, fmt.Errorf("certlib/hosts: invalid port: %s", sport)
 		}
 
-		return host, int(portInt), nil
+		return shost, int(portInt), nil
 	}
 
 	return host, defaultHTTPSPort, nil
 }
 
 func ParseHost(host string) (*Target, error) {
-	host, port, err := parseURL(host)
+	uhost, port, err := parseURL(host)
 	if err == nil {
-		return &Target{Host: host, Port: port}, nil
+		return &Target{Host: uhost, Port: port}, nil
 	}
 
-	host, port, err = parseHostPort(host)
+	shost, port, err := parseHostPort(host)
 	if err == nil {
-		return &Target{Host: host, Port: port}, nil
+		return &Target{Host: shost, Port: port}, nil
 	}
 
 	return nil, fmt.Errorf("certlib/hosts: invalid host: %s", host)

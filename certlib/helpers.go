@@ -396,6 +396,41 @@ func ParseOneCertificateFromPEM(certsPEM []byte) ([]*x509.Certificate, []byte, e
 	return certs, rest, nil
 }
 
+// LoadFullCertPool returns a certificate pool with roots and intermediates
+// from disk. If no roots are provided, the system root pool will be used.
+func LoadFullCertPool(roots, intermediates string) (*x509.CertPool, error) {
+	pool := x509.NewCertPool()
+
+	if roots == "" {
+		pool, err := x509.SystemCertPool()
+		if err != nil {
+			return nil, fmt.Errorf("loading system cert pool: %w", err)
+		}
+	} else {
+		rootCerts, err := LoadCertificates(roots)
+		if err != nil {
+			return nil, fmt.Errorf("loading roots: %w", err)
+		}
+
+		for _, cert := range rootCerts {
+			pool.AddCert(cert)
+		}
+	}
+
+	if intermediates != "" {
+		intCerts, err := LoadCertificates(intermediates)
+		if err != nil {
+			return nil, fmt.Errorf("loading intermediates: %w", err)
+		}
+
+		for _, cert := range intCerts {
+			pool.AddCert(cert)
+		}
+	}
+
+	return pool, nil
+}
+
 // LoadPEMCertPool loads a pool of PEM certificates from file.
 func LoadPEMCertPool(certsFile string) (*x509.CertPool, error) {
 	if certsFile == "" {

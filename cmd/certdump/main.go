@@ -112,7 +112,7 @@ func showBasicConstraints(cert *x509.Certificate) {
 			fmt.Fprint(os.Stdout, " (basic constraint failure)")
 		}
 	} else {
-		fmt.Fprint(os.Stdout, "is not a CA certificate")
+		fmt.Fprint(os.Stdout, ", is not a CA certificate")
 		if cert.KeyUsage&x509.KeyUsageKeyEncipherment != 0 {
 			fmt.Fprint(os.Stdout, " (key encipherment usage enabled!)")
 		}

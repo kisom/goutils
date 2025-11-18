@@ -75,18 +75,15 @@ func checkCert(cert *x509.Certificate) {
 }
 
 func main() {
+	opts := &certlib.FetcherOpts{}
+
+	flag.BoolVar(&opts.SkipVerify, "k", false, "skip server verification")
 	flag.BoolVar(&warnOnly, "q", false, "only warn about expiring certs")
 	flag.DurationVar(&leeway, "t", leeway, "warn if certificates are closer than this to expiring")
 	flag.Parse()
 
 	for _, file := range flag.Args() {
-		in, err := os.ReadFile(file)
-		if err != nil {
-			_, _ = lib.Warn(err, "failed to read file")
-			continue
-		}
-
-		certs, err := certlib.ParseCertificatesPEM(in)
+		certs, err := certlib.GetCertificateChain(file, opts)
 		if err != nil {
 			_, _ = lib.Warn(err, "while parsing certificates")
 			continue
