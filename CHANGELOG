@@ -1,5 +1,20 @@
 CHANGELOG
 
+v1.13.3 - 2025-11-18
+
+Added:
+- certlib: introduce `Fetcher` for retrieving certificates.
+- lib: `HexEncode` gains a byte-slice output variant.
+- build: add GoReleaser configuration.
+
+Changed:
+- cmd: migrate programs to use `certlib.Fetcher` for certificate retrieval
+  (includes `certdump`, `ski`, and others).
+- cmd/ski: update display mode.
+
+Misc:
+- repository fixups and small cleanups.
+
 v1.13.2 - 2025-11-17
 
 Add:
