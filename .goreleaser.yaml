@@ -447,7 +447,7 @@ gitea_urls:
 
 release:
   github:
-    owner: kisom
+    owner: kyle
     name: goutils
   footer: >-
 
