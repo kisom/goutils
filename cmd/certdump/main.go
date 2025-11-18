@@ -2,19 +2,15 @@
 package main
 
 import (
-	"bytes"
-	"context"
 	"crypto/dsa"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rsa"
 	"crypto/sha256"
-	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"sort"
 	"strings"
@@ -220,122 +216,6 @@ func displayCert(cert *x509.Certificate) {
 	}
 }
 
-func displayAllCerts(in []byte, leafOnly bool) {
-	certs, err := certlib.ParseCertificatesPEM(in)
-	if err != nil {
-		certs, _, err = certlib.ParseCertificatesDER(in, "")
-		if err != nil {
-			_, _ = lib.Warn(err, "failed to parse certificates")
-			return
-		}
-	}
-
-	if len(certs) == 0 {
-		_, _ = lib.Warnx("no certificates found")
-		return
-	}
-
-	if leafOnly {
-		displayCert(certs[0])
-		return
-	}
-
-	for i := range certs {
-		displayCert(certs[i])
-	}
-}
-
-func displayAllCertsWeb(uri string, leafOnly bool) {
-	ci := getConnInfo(uri)
-	d := &tls.Dialer{Config: permissiveConfig()}
-	nc, err := d.DialContext(context.Background(), "tcp", ci.Addr)
-	if err != nil {
-		_, _ = lib.Warn(err, "couldn't connect to %s", ci.Addr)
-		return
-	}
-
-	conn, ok := nc.(*tls.Conn)
-	if !ok {
-		_, _ = lib.Warnx("invalid TLS connection (not a *tls.Conn)")
-		return
-	}
-	defer conn.Close()
-
-	state := conn.ConnectionState()
-	if err = conn.Close(); err != nil {
-		_, _ = lib.Warn(err, "couldn't close TLS connection")
-	}
-
-	d = &tls.Dialer{Config: verifyConfig(ci.Host)}
-	nc, err = d.DialContext(context.Background(), "tcp", ci.Addr)
-	if err == nil {
-		conn, ok = nc.(*tls.Conn)
-		if !ok {
-			_, _ = lib.Warnx("invalid TLS connection (not a *tls.Conn)")
-			return
-		}
-
-		err = conn.VerifyHostname(ci.Host)
-		if err == nil {
-			state = conn.ConnectionState()
-		}
-		conn.Close()
-	} else {
-		_, _ = lib.Warn(err, "TLS verification error with server name %s", ci.Host)
-	}
-
-	if len(state.PeerCertificates) == 0 {
-		_, _ = lib.Warnx("no certificates found")
-		return
-	}
-
-	if leafOnly {
-		displayCert(state.PeerCertificates[0])
-		return
-	}
-
-	if len(state.VerifiedChains) == 0 {
-		_, _ = lib.Warnx("no verified chains found; using peer chain")
-		for i := range state.PeerCertificates {
-			displayCert(state.PeerCertificates[i])
-		}
-	} else {
-		fmt.Fprintln(os.Stdout, "TLS chain verified successfully.")
-		for i := range state.VerifiedChains {
-			fmt.Fprintf(os.Stdout, "--- Verified certificate chain %d ---%s", i+1, "\n")
-			for j := range state.VerifiedChains[i] {
-				displayCert(state.VerifiedChains[i][j])
-			}
-		}
-	}
-}
-
-func shouldReadStdin(argc int, argv []string) bool {
-	if argc == 0 {
-		return true
-	}
-
-	if argc == 1 && argv[0] == "-" {
-		return true
-	}
-
-	return false
-}
-
-func readStdin(leafOnly bool) {
-	certs, err := io.ReadAll(os.Stdin)
-	if err != nil {
-		_, _ = lib.Warn(err, "couldn't read certificates from standard input")
-		os.Exit(1)
-	}
-
-	// This is needed for getting certs from JSON/jq.
-	certs = bytes.TrimSpace(certs)
-	certs = bytes.ReplaceAll(certs, []byte(`\n`), []byte{0xa})
-	certs = bytes.Trim(certs, `"`)
-	displayAllCerts(certs, leafOnly)
-}
-
 func main() {
 	var leafOnly bool
 	flag.BoolVar(&showHash, "d", false, "show hashes of raw DER contents")
@@ -343,23 +223,26 @@ func main() {
 	flag.BoolVar(&leafOnly, "l", false, "only show the leaf certificate")
 	flag.Parse()
 
-	if shouldReadStdin(flag.NArg(), flag.Args()) {
-		readStdin(leafOnly)
-		return
+	opts := &certlib.FetcherOpts{
+		SkipVerify: true,
+		Roots:      nil,
 	}
 
 	for _, filename := range flag.Args() {
 		fmt.Fprintf(os.Stdout, "--%s ---%s", filename, "\n")
-		if strings.HasPrefix(filename, "https://") {
-			displayAllCertsWeb(filename, leafOnly)
-		} else {
-			in, err := os.ReadFile(filename)
-			if err != nil {
-				_, _ = lib.Warn(err, "couldn't read certificate")
-				continue
-			}
+		certs, err := certlib.GetCertificateChain(filename, opts)
+		if err != nil {
+			_, _ = lib.Warn(err, "couldn't read certificate")
+			continue
+		}
 
-			displayAllCerts(in, leafOnly)
+		if leafOnly {
+			displayCert(certs[0])
+			continue
+		}
+
+		for i := range certs {
+			displayCert(certs[i])
 		}
 	}
 }
