@@ -441,11 +441,14 @@ changelog:
 
 gitea_urls:
   api: https://git.wntrmute.dev/api/v1
-  download: https://git.wntrmute.dev/kyle/goutils
+  download: https://git.wntrmute.dev/
   # set to true if you use a self-signed certificate
   skip_tls_verify: false
 
 release:
+  github:
+    owner: kisom
+    name: goutils
   footer: >-
 
     ---
