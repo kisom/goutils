@@ -1,5 +1,10 @@
 CHANGELOG
 
+v1.13.6 - 2025-11-18
+
+Changed:
+- build: removing gitea stuff.
+
 v1.13.5 - 2025-11-18
 
 Changed:
