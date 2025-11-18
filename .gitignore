@@ -2,3 +2,4 @@
 cmd/cert-bundler/testdata/pkg/*
 # Added by goreleaser init:
 dist/
+cmd/cert-bundler/testdata/bundle/
