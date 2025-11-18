@@ -1,5 +1,10 @@
 CHANGELOG
 
+v1.13.4 - 2025-11-18
+
+Changed:
+- build: updating goreleaser config.
+
 v1.13.3 - 2025-11-18
 
 Added:
