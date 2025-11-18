@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	"git.wntrmute.dev/kyle/goutils/certlib"
 	"git.wntrmute.dev/kyle/goutils/die"
@@ -32,10 +31,10 @@ Usage:
 	ski [-hm] files...
 
 Flags:
+	-d  Hex encoding mode.
 	-h	Print this help message.
 	-m	All SKIs should match; as soon as an SKI mismatch is found,
 		it is reported.
-
 `)
 }
 
@@ -145,15 +144,8 @@ func parseCSR(data []byte) ([]byte, string) {
 	return public, kt
 }
 
-func dumpHex(in []byte) string {
-	var s string
-	var sSb153 strings.Builder
-	for i := range in {
-		sSb153.WriteString(fmt.Sprintf("%02X:", in[i]))
-	}
-	s += sSb153.String()
-
-	return strings.Trim(s, ":")
+func dumpHex(in []byte, mode lib.HexEncodeMode) string {
+	return lib.HexEncode(in, mode)
 }
 
 type subjectPublicKeyInfo struct {
@@ -163,9 +155,13 @@ type subjectPublicKeyInfo struct {
 
 func main() {
 	var help, shouldMatch bool
+	var displayModeString string
+	flag.StringVar(&displayModeString, "d", "lower", "hex encoding mode")
 	flag.BoolVar(&help, "h", false, "print a help message and exit")
 	flag.BoolVar(&shouldMatch, "m", false, "all SKIs should match")
 	flag.Parse()
+
+	displayMode := lib.ParseHexEncodeMode(displayModeString)
 
 	if help {
 		usage(os.Stdout)
@@ -184,7 +180,7 @@ func main() {
 		}
 
 		pubHash := sha1.Sum(subPKI.SubjectPublicKey.Bytes) // #nosec G401 this is the standard
-		pubHashString := dumpHex(pubHash[:])
+		pubHashString := dumpHex(pubHash[:], displayMode)
 		if ski == "" {
 			ski = pubHashString
 		}

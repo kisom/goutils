@@ -1,2 +1,4 @@
 .idea
 cmd/cert-bundler/testdata/pkg/*
+# Added by goreleaser init:
+dist/

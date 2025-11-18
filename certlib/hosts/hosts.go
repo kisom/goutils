@@ -33,7 +33,6 @@ func parseURL(host string) (string, int, error) {
 	// OK
 	default:
 		return "", 0, errors.New("certlib/hosts: only https scheme supported")
-
 	}
 
 	if url.Port() == "" {

@@ -1,8 +1,9 @@
 package hosts_test
 
 import (
-	"git.wntrmute.dev/kyle/goutils/certlib/hosts"
 	"testing"
+
+	"git.wntrmute.dev/kyle/goutils/certlib/hosts"
 )
 
 type testCase struct {

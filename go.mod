@@ -15,6 +15,7 @@ require (
 	github.com/benbjohnson/clock v1.3.5
 	github.com/davecgh/go-spew v1.1.1
 	github.com/google/certificate-transparency-go v1.0.21
+	rsc.io/qr v0.2.0
 )
 
 require (
@@ -22,5 +23,4 @@ require (
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
-	rsc.io/qr v0.2.0 // indirect
 )
