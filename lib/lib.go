@@ -125,6 +125,8 @@ const (
 	// HexEncodeUpperColon prints the bytes as uppercase hexadecimal
 	// with colons between each pair of bytes.
 	HexEncodeUpperColon
+	// HexEncodeBytes prints the string as a sequence of []byte.
+	HexEncodeBytes
 )
 
 func (m HexEncodeMode) String() string {
@@ -137,6 +139,8 @@ func (m HexEncodeMode) String() string {
 		return "lcolon"
 	case HexEncodeUpperColon:
 		return "ucolon"
+	case HexEncodeBytes:
+		return "bytes"
 	default:
 		panic("invalid hex encode mode")
 	}
@@ -152,6 +156,8 @@ func ParseHexEncodeMode(s string) HexEncodeMode {
 		return HexEncodeLowerColon
 	case "ucolon":
 		return HexEncodeUpperColon
+	case "bytes":
+		return HexEncodeBytes
 	}
 
 	panic("invalid hex encode mode")
@@ -202,6 +208,17 @@ func hexEncode(b []byte) string {
 	return s
 }
 
+func bytesAsByteSliceString(buf []byte) string {
+	sb := &strings.Builder{}
+	sb.WriteString("[]byte{")
+	for i := range buf {
+		fmt.Fprintf(sb, "0x%02x, ", buf[i])
+	}
+	sb.WriteString("}")
+
+	return sb.String()
+}
+
 // HexEncode encodes the given bytes as a hexadecimal string.
 func HexEncode(b []byte, mode HexEncodeMode) string {
 	str := hexEncode(b)
@@ -215,6 +232,8 @@ func HexEncode(b []byte, mode HexEncodeMode) string {
 		return hexColons(str)
 	case HexEncodeUpperColon:
 		return strings.ToUpper(hexColons(str))
+	case HexEncodeBytes:
+		return bytesAsByteSliceString(b)
 	default:
 		panic("invalid hex encode mode")
 	}
