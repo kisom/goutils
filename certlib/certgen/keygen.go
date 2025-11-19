@@ -22,9 +22,9 @@ func GenerateKey(algorithm x509.PublicKeyAlgorithm, bitSize int) (crypto.PublicK
 	var err error
 
 	switch algorithm {
-	case x509.RSA:
-		pub, key, err = ed25519.GenerateKey(rand.Reader)
 	case x509.Ed25519:
+		pub, key, err = ed25519.GenerateKey(rand.Reader)
+	case x509.RSA:
 		key, err = rsa.GenerateKey(rand.Reader, bitSize)
 		if err == nil {
 			rsaPriv, ok := key.(*rsa.PrivateKey)
