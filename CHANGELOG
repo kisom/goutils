@@ -1,5 +1,14 @@
 CHANGELOG
 
+v1.15.7 - 2025-11-19
+
+Changed:
+- certlib: update FileKind with algo information and fix bug where PEM
+  files didn't have their algorithm set.
+- certlib/certgen: GenerateKey had the blocks for Ed25519 and RSA keys
+  swapped.
+- cmd/tlsinfo: fix type in output.
+
 v1.15.6 - 2025-11-19
 certlib: add FileKind function to determine file type.
 
