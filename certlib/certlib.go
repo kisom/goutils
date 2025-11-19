@@ -4,6 +4,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"os"
 
 	"git.wntrmute.dev/kyle/goutils/certlib/certerr"
@@ -92,4 +93,19 @@ func LoadCertificates(path string) ([]*x509.Certificate, error) {
 	}
 
 	return ReadCertificates(in)
+}
+
+func PoolFromBytes(certBytes []byte) (*x509.CertPool, error) {
+	pool := x509.NewCertPool()
+
+	certs, err := ReadCertificates(certBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read certificates: %w", err)
+	}
+
+	for _, cert := range certs {
+		pool.AddCert(cert)
+	}
+
+	return pool, nil
 }
