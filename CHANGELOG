@@ -1,5 +1,15 @@
 CHANGELOG
 
+v1.14.3 - 2025-11-18
+
+Added:
+- certlib/dump: the certificate dumping functions have been moved into
+  their own package.
+
+Changed:
+- cmd/certdump: refactor out most of the functionality into certlib/dump.
+- cmd/kgz: add extended metadata support.
+
 v1.14.2 - 2025-11-18
 
 Added:
