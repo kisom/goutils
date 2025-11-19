@@ -422,6 +422,24 @@ func encodeCertsToFiles(
 			name:    baseName + ".pem",
 			content: pemContent,
 		})
+	case "crt":
+		pemContent := encodeCertsToPEM(certs)
+		files = append(files, fileEntry{
+			name:    baseName + ".crt",
+			content: pemContent,
+		})
+	case "pemcrt":
+		pemContent := encodeCertsToPEM(certs)
+		files = append(files, fileEntry{
+			name:    baseName + ".pem",
+			content: pemContent,
+		})
+
+		pemContent = encodeCertsToPEM(certs)
+		files = append(files, fileEntry{
+			name:    baseName + ".crt",
+			content: pemContent,
+		})
 	case "der":
 		if isSingle {
 			// For single file in DER, concatenate all cert DER bytes

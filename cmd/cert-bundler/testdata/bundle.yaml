@@ -12,6 +12,7 @@ chains:
       include_single: true
       include_individual: true
       manifest: true
+      encoding: pemcrt
       formats:
         - zip
         - tgz
