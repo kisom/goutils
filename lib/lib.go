@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"os"
@@ -126,6 +127,8 @@ const (
 	HexEncodeUpperColon
 	// HexEncodeBytes prints the string as a sequence of []byte.
 	HexEncodeBytes
+	// HexEncodeBase64 prints the string as a base64-encoded string.
+	HexEncodeBase64
 )
 
 func (m HexEncodeMode) String() string {
@@ -140,6 +143,8 @@ func (m HexEncodeMode) String() string {
 		return "ucolon"
 	case HexEncodeBytes:
 		return "bytes"
+	case HexEncodeBase64:
+		return "base64"
 	default:
 		panic("invalid hex encode mode")
 	}
@@ -157,6 +162,8 @@ func ParseHexEncodeMode(s string) HexEncodeMode {
 		return HexEncodeUpperColon
 	case "bytes":
 		return HexEncodeBytes
+	case "base64":
+		return HexEncodeBase64
 	}
 
 	panic("invalid hex encode mode")
@@ -218,21 +225,22 @@ func bytesAsByteSliceString(buf []byte) string {
 	return sb.String()
 }
 
-// HexEncode encodes the given bytes as a hexadecimal string.
+// HexEncode encodes the given bytes as a hexadecimal string. It
+// also supports a few other binary-encoding formats as well.
 func HexEncode(b []byte, mode HexEncodeMode) string {
-	str := hexEncode(b)
-
 	switch mode {
 	case HexEncodeLower:
-		return str
+		return hexEncode(b)
 	case HexEncodeUpper:
-		return strings.ToUpper(str)
+		return strings.ToUpper(hexEncode(b))
 	case HexEncodeLowerColon:
-		return hexColons(str)
+		return hexColons(hexEncode(b))
 	case HexEncodeUpperColon:
-		return strings.ToUpper(hexColons(str))
+		return strings.ToUpper(hexColons(hexEncode(b)))
 	case HexEncodeBytes:
 		return bytesAsByteSliceString(b)
+	case HexEncodeBase64:
+		return base64.StdEncoding.EncodeToString(b)
 	default:
 		panic("invalid hex encode mode")
 	}

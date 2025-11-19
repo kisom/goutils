@@ -182,7 +182,7 @@ func main() {
 			continue
 		}
 
-		if _, err := verify.CertWith(cert, roots, nil, false); err != nil {
+		if _, err = verify.CertWith(cert, roots, nil, false); err != nil {
 			fmt.Printf("%s: INVALID\n", arg)
 		} else {
 			fmt.Printf("%s: OK (expires %s)\n", arg, cert.NotAfter.Format(lib.DateShortFormat))
