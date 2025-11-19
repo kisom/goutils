@@ -11,6 +11,7 @@ import (
 	"os"
 
 	"git.wntrmute.dev/kyle/goutils/die"
+	"git.wntrmute.dev/kyle/goutils/lib"
 )
 
 func main() {
@@ -44,14 +45,9 @@ func main() {
 		if err != nil {
 			site += ":443"
 		}
-		d := &tls.Dialer{Config: cfg}
-		nc, err := d.DialContext(context.Background(), "tcp", site)
+		// Use proxy-aware TLS dialer
+		conn, err := lib.DialTLS(context.Background(), site, lib.DialerOpts{TLSConfig: cfg})
 		die.If(err)
-
-		conn, ok := nc.(*tls.Conn)
-		if !ok {
-			die.With("invalid TLS connection (not a *tls.Conn)")
-		}
 
 		cs := conn.ConnectionState()
 		var chain []byte

@@ -17,7 +17,6 @@ import (
 
 	"github.com/kr/text"
 
-	"git.wntrmute.dev/kyle/goutils/certlib"
 	"git.wntrmute.dev/kyle/goutils/lib"
 )
 
@@ -351,14 +350,14 @@ func main() {
 	flag.BoolVar(&leafOnly, "l", false, "only show the leaf certificate")
 	flag.Parse()
 
-	opts := &certlib.FetcherOpts{
+	opts := &lib.FetcherOpts{
 		SkipVerify: true,
 		Roots:      nil,
 	}
 
 	for _, filename := range flag.Args() {
 		fmt.Fprintf(os.Stdout, "--%s ---%s", filename, "\n")
-		certs, err := certlib.GetCertificateChain(filename, opts)
+		certs, err := lib.GetCertificateChain(filename, opts)
 		if err != nil {
 			_, _ = lib.Warn(err, "couldn't read certificate")
 			continue

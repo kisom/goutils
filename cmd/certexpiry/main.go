@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"git.wntrmute.dev/kyle/goutils/certlib"
 	"git.wntrmute.dev/kyle/goutils/die"
 	"git.wntrmute.dev/kyle/goutils/lib"
 )
@@ -75,7 +74,7 @@ func checkCert(cert *x509.Certificate) {
 }
 
 func main() {
-	opts := &certlib.FetcherOpts{}
+	opts := &lib.FetcherOpts{}
 
 	flag.BoolVar(&opts.SkipVerify, "k", false, "skip server verification")
 	flag.BoolVar(&warnOnly, "q", false, "only warn about expiring certs")
@@ -83,7 +82,7 @@ func main() {
 	flag.Parse()
 
 	for _, file := range flag.Args() {
-		certs, err := certlib.GetCertificateChain(file, opts)
+		certs, err := lib.GetCertificateChain(file, opts)
 		if err != nil {
 			_, _ = lib.Warn(err, "while parsing certificates")
 			continue

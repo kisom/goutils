@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"time"
 
 	"git.wntrmute.dev/kyle/goutils/ahash"
 	"git.wntrmute.dev/kyle/goutils/die"
@@ -82,8 +83,13 @@ func main() {
 			_, _ = lib.Warn(reqErr, "building request for %s", remote)
 			continue
 		}
-		client := &http.Client{}
-		resp, err := client.Do(req)
+		// Use proxy-aware HTTP client with a reasonable timeout for connects/handshakes
+		httpClient, err := lib.NewHTTPClient(lib.DialerOpts{Timeout: 30 * time.Second})
+		if err != nil {
+			_, _ = lib.Warn(err, "building HTTP client for %s", remote)
+			continue
+		}
+		resp, err := httpClient.Do(req)
 		if err != nil {
 			_, _ = lib.Warn(err, "fetching %s", remote)
 			continue

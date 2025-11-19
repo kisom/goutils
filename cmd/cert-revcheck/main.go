@@ -7,7 +7,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"net"
 	"os"
 	"strings"
 	"time"
@@ -16,6 +15,7 @@ import (
 	hosts "git.wntrmute.dev/kyle/goutils/certlib/hosts"
 	"git.wntrmute.dev/kyle/goutils/certlib/revoke"
 	"git.wntrmute.dev/kyle/goutils/fileutil"
+	"git.wntrmute.dev/kyle/goutils/lib"
 )
 
 var (
@@ -38,8 +38,10 @@ func main() {
 	flag.Parse()
 
 	revoke.HardFail = hardfail
-	// Set HTTP client timeout for revocation library
-	revoke.HTTPClient.Timeout = timeout
+	// Build a proxy-aware HTTP client for OCSP/CRL fetches
+	if httpClient, err := lib.NewHTTPClient(lib.DialerOpts{Timeout: timeout}); err == nil {
+		revoke.HTTPClient = httpClient
+	}
 
 	if flag.NArg() == 0 {
 		fmt.Fprintf(os.Stderr, "Usage: %s [options] <target> [<target>...]\n", os.Args[0])
@@ -99,28 +101,19 @@ func checkSite(hostport string) (string, error) {
 		return strUnknown, err
 	}
 
-	d := &net.Dialer{Timeout: timeout}
-	tcfg := &tls.Config{
-		InsecureSkipVerify: true,
-		ServerName:         target.Host,
-	} // #nosec G402 -- CLI tool only verifies revocation
-	td := &tls.Dialer{NetDialer: d, Config: tcfg}
-
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	conn, err := td.DialContext(ctx, "tcp", target.String())
+	// Use proxy-aware TLS dialer
+	conn, err := lib.DialTLS(ctx, target.String(), lib.DialerOpts{Timeout: timeout, TLSConfig: &tls.Config{
+		InsecureSkipVerify: true, // #nosec G402 -- CLI tool only verifies revocation
+		ServerName:         target.Host,
+	}})
 	if err != nil {
 		return strUnknown, err
 	}
 	defer conn.Close()
-
-	tconn, ok := conn.(*tls.Conn)
-	if !ok {
-		return strUnknown, errors.New("connection is not TLS")
-	}
-
-	state := tconn.ConnectionState()
+	state := conn.ConnectionState()
 	if len(state.PeerCertificates) == 0 {
 		return strUnknown, errors.New("no peer certificates presented")
 	}

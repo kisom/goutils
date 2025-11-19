@@ -1,4 +1,3 @@
-// Package lib contains functions useful for most programs.
 package lib
 
 import (

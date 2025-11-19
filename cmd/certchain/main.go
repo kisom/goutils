@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"git.wntrmute.dev/kyle/goutils/die"
+	"git.wntrmute.dev/kyle/goutils/lib"
 )
 
 var hasPort = regexp.MustCompile(`:\d+$`)
@@ -23,13 +24,9 @@ func main() {
 			server += ":443"
 		}
 
-		d := &tls.Dialer{Config: &tls.Config{}} // #nosec G402
-		nc, err := d.DialContext(context.Background(), "tcp", server)
+		// Use proxy-aware TLS dialer
+		conn, err := lib.DialTLS(context.Background(), server, lib.DialerOpts{TLSConfig: &tls.Config{}}) // #nosec G402
 		die.If(err)
-		conn, ok := nc.(*tls.Conn)
-		if !ok {
-			die.With("invalid TLS connection (not a *tls.Conn)")
-		}
 
 		defer conn.Close()
 

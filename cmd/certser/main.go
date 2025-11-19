@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"git.wntrmute.dev/kyle/goutils/certlib"
 	"git.wntrmute.dev/kyle/goutils/die"
 	"git.wntrmute.dev/kyle/goutils/lib"
 )
@@ -32,7 +31,7 @@ func serialString(cert *x509.Certificate, mode lib.HexEncodeMode) string {
 }
 
 func main() {
-	opts := &certlib.FetcherOpts{}
+	opts := &lib.FetcherOpts{}
 	displayAs := flag.String("d", "int", "display mode (int, hex, uhex)")
 	showExpiry := flag.Bool("e", false, "show expiry date")
 	flag.BoolVar(&opts.SkipVerify, "k", false, "skip server verification")
@@ -41,7 +40,7 @@ func main() {
 	displayMode := parseDisplayMode(*displayAs)
 
 	for _, arg := range flag.Args() {
-		cert, err := certlib.GetCertificate(arg, opts)
+		cert, err := lib.GetCertificate(arg, opts)
 		die.If(err)
 
 		fmt.Printf("%s: %s", arg, serialString(cert, displayMode))

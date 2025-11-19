@@ -108,12 +108,12 @@ func run(cfg appConfig) error {
 		return fmt.Errorf("failed to build combined pool: %w", err)
 	}
 
-	opts := &certlib.FetcherOpts{
+	opts := &lib.FetcherOpts{
 		Roots:      combinedPool,
 		SkipVerify: cfg.skipVerify,
 	}
 
-	chain, err := certlib.GetCertificateChain(flag.Arg(0), opts)
+	chain, err := lib.GetCertificateChain(flag.Arg(0), opts)
 	if err != nil {
 		return err
 	}

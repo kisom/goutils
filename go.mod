@@ -6,7 +6,8 @@ require (
 	github.com/hashicorp/go-syslog v1.0.0
 	github.com/kr/text v0.2.0
 	github.com/pkg/sftp v1.12.0
-	golang.org/x/crypto v0.44.0
+	golang.org/x/crypto v0.39.0
+	golang.org/x/net v0.38.0
 	golang.org/x/sys v0.38.0
 	gopkg.in/yaml.v2 v2.4.0
 )

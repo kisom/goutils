@@ -1,24 +1,30 @@
-package certlib
+package lib
 
 import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"errors"
 	"fmt"
 	"io"
 	"net"
 	"os"
 
+	"git.wntrmute.dev/kyle/goutils/certlib"
 	"git.wntrmute.dev/kyle/goutils/certlib/hosts"
 	"git.wntrmute.dev/kyle/goutils/fileutil"
-	"git.wntrmute.dev/kyle/goutils/lib"
 )
 
 // FetcherOpts are options for fetching certificates. They are only applicable to ServerFetcher.
 type FetcherOpts struct {
 	SkipVerify bool
 	Roots      *x509.CertPool
+}
+
+func (fo *FetcherOpts) TLSConfig() *tls.Config {
+	return &tls.Config{
+		InsecureSkipVerify: fo.SkipVerify, // #nosec G402 - intentional
+		RootCAs:            fo.Roots,
+	}
 }
 
 // Fetcher is an interface for fetching certificates from a remote source. It
@@ -65,29 +71,20 @@ func ParseServer(host string) (*ServerFetcher, error) {
 }
 
 func (sf *ServerFetcher) String() string {
-	return fmt.Sprintf("tls://%s", net.JoinHostPort(sf.host, lib.Itoa(sf.port, -1)))
+	return fmt.Sprintf("tls://%s", net.JoinHostPort(sf.host, Itoa(sf.port, -1)))
 }
 
 func (sf *ServerFetcher) GetChain() ([]*x509.Certificate, error) {
-	config := &tls.Config{
-		InsecureSkipVerify: sf.insecure, // #nosec G402 - no shit sherlock
-		RootCAs:            sf.roots,
+	opts := DialerOpts{
+		TLSConfig: &tls.Config{
+			InsecureSkipVerify: sf.insecure, // #nosec G402 - no shit sherlock
+			RootCAs:            sf.roots,
+		},
 	}
 
-	dialer := &tls.Dialer{
-		Config: config,
-	}
-
-	hostSpec := net.JoinHostPort(sf.host, lib.Itoa(sf.port, -1))
-
-	netConn, err := dialer.DialContext(context.Background(), "tcp", hostSpec)
+	conn, err := DialTLS(context.Background(), net.JoinHostPort(sf.host, Itoa(sf.port, -1)), opts)
 	if err != nil {
-		return nil, fmt.Errorf("dialing server: %w", err)
-	}
-
-	conn, ok := netConn.(*tls.Conn)
-	if !ok {
-		return nil, errors.New("connection is not TLS")
+		return nil, fmt.Errorf("failed to dial server: %w", err)
 	}
 	defer conn.Close()
 
@@ -125,10 +122,10 @@ func (ff *FileFetcher) GetChain() ([]*x509.Certificate, error) {
 			return nil, fmt.Errorf("failed to read from stdin: %w", err)
 		}
 
-		return ParseCertificatesPEM(certData)
+		return certlib.ParseCertificatesPEM(certData)
 	}
 
-	certs, err := LoadCertificates(ff.path)
+	certs, err := certlib.LoadCertificates(ff.path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load chain: %w", err)
 	}
