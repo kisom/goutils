@@ -14,6 +14,7 @@ import (
 	"git.wntrmute.dev/kyle/goutils/ahash"
 	"git.wntrmute.dev/kyle/goutils/die"
 	"git.wntrmute.dev/kyle/goutils/lib"
+	"git.wntrmute.dev/kyle/goutils/lib/dialer"
 )
 
 func usage(w io.Writer) {
@@ -84,7 +85,7 @@ func main() {
 			continue
 		}
 		// Use proxy-aware HTTP client with a reasonable timeout for connects/handshakes
-		httpClient, err := lib.NewHTTPClient(lib.DialerOpts{Timeout: 30 * time.Second})
+		httpClient, err := dialer.NewHTTPClient(dialer.DialerOpts{Timeout: 30 * time.Second})
 		if err != nil {
 			_, _ = lib.Warn(err, "building HTTP client for %s", remote)
 			continue

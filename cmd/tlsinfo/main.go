@@ -9,7 +9,7 @@ import (
 
 	"git.wntrmute.dev/kyle/goutils/certlib/hosts"
 	"git.wntrmute.dev/kyle/goutils/die"
-	"git.wntrmute.dev/kyle/goutils/lib"
+	"git.wntrmute.dev/kyle/goutils/lib/dialer"
 )
 
 func main() {
@@ -22,10 +22,10 @@ func main() {
 	die.If(err)
 
 	// Use proxy-aware TLS dialer; skip verification as before
-	conn, err := lib.DialTLS(
+	conn, err := dialer.DialTLS(
 		context.Background(),
 		hostPort.String(),
-		lib.DialerOpts{TLSConfig: &tls.Config{InsecureSkipVerify: true}},
+		dialer.DialerOpts{TLSConfig: &tls.Config{InsecureSkipVerify: true}},
 	) // #nosec G402
 	die.If(err)
 

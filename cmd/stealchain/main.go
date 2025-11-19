@@ -11,20 +11,20 @@ import (
 
 	"git.wntrmute.dev/kyle/goutils/certlib"
 	"git.wntrmute.dev/kyle/goutils/die"
-	"git.wntrmute.dev/kyle/goutils/lib"
+	"git.wntrmute.dev/kyle/goutils/lib/dialer"
 )
 
 func main() {
 	var sysRoot, serverName string
 	var skipVerify bool
 	var strictTLS bool
-	lib.StrictTLSFlag(&strictTLS)
+	dialer.StrictTLSFlag(&strictTLS)
 	flag.StringVar(&sysRoot, "ca", "", "provide an alternate CA bundle")
 	flag.StringVar(&serverName, "sni", "", "provide an SNI name")
 	flag.BoolVar(&skipVerify, "noverify", false, "don't verify certificates")
 	flag.Parse()
 
-	tlsCfg, err := lib.BaselineTLSConfig(skipVerify, strictTLS)
+	tlsCfg, err := dialer.BaselineTLSConfig(skipVerify, strictTLS)
 	die.If(err)
 
 	if sysRoot != "" {
@@ -43,7 +43,7 @@ func main() {
 		}
 
 		var conn *tls.Conn
-		conn, err = lib.DialTLS(context.Background(), site, lib.DialerOpts{TLSConfig: tlsCfg})
+		conn, err = dialer.DialTLS(context.Background(), site, dialer.DialerOpts{TLSConfig: tlsCfg})
 		die.If(err)
 
 		cs := conn.ConnectionState()

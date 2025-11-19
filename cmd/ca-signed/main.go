@@ -12,6 +12,8 @@ import (
 	"git.wntrmute.dev/kyle/goutils/certlib/verify"
 	"git.wntrmute.dev/kyle/goutils/die"
 	"git.wntrmute.dev/kyle/goutils/lib"
+	"git.wntrmute.dev/kyle/goutils/lib/dialer"
+	"git.wntrmute.dev/kyle/goutils/lib/fetch"
 )
 
 //go:embed testdata/*.pem
@@ -137,11 +139,11 @@ func selftest() int {
 func main() {
 	var skipVerify, useStrict bool
 
-	lib.StrictTLSFlag(&useStrict)
+	dialer.StrictTLSFlag(&useStrict)
 	flag.BoolVar(&skipVerify, "k", false, "don't verify certificates")
 	flag.Parse()
 
-	tcfg, err := lib.BaselineTLSConfig(skipVerify, useStrict)
+	tcfg, err := dialer.BaselineTLSConfig(skipVerify, useStrict)
 	die.If(err)
 
 	args := flag.Args()
@@ -171,7 +173,7 @@ func main() {
 	for _, arg := range args {
 		var cert *x509.Certificate
 
-		cert, err = lib.GetCertificate(arg, tcfg)
+		cert, err = fetch.GetCertificate(arg, tcfg)
 		if err != nil {
 			lib.Warn(err, "while parsing certificate from %s", arg)
 			continue

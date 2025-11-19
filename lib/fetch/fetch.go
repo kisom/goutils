@@ -1,4 +1,4 @@
-package lib
+package fetch
 
 import (
 	"context"
@@ -12,6 +12,8 @@ import (
 	"git.wntrmute.dev/kyle/goutils/certlib"
 	"git.wntrmute.dev/kyle/goutils/certlib/hosts"
 	"git.wntrmute.dev/kyle/goutils/fileutil"
+	"git.wntrmute.dev/kyle/goutils/lib"
+	"git.wntrmute.dev/kyle/goutils/lib/dialer"
 )
 
 // Note: Previously this package exposed a FetcherOpts type. It has been
@@ -61,18 +63,18 @@ func ParseServer(host string) (*ServerFetcher, error) {
 }
 
 func (sf *ServerFetcher) String() string {
-	return fmt.Sprintf("tls://%s", net.JoinHostPort(sf.host, Itoa(sf.port, -1)))
+	return fmt.Sprintf("tls://%s", net.JoinHostPort(sf.host, lib.Itoa(sf.port, -1)))
 }
 
 func (sf *ServerFetcher) GetChain() ([]*x509.Certificate, error) {
-	opts := DialerOpts{
+	opts := dialer.DialerOpts{
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: sf.insecure, // #nosec G402 - no shit sherlock
 			RootCAs:            sf.roots,
 		},
 	}
 
-	conn, err := DialTLS(context.Background(), net.JoinHostPort(sf.host, Itoa(sf.port, -1)), opts)
+	conn, err := dialer.DialTLS(context.Background(), net.JoinHostPort(sf.host, lib.Itoa(sf.port, -1)), opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to dial server: %w", err)
 	}

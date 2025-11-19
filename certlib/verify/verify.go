@@ -8,7 +8,8 @@ import (
 	"io"
 
 	"git.wntrmute.dev/kyle/goutils/certlib/revoke"
-	"git.wntrmute.dev/kyle/goutils/lib"
+	"git.wntrmute.dev/kyle/goutils/lib/dialer"
+	"git.wntrmute.dev/kyle/goutils/lib/fetch"
 )
 
 func bundleIntermediates(w io.Writer, chain []*x509.Certificate, pool *x509.CertPool, verbose bool) *x509.CertPool {
@@ -45,7 +46,7 @@ func prepareVerification(w io.Writer, target string, opts *Opts) (*verifyResult,
 
 	if opts == nil {
 		opts = &Opts{
-			Config:             lib.StrictBaselineTLSConfig(),
+			Config:             dialer.StrictBaselineTLSConfig(),
 			ForceIntermediates: false,
 		}
 	}
@@ -67,7 +68,7 @@ func prepareVerification(w io.Writer, target string, opts *Opts) (*verifyResult,
 
 	roots = opts.Config.RootCAs.Clone()
 
-	chain, err := lib.GetCertificateChain(target, opts.Config)
+	chain, err := fetch.GetCertificateChain(target, opts.Config)
 	if err != nil {
 		return nil, fmt.Errorf("fetching certificate chain: %w", err)
 	}

@@ -9,6 +9,7 @@ import (
 
 	"git.wntrmute.dev/kyle/goutils/certlib/dump"
 	"git.wntrmute.dev/kyle/goutils/lib"
+	"git.wntrmute.dev/kyle/goutils/lib/fetch"
 )
 
 var config struct {
@@ -27,7 +28,7 @@ func main() {
 
 	for _, filename := range flag.Args() {
 		fmt.Fprintf(os.Stdout, "--%s ---%s", filename, "\n")
-		certs, err := lib.GetCertificateChain(filename, tlsCfg)
+		certs, err := fetch.GetCertificateChain(filename, tlsCfg)
 		if err != nil {
 			lib.Warn(err, "couldn't read certificate")
 			continue

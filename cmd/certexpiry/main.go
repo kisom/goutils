@@ -8,6 +8,8 @@ import (
 	"git.wntrmute.dev/kyle/goutils/certlib/verify"
 	"git.wntrmute.dev/kyle/goutils/die"
 	"git.wntrmute.dev/kyle/goutils/lib"
+	"git.wntrmute.dev/kyle/goutils/lib/dialer"
+	"git.wntrmute.dev/kyle/goutils/lib/fetch"
 )
 
 func main() {
@@ -18,20 +20,20 @@ func main() {
 		warnOnly   bool
 	)
 
-	lib.StrictTLSFlag(&strictTLS)
+	dialer.StrictTLSFlag(&strictTLS)
 
 	flag.BoolVar(&skipVerify, "k", false, "skip server verification") // #nosec G402
 	flag.BoolVar(&warnOnly, "q", false, "only warn about expiring certs")
 	flag.DurationVar(&leeway, "t", leeway, "warn if certificates are closer than this to expiring")
 	flag.Parse()
 
-	tlsCfg, err := lib.BaselineTLSConfig(skipVerify, strictTLS)
+	tlsCfg, err := dialer.BaselineTLSConfig(skipVerify, strictTLS)
 	die.If(err)
 
 	for _, file := range flag.Args() {
 		var certs []*x509.Certificate
 
-		certs, err = lib.GetCertificateChain(file, tlsCfg)
+		certs, err = fetch.GetCertificateChain(file, tlsCfg)
 		if err != nil {
 			_, _ = lib.Warn(err, "while parsing certificates")
 			continue

@@ -10,6 +10,7 @@ import (
 	"git.wntrmute.dev/kyle/goutils/certlib/verify"
 	"git.wntrmute.dev/kyle/goutils/die"
 	"git.wntrmute.dev/kyle/goutils/lib"
+	"git.wntrmute.dev/kyle/goutils/lib/dialer"
 )
 
 type appConfig struct {
@@ -28,7 +29,7 @@ func parseFlags() appConfig {
 	flag.BoolVar(&cfg.skipVerify, "k", false, "skip CA verification")
 	flag.BoolVar(&cfg.revexp, "r", false, "print revocation and expiry information")
 	flag.BoolVar(&cfg.verbose, "v", false, "verbose")
-	lib.StrictTLSFlag(&cfg.strictTLS)
+	dialer.StrictTLSFlag(&cfg.strictTLS)
 	flag.Parse()
 
 	if flag.NArg() == 0 {
@@ -71,7 +72,7 @@ func main() {
 		die.If(err)
 	}
 
-	opts.Config, err = lib.BaselineTLSConfig(cfg.skipVerify, cfg.strictTLS)
+	opts.Config, err = dialer.BaselineTLSConfig(cfg.skipVerify, cfg.strictTLS)
 	die.If(err)
 
 	opts.Config.RootCAs = roots

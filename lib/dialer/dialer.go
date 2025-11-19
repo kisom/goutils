@@ -12,7 +12,7 @@
 //  3. HTTP_PROXY
 //
 // Both uppercase and lowercase variable names are honored.
-package lib
+package dialer
 
 import (
 	"bufio"
@@ -468,8 +468,8 @@ func (s *socks5ContextDialer) DialContext(ctx context.Context, network, address 
 
 // tlsWrappingDialer performs a TLS handshake over an existing base dialer.
 type tlsWrappingDialer struct {
-	base    ContextDialer
-	tcfg    *tls.Config
+	base ContextDialer
+	tcfg *tls.Config
 	timeout time.Duration
 }
 

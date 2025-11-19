@@ -8,6 +8,8 @@ import (
 
 	"git.wntrmute.dev/kyle/goutils/die"
 	"git.wntrmute.dev/kyle/goutils/lib"
+	"git.wntrmute.dev/kyle/goutils/lib/dialer"
+	"git.wntrmute.dev/kyle/goutils/lib/fetch"
 )
 
 const displayInt lib.HexEncodeMode = iota
@@ -33,13 +35,13 @@ func serialString(cert *x509.Certificate, mode lib.HexEncodeMode) string {
 func main() {
 	var skipVerify bool
 	var strictTLS bool
-	lib.StrictTLSFlag(&strictTLS)
+	dialer.StrictTLSFlag(&strictTLS)
 	displayAs := flag.String("d", "int", "display mode (int, hex, uhex)")
 	showExpiry := flag.Bool("e", false, "show expiry date")
 	flag.BoolVar(&skipVerify, "k", false, "skip server verification") // #nosec G402
 	flag.Parse()
 
-	tlsCfg, err := lib.BaselineTLSConfig(skipVerify, strictTLS)
+	tlsCfg, err := dialer.BaselineTLSConfig(skipVerify, strictTLS)
 	die.If(err)
 
 	displayMode := parseDisplayMode(*displayAs)
@@ -47,7 +49,7 @@ func main() {
 	for _, arg := range flag.Args() {
 		var cert *x509.Certificate
 
-		cert, err = lib.GetCertificate(arg, tlsCfg)
+		cert, err = fetch.GetCertificate(arg, tlsCfg)
 		die.If(err)
 
 		fmt.Printf("%s: %s", arg, serialString(cert, displayMode))

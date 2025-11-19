@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -110,6 +111,85 @@ func Duration(d time.Duration) string {
 	d -= time.Duration(hours) * time.Hour
 	s += fmt.Sprintf("%dh%s", hours, d)
 	return s
+}
+
+// IsDigit checks if a byte is a decimal digit.
+func IsDigit(b byte) bool {
+	return b >= '0' && b <= '9'
+}
+
+// ParseDuration parses a duration string into a time.Duration.
+// It supports standard units (ns, us/µs, ms, s, m, h) plus extended units:
+// d (days, 24h), w (weeks, 7d), y (years, 365d).
+// Units can be combined without spaces, e.g., "1y2w3d4h5m6s".
+// Case-insensitive. Years and days are approximations (no leap seconds/months).
+// Returns an error for invalid input.
+func ParseDuration(s string) (time.Duration, error) {
+	s = strings.ToLower(s) // Normalize to lowercase for case-insensitivity.
+	if s == "" {
+		return 0, fmt.Errorf("empty duration string")
+	}
+
+	var total time.Duration
+	i := 0
+	for i < len(s) {
+		// Parse the number part.
+		start := i
+		for i < len(s) && IsDigit(s[i]) {
+			i++
+		}
+		if start == i {
+			return 0, fmt.Errorf("expected number at position %d", start)
+		}
+		numStr := s[start:i]
+		num, err := strconv.ParseUint(numStr, 10, 64)
+		if err != nil {
+			return 0, fmt.Errorf("invalid number %q: %w", numStr, err)
+		}
+
+		// Parse the unit part.
+		if i >= len(s) {
+			return 0, fmt.Errorf("expected unit after number %q", numStr)
+		}
+		unitStart := i
+		i++ // Consume the first char of the unit.
+		unit := s[unitStart:i]
+
+		// Handle potential two-char units like "ms".
+		if unit == "m" && i < len(s) && s[i] == 's' {
+			i++ // Consume the 's'.
+			unit = "ms"
+		}
+
+		// Convert to duration based on unit.
+		var d time.Duration
+		switch unit {
+		case "ns":
+			d = time.Nanosecond * time.Duration(num)
+		case "us", "µs":
+			d = time.Microsecond * time.Duration(num)
+		case "ms":
+			d = time.Millisecond * time.Duration(num)
+		case "s":
+			d = time.Second * time.Duration(num)
+		case "m":
+			d = time.Minute * time.Duration(num)
+		case "h":
+			d = time.Hour * time.Duration(num)
+		case "d":
+			d = 24 * time.Hour * time.Duration(num)
+		case "w":
+			d = 7 * 24 * time.Hour * time.Duration(num)
+		case "y":
+			d = 365 * 24 * time.Hour * time.Duration(num) // Approximate, non-leap year.
+		default:
+			return 0, fmt.Errorf("unknown unit %q at position %d", s[unitStart:i], unitStart)
+		}
+
+		total += d
+	}
+
+	return total, nil
 }
 
 type HexEncodeMode uint8
