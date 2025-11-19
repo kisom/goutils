@@ -1,6 +1,8 @@
 package certlib
 
 import (
+	"bytes"
+	"crypto"
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
@@ -13,6 +15,7 @@ import (
 // ReadCertificate reads a DER or PEM-encoded certificate from the
 // byte slice.
 func ReadCertificate(in []byte) (*x509.Certificate, []byte, error) {
+	in = bytes.TrimSpace(in)
 	if len(in) == 0 {
 		return nil, nil, certerr.ParsingError(certerr.ErrorSourceCertificate, certerr.ErrEmptyCertificate)
 	}
@@ -24,10 +27,10 @@ func ReadCertificate(in []byte) (*x509.Certificate, []byte, error) {
 		}
 
 		rest := remaining
-		if p.Type != "CERTIFICATE" {
+		if p.Type != pemTypeCertificate {
 			return nil, rest, certerr.ParsingError(
 				certerr.ErrorSourceCertificate,
-				certerr.ErrInvalidPEMType(p.Type, "CERTIFICATE"),
+				certerr.ErrInvalidPEMType(p.Type, pemTypeCertificate),
 			)
 		}
 
@@ -108,4 +111,13 @@ func PoolFromBytes(certBytes []byte) (*x509.CertPool, error) {
 	}
 
 	return pool, nil
+}
+
+func ExportPrivateKeyPEM(priv crypto.PrivateKey) ([]byte, error) {
+	keyDER, err := x509.MarshalPKCS8PrivateKey(priv)
+	if err != nil {
+		return nil, err
+	}
+
+	return pem.EncodeToMemory(&pem.Block{Type: pemTypePrivateKey, Bytes: keyDER}), nil
 }

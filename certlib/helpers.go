@@ -75,6 +75,11 @@ var DelegationExtension = pkix.Extension{
 	Value:    []byte{0x05, 0x00}, // ASN.1 NULL
 }
 
+const (
+	pemTypeCertificate = "CERTIFICATE"
+	pemTypePrivateKey  = "PRIVATE KEY"
+)
+
 // InclusiveDate returns the time.Time representation of a date - 1
 // nanosecond. This allows time.After to be used inclusively.
 func InclusiveDate(year int, month time.Month, day int) time.Time {
@@ -246,7 +251,7 @@ func EncodeCertificatesPEM(certs []*x509.Certificate) []byte {
 	var buffer bytes.Buffer
 	for _, cert := range certs {
 		if err := pem.Encode(&buffer, &pem.Block{
-			Type:  "CERTIFICATE",
+			Type:  pemTypeCertificate,
 			Bytes: cert.Raw,
 		}); err != nil {
 			return nil
