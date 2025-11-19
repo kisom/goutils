@@ -121,3 +121,13 @@ func ExportPrivateKeyPEM(priv crypto.PrivateKey) ([]byte, error) {
 
 	return pem.EncodeToMemory(&pem.Block{Type: pemTypePrivateKey, Bytes: keyDER}), nil
 }
+
+func LoadCSR(path string) (*x509.CertificateRequest, error) {
+	in, err := os.ReadFile(path)
+	if err != nil {
+		return nil, certerr.LoadingError(certerr.ErrorSourceCSR, err)
+	}
+
+	req, _, err := ParseCSR(in)
+	return req, err
+}

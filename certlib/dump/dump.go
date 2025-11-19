@@ -249,11 +249,6 @@ func showBasicConstraints(cert *x509.Certificate) {
 	fmt.Fprintln(os.Stdout)
 }
 
-var (
-	dateFormat string
-	showHash   bool // if true, print a SHA256 hash of the certificate's Raw field
-)
-
 func wrapPrint(text string, indent int) {
 	tabs := ""
 	var tabsSb140 strings.Builder
@@ -265,11 +260,12 @@ func wrapPrint(text string, indent int) {
 	fmt.Fprintf(os.Stdout, tabs+"%s\n", wrap(text, indent))
 }
 
-func DisplayCert(w io.Writer, cert *x509.Certificate) {
+func DisplayCert(w io.Writer, cert *x509.Certificate, showHash bool) {
 	fmt.Fprintln(w, "CERTIFICATE")
 	if showHash {
 		fmt.Fprintln(w, wrap(fmt.Sprintf("SHA256: %x", sha256.Sum256(cert.Raw)), 0))
 	}
+
 	fmt.Fprintln(w, wrap("Subject: "+DisplayName(cert.Subject), 0))
 	fmt.Fprintln(w, wrap("Issuer: "+DisplayName(cert.Issuer), 0))
 	fmt.Fprintf(w, "\tSignature algorithm: %s / %s\n", sigAlgoPK(cert.SignatureAlgorithm),
@@ -285,8 +281,8 @@ func DisplayCert(w io.Writer, cert *x509.Certificate) {
 		fmt.Fprintf(w, "\t%s\n", wrap("SKI: "+dumpHex(cert.SubjectKeyId), 1))
 	}
 
-	wrapPrint("Valid from: "+cert.NotBefore.Format(dateFormat), 1)
-	fmt.Fprintf(w, "\t     until: %s\n", cert.NotAfter.Format(dateFormat))
+	wrapPrint("Valid from: "+cert.NotBefore.Format(lib.DateShortFormat), 1)
+	fmt.Fprintf(w, "\t     until: %s\n", cert.NotAfter.Format(lib.DateShortFormat))
 	fmt.Fprintf(w, "\tKey usages: %s\n", keyUsages(cert.KeyUsage))
 
 	if len(cert.ExtKeyUsage) > 0 {

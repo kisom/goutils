@@ -35,12 +35,12 @@ func main() {
 		}
 
 		if config.leafOnly {
-			dump.DisplayCert(os.Stdout, certs[0])
+			dump.DisplayCert(os.Stdout, certs[0], config.showHash)
 			continue
 		}
 
 		for i := range certs {
-			dump.DisplayCert(os.Stdout, certs[i])
+			dump.DisplayCert(os.Stdout, certs[i], config.showHash)
 		}
 	}
 }
