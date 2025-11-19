@@ -1,5 +1,13 @@
 CHANGELOG
 
+v1.15.1 - 2025-11-19
+
+Changed:
+- linter fixes.
+
+Removed:
+- mnd removed from linter.
+
 v1.15.0 - 2025-11-19
 
 Changed:
