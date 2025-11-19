@@ -1,5 +1,16 @@
 CHANGELOG
 
+v1.14.4 - 2025-11-18
+
+Added:
+- certlib/ski: add support for return certificate SKI.
+- certlib/verify: add support for verifying certificates.
+
+Changed:
+- certlib/dump: moved more functions into the dump package.
+- cmd: many certificate-related commands had their functionality moved into
+  certlib.
+
 v1.14.3 - 2025-11-18
 
 Added:
