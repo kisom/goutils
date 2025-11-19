@@ -65,7 +65,7 @@ func printPeerCertificates(certificates []*x509.Certificate) {
 		fmt.Printf("\tSubject: %s\n", cert.Subject)
 		fmt.Printf("\tIssuer: %s\n", cert.Issuer)
 		fmt.Printf("\tDNS Names:	%v\n", cert.DNSNames)
-		fmt.Printf("\tNot Before: %s\n:", cert.NotBefore)
+		fmt.Printf("\tNot Before: %s\n", cert.NotBefore)
 		fmt.Printf("\tNot After: %s\n", cert.NotAfter)
 	}
 }
