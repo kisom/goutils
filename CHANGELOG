@@ -1,5 +1,8 @@
 CHANGELOG
 
+v1.15.5 - 2025-11-19
+certlib/bundler: add support for crt files that are pem-encoded.
+
 v1.15.4 - 2025-11-19
 Quality of life fixes for CSR generation.
 
