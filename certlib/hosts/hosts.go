@@ -1,3 +1,13 @@
+// Package hosts provides a simple way to parse hostnames and ports.
+// Supported formats are:
+//   - https://example.com:8080
+//   - https://example.com
+//   - tls://example.com:8080
+//   - tls://example.com
+//   - example.com:8080
+//   - example.com
+//
+// Hosts parsed here are expected to be TLS hosts, and the port defaults to 443.
 package hosts
 
 import (
