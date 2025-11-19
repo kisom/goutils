@@ -165,7 +165,7 @@ func certPublic(cert *x509.Certificate) string {
 	}
 }
 
-func displayName(name pkix.Name) string {
+func DisplayName(name pkix.Name) string {
 	var ns []string
 
 	if name.CommonName != "" {
@@ -270,8 +270,8 @@ func DisplayCert(w io.Writer, cert *x509.Certificate) {
 	if showHash {
 		fmt.Fprintln(w, wrap(fmt.Sprintf("SHA256: %x", sha256.Sum256(cert.Raw)), 0))
 	}
-	fmt.Fprintln(w, wrap("Subject: "+displayName(cert.Subject), 0))
-	fmt.Fprintln(w, wrap("Issuer: "+displayName(cert.Issuer), 0))
+	fmt.Fprintln(w, wrap("Subject: "+DisplayName(cert.Subject), 0))
+	fmt.Fprintln(w, wrap("Issuer: "+DisplayName(cert.Issuer), 0))
 	fmt.Fprintf(w, "\tSignature algorithm: %s / %s\n", sigAlgoPK(cert.SignatureAlgorithm),
 		sigAlgoHash(cert.SignatureAlgorithm))
 	fmt.Fprintln(w, "Details:")

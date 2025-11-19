@@ -5,28 +5,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"time"
 
 	"git.wntrmute.dev/kyle/goutils/certlib"
-	"git.wntrmute.dev/kyle/goutils/certlib/revoke"
+	"git.wntrmute.dev/kyle/goutils/certlib/verify"
+	"git.wntrmute.dev/kyle/goutils/die"
 	"git.wntrmute.dev/kyle/goutils/lib"
 )
-
-func printRevocation(cert *x509.Certificate) {
-	remaining := time.Until(cert.NotAfter)
-	fmt.Printf("certificate expires in %s.\n", lib.Duration(remaining))
-
-	revoked, ok := revoke.VerifyCertificate(cert)
-	if !ok {
-		fmt.Fprintf(os.Stderr, "[!] the revocation check failed (failed to determine whether certificate\nwas revoked)")
-		return
-	}
-
-	if revoked {
-		fmt.Fprintf(os.Stderr, "[!] the certificate has been revoked\n")
-		return
-	}
-}
 
 type appConfig struct {
 	caFile, intFile             string
@@ -46,107 +30,64 @@ func parseFlags() appConfig {
 	flag.BoolVar(&cfg.verbose, "v", false, "verbose")
 	lib.StrictTLSFlag(&cfg.strictTLS)
 	flag.Parse()
+
+	if flag.NArg() == 0 {
+		die.With("usage: certverify targets...")
+	}
+
 	return cfg
 }
 
-func loadRoots(caFile string, verbose bool) (*x509.CertPool, error) {
-	if caFile == "" {
-		return x509.SystemCertPool()
-	}
-
-	if verbose {
-		fmt.Println("[+] loading root certificates from", caFile)
-	}
-	return certlib.LoadPEMCertPool(caFile)
-}
-
-func loadIntermediates(intFile string, verbose bool) (*x509.CertPool, error) {
-	if intFile == "" {
-		return x509.NewCertPool(), nil
-	}
-	if verbose {
-		fmt.Println("[+] loading intermediate certificates from", intFile)
-	}
-	// Note: use intFile here (previously used caFile mistakenly)
-	return certlib.LoadPEMCertPool(intFile)
-}
-
-func addBundledIntermediates(chain []*x509.Certificate, pool *x509.CertPool, verbose bool) {
-	for _, intermediate := range chain[1:] {
-		if verbose {
-			fmt.Printf("[+] adding intermediate with SKI %x\n", intermediate.SubjectKeyId)
-		}
-		pool.AddCert(intermediate)
-	}
-}
-
-func verifyCert(cert *x509.Certificate, roots, ints *x509.CertPool) error {
-	opts := x509.VerifyOptions{
-		Intermediates: ints,
-		Roots:         roots,
-		KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
-	}
-	_, err := cert.Verify(opts)
-	return err
-}
-
-func run(cfg appConfig) error {
-	roots, err := loadRoots(cfg.caFile, cfg.verbose)
-	if err != nil {
-		return err
-	}
-
-	ints, err := loadIntermediates(cfg.intFile, cfg.verbose)
-	if err != nil {
-		return err
-	}
-
-	if flag.NArg() != 1 {
-		fmt.Fprintf(os.Stderr, "Usage: %s [-ca bundle] [-i bundle] cert", lib.ProgName())
-	}
-
-	combinedPool, err := certlib.LoadFullCertPool(cfg.caFile, cfg.intFile)
-	if err != nil {
-		return fmt.Errorf("failed to build combined pool: %w", err)
-	}
-
-	tlsCfg, err := lib.BaselineTLSConfig(cfg.skipVerify, cfg.strictTLS)
-	if err != nil {
-		return err
-	}
-	tlsCfg.RootCAs = combinedPool
-
-	chain, err := lib.GetCertificateChain(flag.Arg(0), tlsCfg)
-	if err != nil {
-		return err
-	}
-	if cfg.verbose {
-		fmt.Printf("[+] %s has %d certificates\n", flag.Arg(0), len(chain))
-	}
-
-	cert := chain[0]
-	if len(chain) > 1 && !cfg.forceIntermediateBundle {
-		addBundledIntermediates(chain, ints, cfg.verbose)
-	}
-
-	if err = verifyCert(cert, roots, ints); err != nil {
-		return fmt.Errorf("certificate verification failed: %w", err)
-	}
-
-	if cfg.verbose {
-		fmt.Println("OK")
-	}
-
-	if cfg.revexp {
-		printRevocation(cert)
-	}
-	return nil
-}
-
 func main() {
+	var (
+		roots, ints *x509.CertPool
+		err         error
+		failed      bool
+	)
+
 	cfg := parseFlags()
-	if err := run(cfg); err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
+
+	opts := &verify.Opts{
+		CheckRevocation:    cfg.revexp,
+		ForceIntermediates: cfg.forceIntermediateBundle,
+		Verbose:            cfg.verbose,
+	}
+
+	if cfg.caFile != "" {
+		if cfg.verbose {
+			fmt.Printf("loading CA certificates from %s\n", cfg.caFile)
+		}
+
+		roots, err = certlib.LoadPEMCertPool(cfg.caFile)
+		die.If(err)
+	}
+
+	if cfg.intFile != "" {
+		if cfg.verbose {
+			fmt.Printf("loading intermediate certificates from %s\n", cfg.intFile)
+		}
+
+		ints, err = certlib.LoadPEMCertPool(cfg.intFile)
+		die.If(err)
+	}
+
+	opts.Config, err = lib.BaselineTLSConfig(cfg.skipVerify, cfg.strictTLS)
+	die.If(err)
+
+	opts.Config.RootCAs = roots
+	opts.Intermediates = ints
+
+	for _, arg := range flag.Args() {
+		_, err = verify.Chain(os.Stdout, arg, opts)
+		if err != nil {
+			lib.Warn(err, "while verifying %s", arg)
+			failed = true
+		} else {
+			fmt.Printf("%s: OK\n", arg)
+		}
+	}
+
+	if failed {
 		os.Exit(1)
 	}
 }
