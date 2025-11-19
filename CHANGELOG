@@ -1,11 +1,15 @@
 CHANGELOG
 
-v1.14.7 - 2025-11-18
+v1.15.0 - 2025-11-19
 
 Changed:
+- lib: fetcher and dialer moved to separate packages.
 - cmd/ca-signed: cleaned up code internally.
 - lib: add base64 encoding to HexEncode.
 - linter fixes.
+
+Added:
+- certlib/certgen: add support for generating and signing certificates.
 
 v1.14.6 - 2025-11-18
 
