@@ -25,7 +25,7 @@ func main() {
 	conn, err := dialer.DialTLS(
 		context.Background(),
 		hostPort.String(),
-		dialer.DialerOpts{TLSConfig: &tls.Config{InsecureSkipVerify: true}},
+		dialer.Opts{TLSConfig: &tls.Config{InsecureSkipVerify: true}},
 	) // #nosec G402
 	die.If(err)
 

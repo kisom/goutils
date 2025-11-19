@@ -39,7 +39,7 @@ func main() {
 
 	revoke.HardFail = hardfail
 	// Build a proxy-aware HTTP client for OCSP/CRL fetches
-	if httpClient, err := dialer.NewHTTPClient(dialer.DialerOpts{Timeout: timeout}); err == nil {
+	if httpClient, err := dialer.NewHTTPClient(dialer.Opts{Timeout: timeout}); err == nil {
 		revoke.HTTPClient = httpClient
 	}
 
@@ -105,7 +105,7 @@ func checkSite(hostport string) (string, error) {
 	defer cancel()
 
 	// Use proxy-aware TLS dialer
-	conn, err := dialer.DialTLS(ctx, target.String(), dialer.DialerOpts{Timeout: timeout, TLSConfig: &tls.Config{
+	conn, err := dialer.DialTLS(ctx, target.String(), dialer.Opts{Timeout: timeout, TLSConfig: &tls.Config{
 		InsecureSkipVerify: true, // #nosec G402 -- CLI tool only verifies revocation
 		ServerName:         target.Host,
 	}})

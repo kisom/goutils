@@ -1,6 +1,10 @@
-package certlib
+package certlib_test
 
-import "testing"
+import (
+	"testing"
+
+	"git.wntrmute.dev/kyle/goutils/certlib"
+)
 
 var (
 	testCert1 = "testdata/cert1.pem"
@@ -16,25 +20,25 @@ type testCase struct {
 }
 
 var testCases = []testCase{
-	{"testdata/cert1.pem", "testdata/priv1.pem", true},
-	{"testdata/cert2.pem", "testdata/priv2.pem", true},
-	{"testdata/cert1.pem", "testdata/priv2.pem", false},
-	{"testdata/cert2.pem", "testdata/priv1.pem", false},
+	{testCert1, testPriv1, true},
+	{testCert2, testPriv2, true},
+	{testCert1, testPriv2, false},
+	{testCert2, testPriv1, false},
 }
 
 func TestMatchKeys(t *testing.T) {
 	for i, tc := range testCases {
-		cert, err := LoadCertificate(tc.cert)
+		cert, err := certlib.LoadCertificate(tc.cert)
 		if err != nil {
 			t.Fatalf("failed to load cert %d: %v", i, err)
 		}
 
-		priv, err := LoadPrivateKey(tc.key)
+		priv, err := certlib.LoadPrivateKey(tc.key)
 		if err != nil {
 			t.Fatalf("failed to load key %d: %v", i, err)
 		}
 
-		ok, _ := MatchKeys(cert, priv)
+		ok, _ := certlib.MatchKeys(cert, priv)
 		switch {
 		case ok && !tc.match:
 			t.Fatalf("case %d: cert %s/key %s should not match", i, tc.cert, tc.key)

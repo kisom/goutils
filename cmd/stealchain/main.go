@@ -43,7 +43,7 @@ func main() {
 		}
 
 		var conn *tls.Conn
-		conn, err = dialer.DialTLS(context.Background(), site, dialer.DialerOpts{TLSConfig: tlsCfg})
+		conn, err = dialer.DialTLS(context.Background(), site, dialer.Opts{TLSConfig: tlsCfg})
 		die.If(err)
 
 		cs := conn.ConnectionState()

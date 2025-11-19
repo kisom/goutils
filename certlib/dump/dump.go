@@ -54,8 +54,6 @@ var extKeyUsages = map[x509.ExtKeyUsage]string{
 	x509.ExtKeyUsageMicrosoftKernelCodeSigning:     "microsoft kernel code signing",
 }
 
-
-
 func sigAlgoPK(a x509.SignatureAlgorithm) string {
 	switch a {
 	case x509.MD2WithRSA, x509.MD5WithRSA, x509.SHA1WithRSA, x509.SHA256WithRSA, x509.SHA384WithRSA, x509.SHA512WithRSA:

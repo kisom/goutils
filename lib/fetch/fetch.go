@@ -67,7 +67,7 @@ func (sf *ServerFetcher) String() string {
 }
 
 func (sf *ServerFetcher) GetChain() ([]*x509.Certificate, error) {
-	opts := dialer.DialerOpts{
+	opts := dialer.Opts{
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: sf.insecure, // #nosec G402 - no shit sherlock
 			RootCAs:            sf.roots,

@@ -158,7 +158,11 @@ func (p Profile) templateFromRequest(req *x509.CertificateRequest) (*x509.Certif
 	return certTemplate, nil
 }
 
-func (p Profile) SignRequest(parent *x509.Certificate, req *x509.CertificateRequest, priv crypto.PrivateKey) (*x509.Certificate, error) {
+func (p Profile) SignRequest(
+	parent *x509.Certificate,
+	req *x509.CertificateRequest,
+	priv crypto.PrivateKey,
+) (*x509.Certificate, error) {
 	tpl, err := p.templateFromRequest(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create certificate template: %w", err)

@@ -1,5 +1,5 @@
-// Package lib contains reusable helpers. This file provides proxy-aware
-// dialers for plain TCP and TLS connections using environment variables.
+// Package dialer provides proxy-aware dialers for plain TCP and TLS
+// connections using environment variables.
 //
 // Supported proxy environment variables (checked case-insensitively):
 //   - SOCKS5_PROXY  (e.g., socks5://user:pass@host:1080)
@@ -66,7 +66,7 @@ func BaselineTLSConfig(skipVerify bool, secure bool) (*tls.Config, error) {
 
 var debug = dbg.NewFromEnv()
 
-// DialerOpts controls creation of proxy-aware dialers.
+// Opts controls creation of proxy-aware dialers.
 //
 // Timeout controls the maximum amount of time spent establishing the
 // underlying TCP connection and any proxy handshake. If zero, a
@@ -75,7 +75,7 @@ var debug = dbg.NewFromEnv()
 // TLSConfig is used by the TLS dialer to configure the TLS handshake to
 // the target endpoint. If TLSConfig.ServerName is empty, it will be set
 // from the host portion of the address passed to DialContext.
-type DialerOpts struct {
+type Opts struct {
 	Timeout   time.Duration
 	TLSConfig *tls.Config
 }
@@ -88,7 +88,7 @@ type ContextDialer interface {
 // DialTCP is a convenience helper that dials a TCP connection to address
 // using a proxy-aware dialer derived from opts. It honors SOCKS5_PROXY,
 // HTTPS_PROXY, and HTTP_PROXY environment variables.
-func DialTCP(ctx context.Context, address string, opts DialerOpts) (net.Conn, error) {
+func DialTCP(ctx context.Context, address string, opts Opts) (net.Conn, error) {
 	d, err := NewNetDialer(opts)
 	if err != nil {
 		return nil, err
@@ -100,7 +100,7 @@ func DialTCP(ctx context.Context, address string, opts DialerOpts) (net.Conn, er
 // address using a proxy-aware dialer derived from opts. It returns a *tls.Conn.
 // It honors SOCKS5_PROXY, HTTPS_PROXY, and HTTP_PROXY environment variables and
 // uses opts.TLSConfig for the handshake (filling ServerName from address if empty).
-func DialTLS(ctx context.Context, address string, opts DialerOpts) (*tls.Conn, error) {
+func DialTLS(ctx context.Context, address string, opts Opts) (*tls.Conn, error) {
 	d, err := NewTLSDialer(opts)
 	if err != nil {
 		return nil, err
@@ -123,7 +123,7 @@ func DialTLS(ctx context.Context, address string, opts DialerOpts) (*tls.Conn, e
 // proxies discovered from the environment (SOCKS5_PROXY, HTTPS_PROXY, HTTP_PROXY).
 // The returned dialer supports context cancellation for direct and HTTP(S)
 // proxies and applies the configured timeout to connection/proxy handshake.
-func NewNetDialer(opts DialerOpts) (ContextDialer, error) {
+func NewNetDialer(opts Opts) (ContextDialer, error) {
 	if opts.Timeout <= 0 {
 		opts.Timeout = 30 * time.Second
 	}
@@ -165,7 +165,7 @@ func NewNetDialer(opts DialerOpts) (ContextDialer, error) {
 //
 // The returned dialer performs proxy negotiation (if any), then completes a
 // TLS handshake to the target using opts.TLSConfig.
-func NewTLSDialer(opts DialerOpts) (ContextDialer, error) {
+func NewTLSDialer(opts Opts) (ContextDialer, error) {
 	if opts.Timeout <= 0 {
 		opts.Timeout = 30 * time.Second
 	}
@@ -247,7 +247,7 @@ func getProxyURLFromEnv(name string) *url.URL {
 //     HTTPS_PROXY, and NO_PROXY/no_proxy.
 //   - Connection and TLS handshake timeouts are derived from opts.Timeout.
 //   - For HTTPS targets, opts.TLSConfig is applied to the transport.
-func NewHTTPClient(opts DialerOpts) (*http.Client, error) {
+func NewHTTPClient(opts Opts) (*http.Client, error) {
 	if opts.Timeout <= 0 {
 		opts.Timeout = 30 * time.Second
 	}
@@ -422,7 +422,7 @@ func drainHeaders(br *bufio.Reader) error {
 }
 
 // newSOCKS5Dialer builds a context-aware wrapper over the x/net/proxy dialer.
-func newSOCKS5Dialer(u *url.URL, opts DialerOpts) (ContextDialer, error) {
+func newSOCKS5Dialer(u *url.URL, opts Opts) (ContextDialer, error) {
 	var auth *xproxy.Auth
 	if u.User != nil {
 		user := u.User.Username()
@@ -468,8 +468,8 @@ func (s *socks5ContextDialer) DialContext(ctx context.Context, network, address 
 
 // tlsWrappingDialer performs a TLS handshake over an existing base dialer.
 type tlsWrappingDialer struct {
-	base ContextDialer
-	tcfg *tls.Config
+	base    ContextDialer
+	tcfg    *tls.Config
 	timeout time.Duration
 }
 

@@ -3,6 +3,7 @@ package lib
 import (
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -118,6 +119,8 @@ func IsDigit(b byte) bool {
 	return b >= '0' && b <= '9'
 }
 
+const signedaMask64 = 1<<63 - 1
+
 // ParseDuration parses a duration string into a time.Duration.
 // It supports standard units (ns, us/µs, ms, s, m, h) plus extended units:
 // d (days, 24h), w (weeks, 7d), y (years, 365d).
@@ -127,7 +130,7 @@ func IsDigit(b byte) bool {
 func ParseDuration(s string) (time.Duration, error) {
 	s = strings.ToLower(s) // Normalize to lowercase for case-insensitivity.
 	if s == "" {
-		return 0, fmt.Errorf("empty duration string")
+		return 0, errors.New("empty duration string")
 	}
 
 	var total time.Duration
@@ -165,23 +168,24 @@ func ParseDuration(s string) (time.Duration, error) {
 		var d time.Duration
 		switch unit {
 		case "ns":
-			d = time.Nanosecond * time.Duration(num)
+			d = time.Nanosecond * time.Duration(num&signedaMask64) // #nosec G115 - masked off
 		case "us", "µs":
-			d = time.Microsecond * time.Duration(num)
+			d = time.Microsecond * time.Duration(num&signedaMask64) // #nosec G115 - masked off
 		case "ms":
-			d = time.Millisecond * time.Duration(num)
+			d = time.Millisecond * time.Duration(num&signedaMask64) // #nosec G115 - masked off
 		case "s":
-			d = time.Second * time.Duration(num)
+			d = time.Second * time.Duration(num&signedaMask64) // #nosec G115 - masked off
 		case "m":
-			d = time.Minute * time.Duration(num)
+			d = time.Minute * time.Duration(num&signedaMask64) // #nosec G115 - masked off
 		case "h":
-			d = time.Hour * time.Duration(num)
+			d = time.Hour * time.Duration(num&signedaMask64) // #nosec G115 - masked off
 		case "d":
-			d = 24 * time.Hour * time.Duration(num)
+			d = 24 * time.Hour * time.Duration(num&signedaMask64) // #nosec G115 - masked off
 		case "w":
-			d = 7 * 24 * time.Hour * time.Duration(num)
+			d = 7 * 24 * time.Hour * time.Duration(num&signedaMask64) // #nosec G115 - masked off
 		case "y":
-			d = 365 * 24 * time.Hour * time.Duration(num) // Approximate, non-leap year.
+			// Approximate, non-leap year.
+			d = 365 * 24 * time.Hour * time.Duration(num&signedaMask64) // #nosec G115 - masked off;
 		default:
 			return 0, fmt.Errorf("unknown unit %q at position %d", s[unitStart:i], unitStart)
 		}

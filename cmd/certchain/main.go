@@ -25,7 +25,11 @@ func main() {
 		}
 
 		// Use proxy-aware TLS dialer
-		conn, err := dialer.DialTLS(context.Background(), server, dialer.DialerOpts{TLSConfig: &tls.Config{}}) // #nosec G402
+		conn, err := dialer.DialTLS(
+			context.Background(),
+			server,
+			dialer.Opts{TLSConfig: &tls.Config{}},
+		) // #nosec G402
 		die.If(err)
 
 		defer conn.Close()

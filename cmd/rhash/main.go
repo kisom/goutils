@@ -85,7 +85,7 @@ func main() {
 			continue
 		}
 		// Use proxy-aware HTTP client with a reasonable timeout for connects/handshakes
-		httpClient, err := dialer.NewHTTPClient(dialer.DialerOpts{Timeout: 30 * time.Second})
+		httpClient, err := dialer.NewHTTPClient(dialer.Opts{Timeout: 30 * time.Second})
 		if err != nil {
 			_, _ = lib.Warn(err, "building HTTP client for %s", remote)
 			continue

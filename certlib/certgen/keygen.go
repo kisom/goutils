@@ -8,14 +8,13 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
-	"encoding/asn1"
 	"errors"
 	"fmt"
 )
 
-var (
-	oidEd25519 = asn1.ObjectIdentifier{1, 3, 101, 110}
-)
+// var (
+//	oidEd25519 = asn1.ObjectIdentifier{1, 3, 101, 110}
+//)
 
 func GenerateKey(algorithm x509.PublicKeyAlgorithm, bitSize int) (crypto.PublicKey, crypto.PrivateKey, error) {
 	var key crypto.PrivateKey
@@ -28,7 +27,12 @@ func GenerateKey(algorithm x509.PublicKeyAlgorithm, bitSize int) (crypto.PublicK
 	case x509.Ed25519:
 		key, err = rsa.GenerateKey(rand.Reader, bitSize)
 		if err == nil {
-			pub = key.(*rsa.PrivateKey).Public()
+			rsaPriv, ok := key.(*rsa.PrivateKey)
+			if !ok {
+				panic("failed to cast RSA private key to *rsa.PrivateKey")
+			}
+
+			pub = rsaPriv.Public()
 		}
 	case x509.ECDSA:
 		var curve elliptic.Curve
@@ -46,8 +50,17 @@ func GenerateKey(algorithm x509.PublicKeyAlgorithm, bitSize int) (crypto.PublicK
 
 		key, err = ecdsa.GenerateKey(curve, rand.Reader)
 		if err == nil {
-			pub = key.(*ecdsa.PrivateKey).Public()
+			ecPriv, ok := key.(*ecdsa.PrivateKey)
+			if !ok {
+				panic("failed to cast ECDSA private key to *ecdsa.PrivateKey")
+			}
+
+			pub = ecPriv.Public()
 		}
+	case x509.DSA:
+		fallthrough
+	case x509.UnknownPublicKeyAlgorithm:
+		fallthrough
 	default:
 		err = errors.New("unsupported algorithm")
 	}
