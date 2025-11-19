@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"git.wntrmute.dev/kyle/goutils/certlib/certerr"
 )
@@ -134,4 +135,76 @@ func LoadCSR(path string) (*x509.CertificateRequest, error) {
 
 func ExportCSRAsPEM(req *x509.CertificateRequest) []byte {
 	return pem.EncodeToMemory(&pem.Block{Type: pemTypeCertificateRequest, Bytes: req.Raw})
+}
+
+type FileFormat uint8
+
+const (
+	FormatPEM FileFormat = iota + 1
+	FormatDER
+)
+
+func (f FileFormat) String() string {
+	switch f {
+	case FormatPEM:
+		return "PEM"
+	case FormatDER:
+		return "DER"
+	default:
+		return "unknown"
+	}
+}
+
+type FileType struct {
+	Format FileFormat
+	Type   string
+}
+
+func (ft FileType) String() string {
+	if ft.Type == "" {
+		return ft.Format.String()
+	}
+	return fmt.Sprintf("%s (%s)", ft.Type, ft.Format)
+}
+
+// FileKind returns the file type of the given file.
+func FileKind(path string) (*FileType, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	block, _ := pem.Decode(data)
+	if block != nil {
+		return &FileType{
+			Format: FormatPEM,
+			Type:   strings.ToLower(strings.TrimSpace(block.Type)),
+		}, nil
+	}
+
+	_, err = x509.ParseCertificate(data)
+	if err == nil {
+		return &FileType{
+			Format: FormatDER,
+			Type:   strings.ToLower(pemTypeCertificate),
+		}, nil
+	}
+
+	_, err = x509.ParseCertificateRequest(data)
+	if err == nil {
+		return &FileType{
+			Format: FormatDER,
+			Type:   strings.ToLower(pemTypeCertificateRequest),
+		}, nil
+	}
+
+	_, err = x509.ParsePKCS8PrivateKey(data)
+	if err == nil {
+		return &FileType{
+			Format: FormatDER,
+			Type:   strings.ToLower(pemTypePrivateKey),
+		}, nil
+	}
+
+	return nil, errors.New("certlib; unknown file type")
 }
