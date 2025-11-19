@@ -63,12 +63,7 @@ type CertificateRequest struct {
 	Profile Profile `yaml:"profile"`
 }
 
-func (cs CertificateRequest) Generate() (crypto.PrivateKey, *x509.CertificateRequest, error) {
-	pub, priv, err := cs.KeySpec.Generate()
-	if err != nil {
-		return nil, nil, err
-	}
-
+func (cs CertificateRequest) Request(priv crypto.PrivateKey) (*x509.CertificateRequest, error) {
 	subject := pkix.Name{}
 	subject.CommonName = cs.Subject.CommonName
 	subject.Country = []string{cs.Subject.Country}
@@ -81,13 +76,13 @@ func (cs CertificateRequest) Generate() (crypto.PrivateKey, *x509.CertificateReq
 	for i, ip := range cs.Subject.IPAddresses {
 		ipAddresses = append(ipAddresses, net.ParseIP(ip))
 		if ipAddresses[i] == nil {
-			return nil, nil, fmt.Errorf("invalid IP address: %s", ip)
+			return nil, fmt.Errorf("invalid IP address: %s", ip)
 		}
 	}
 
 	req := &x509.CertificateRequest{
 		PublicKeyAlgorithm: 0,
-		PublicKey:          pub,
+		PublicKey:          getPublic(priv),
 		Subject:            subject,
 		DNSNames:           cs.Subject.DNSNames,
 		IPAddresses:        ipAddresses,
@@ -95,12 +90,26 @@ func (cs CertificateRequest) Generate() (crypto.PrivateKey, *x509.CertificateReq
 
 	reqBytes, err := x509.CreateCertificateRequest(rand.Reader, req, priv)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create certificate request: %w", err)
+		return nil, fmt.Errorf("failed to create certificate request: %w", err)
 	}
 
 	req, err = x509.ParseCertificateRequest(reqBytes)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to parse certificate request: %w", err)
+		return nil, fmt.Errorf("failed to parse certificate request: %w", err)
+	}
+
+	return req, nil
+}
+
+func (cs CertificateRequest) Generate() (crypto.PrivateKey, *x509.CertificateRequest, error) {
+	_, priv, err := cs.KeySpec.Generate()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := cs.Request(priv)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	return priv, req, nil

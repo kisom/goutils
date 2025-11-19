@@ -71,3 +71,16 @@ func GenerateKey(algorithm x509.PublicKeyAlgorithm, bitSize int) (crypto.PublicK
 
 	return pub, key, nil
 }
+
+func getPublic(priv crypto.PrivateKey) crypto.PublicKey {
+	switch priv := priv.(type) {
+	case *rsa.PrivateKey:
+		return &priv.PublicKey
+	case *ecdsa.PrivateKey:
+		return &priv.PublicKey
+	case *ed25519.PrivateKey:
+		return priv.Public()
+	default:
+		return nil
+	}
+}

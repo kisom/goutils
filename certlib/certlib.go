@@ -131,3 +131,7 @@ func LoadCSR(path string) (*x509.CertificateRequest, error) {
 	req, _, err := ParseCSR(in)
 	return req, err
 }
+
+func ExportCSRAsPEM(req *x509.CertificateRequest) []byte {
+	return pem.EncodeToMemory(&pem.Block{Type: pemTypeCertificateRequest, Bytes: req.Raw})
+}

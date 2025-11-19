@@ -76,8 +76,9 @@ var DelegationExtension = pkix.Extension{
 }
 
 const (
-	pemTypeCertificate = "CERTIFICATE"
-	pemTypePrivateKey  = "PRIVATE KEY"
+	pemTypeCertificate        = "CERTIFICATE"
+	pemTypeCertificateRequest = "CERTIFICATE REQUEST"
+	pemTypePrivateKey         = "PRIVATE KEY"
 )
 
 // InclusiveDate returns the time.Time representation of a date - 1
