@@ -3,6 +3,11 @@ package certlib
 import (
 	"bytes"
 	"crypto"
+	"crypto/dsa"
+	"crypto/ecdsa"
+	"crypto/ed25519"
+	"crypto/elliptic"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
@@ -155,16 +160,102 @@ func (f FileFormat) String() string {
 	}
 }
 
+type KeyAlgo struct {
+	Type  x509.PublicKeyAlgorithm
+	Size  int
+	curve elliptic.Curve
+}
+
+func (ka KeyAlgo) String() string {
+	switch ka.Type {
+	case x509.RSA:
+		return fmt.Sprintf("RSA-%d", ka.Size)
+	case x509.ECDSA:
+		return fmt.Sprintf("ECDSA-%s", ka.curve.Params().Name)
+	case x509.Ed25519:
+		return "Ed25519"
+	case x509.DSA:
+		return "DSA"
+	default:
+		return "unknown"
+	}
+}
+
+func publicKeyAlgoFromPublicKey(key crypto.PublicKey) KeyAlgo {
+	switch key := key.(type) {
+	case *rsa.PublicKey:
+		return KeyAlgo{
+			Type: x509.RSA,
+			Size: key.N.BitLen(),
+		}
+	case *ecdsa.PublicKey:
+		return KeyAlgo{
+			Type:  x509.ECDSA,
+			curve: key.Curve,
+			Size:  key.Params().BitSize,
+		}
+	case *ed25519.PublicKey:
+		return KeyAlgo{
+			Type: x509.Ed25519,
+		}
+	case *dsa.PublicKey:
+		return KeyAlgo{
+			Type: x509.DSA,
+		}
+	default:
+		return KeyAlgo{
+			Type: x509.UnknownPublicKeyAlgorithm,
+		}
+	}
+}
+
+func publicKeyAlgoFromKey(key crypto.PrivateKey) KeyAlgo {
+	switch key := key.(type) {
+	case *rsa.PrivateKey:
+		return KeyAlgo{
+			Type: x509.RSA,
+			Size: key.PublicKey.N.BitLen(),
+		}
+	case *ecdsa.PrivateKey:
+		return KeyAlgo{
+			Type:  x509.ECDSA,
+			curve: key.PublicKey.Curve,
+			Size:  key.Params().BitSize,
+		}
+	case *ed25519.PrivateKey:
+		return KeyAlgo{
+			Type: x509.Ed25519,
+		}
+	case *dsa.PrivateKey:
+		return KeyAlgo{
+			Type: x509.DSA,
+		}
+	default:
+		return KeyAlgo{
+			Type: x509.UnknownPublicKeyAlgorithm,
+		}
+	}
+}
+
+func publicKeyAlgoFromCert(cert *x509.Certificate) KeyAlgo {
+	return publicKeyAlgoFromPublicKey(cert.PublicKey)
+}
+
+func publicKeyAlgoFromCSR(csr *x509.CertificateRequest) KeyAlgo {
+	return publicKeyAlgoFromPublicKey(csr.PublicKeyAlgorithm)
+}
+
 type FileType struct {
 	Format FileFormat
 	Type   string
+	Algo   KeyAlgo
 }
 
 func (ft FileType) String() string {
 	if ft.Type == "" {
 		return ft.Format.String()
 	}
-	return fmt.Sprintf("%s (%s)", ft.Type, ft.Format)
+	return fmt.Sprintf("%s %s (%s)", ft.Algo, ft.Type, ft.Format)
 }
 
 // FileKind returns the file type of the given file.
@@ -174,36 +265,31 @@ func FileKind(path string) (*FileType, error) {
 		return nil, err
 	}
 
+	ft := &FileType{Format: FormatDER}
+
 	block, _ := pem.Decode(data)
 	if block != nil {
-		return &FileType{
-			Format: FormatPEM,
-			Type:   strings.ToLower(strings.TrimSpace(block.Type)),
-		}, nil
+		data = block.Bytes
+		ft.Type = strings.ToLower(block.Type)
+		ft.Format = FormatPEM
+	}
+	
+	cert, err := x509.ParseCertificate(data)
+	if err == nil {
+		ft.Algo = publicKeyAlgoFromCert(cert)
+		return ft, nil
 	}
 
-	_, err = x509.ParseCertificate(data)
+	csr, err := x509.ParseCertificateRequest(data)
 	if err == nil {
-		return &FileType{
-			Format: FormatDER,
-			Type:   strings.ToLower(pemTypeCertificate),
-		}, nil
+		ft.Algo = publicKeyAlgoFromCSR(csr)
+		return ft, nil
 	}
 
-	_, err = x509.ParseCertificateRequest(data)
+	priv, err := x509.ParsePKCS8PrivateKey(data)
 	if err == nil {
-		return &FileType{
-			Format: FormatDER,
-			Type:   strings.ToLower(pemTypeCertificateRequest),
-		}, nil
-	}
-
-	_, err = x509.ParsePKCS8PrivateKey(data)
-	if err == nil {
-		return &FileType{
-			Format: FormatDER,
-			Type:   strings.ToLower(pemTypePrivateKey),
-		}, nil
+		ft.Algo = publicKeyAlgoFromKey(priv)
+		return ft, nil
 	}
 
 	return nil, errors.New("certlib; unknown file type")

@@ -1,0 +1,13 @@
+key:
+  algorithm: ed25519
+  size: 4096
+subject:
+  common_name: WNTRMUTE TEST RSA CA 1
+  country: US
+  organization: WNTRMUTE HEAVY INDUSTRIES
+  organizational_unit: CRYPTOGRAPHIC SERVICES
+profile:
+  is_ca: true
+  path_len: 3
+  key_uses: cert sign
+  expiry: 20y

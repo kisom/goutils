@@ -1,0 +1,13 @@
+key:
+  algorithm: ecdsa
+  size: 521
+subject:
+  common_name: WNTRMUTE TEST EC CA 1
+  country: US
+  organization: WNTRMUTE HEAVY INDUSTRIES
+  organizational_unit: CRYPTOGRAPHIC SERVICES
+profile:
+  is_ca: true
+  path_len: 3
+  key_uses: cert sign
+  expiry: 20y

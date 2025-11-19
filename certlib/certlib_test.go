@@ -2,7 +2,10 @@
 package certlib
 
 import (
+	"crypto/elliptic"
+	"crypto/x509"
 	"fmt"
+	"strings"
 	"testing"
 
 	"git.wntrmute.dev/kyle/goutils/assert"
@@ -136,5 +139,35 @@ func TestReadCertificates(t *testing.T) {
 	assert.BoolT(t, len(certs) == 3, fmt.Sprintf("lib: expected three certificates, have %d", len(certs)))
 	for _, cert := range certs {
 		assert.BoolT(t, cert != nil, "lib: expected an actual certificate to have been returned")
+	}
+}
+
+var (
+	ecTestCACert = "testdata/ec-ca-cert.pem"
+	ecTestCAPriv = "testdata/ec-ca-priv.pem"
+	ecTestCAReq  = "testdata/ec-ca-cert.csr"
+)
+
+func TestFileTypeEC(t *testing.T) {
+	ft, err := FileKind(ecTestCAPriv)
+	assert.NoErrorT(t, err)
+
+	if ft.Format != FormatPEM {
+		t.Errorf("certlib: expected format '%s', got '%s'", FormatPEM, ft.Format)
+	}
+
+	if ft.Type != strings.ToLower(pemTypePrivateKey) {
+		t.Errorf("certlib: expected type '%s', got '%s'",
+			strings.ToLower(pemTypePrivateKey), ft.Type)
+	}
+
+	expectedAlgo := KeyAlgo{
+		Type:  x509.ECDSA,
+		Size:  521,
+		curve: elliptic.P521(),
+	}
+
+	if ft.Algo.String() != expectedAlgo.String() {
+		t.Errorf("certlib: expected algo '%s', got '%s'", expectedAlgo, ft.Algo)
 	}
 }
