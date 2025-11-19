@@ -48,7 +48,9 @@ func prepareVerification(w io.Writer, target string, opts *Opts) (*verifyResult,
 			Config:             lib.StrictBaselineTLSConfig(),
 			ForceIntermediates: false,
 		}
+	}
 
+	if opts.Config.RootCAs == nil {
 		roots, err = x509.SystemCertPool()
 		if err != nil {
 			return nil, fmt.Errorf("couldn't load system cert pool: %w", err)
