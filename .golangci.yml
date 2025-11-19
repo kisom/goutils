@@ -247,11 +247,12 @@ linters:
       # Default: false
       check-type-assertions: true
       exclude-functions:
-        - (*git.wntrmute.dev/kyle/goutils/sbuf.Buffer).Write
+        - (*git.wntrmute.dev/kyle/goutils/dbg.DebugPrinter).Write
         - git.wntrmute.dev/kyle/goutils/lib.Warn
         - git.wntrmute.dev/kyle/goutils/lib.Warnx
         - git.wntrmute.dev/kyle/goutils/lib.Err
         - git.wntrmute.dev/kyle/goutils/lib.Errx
+        - (*git.wntrmute.dev/kyle/goutils/sbuf.Buffer).Write
 
     exhaustive:
       # Program elements to check for exhaustiveness.

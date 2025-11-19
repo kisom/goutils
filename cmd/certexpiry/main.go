@@ -63,6 +63,7 @@ func checkCert(cert *x509.Certificate) {
 	warn := inDanger(cert)
 	name := displayName(cert.Subject)
 	name = fmt.Sprintf("%s/SN=%s", name, cert.SerialNumber)
+
 	expiry := expires(cert)
 	if warnOnly {
 		if warn {
@@ -74,15 +75,22 @@ func checkCert(cert *x509.Certificate) {
 }
 
 func main() {
-	opts := &lib.FetcherOpts{}
+	var skipVerify bool
+	var strictTLS bool
+	lib.StrictTLSFlag(&strictTLS)
 
-	flag.BoolVar(&opts.SkipVerify, "k", false, "skip server verification")
+	flag.BoolVar(&skipVerify, "k", false, "skip server verification") // #nosec G402
 	flag.BoolVar(&warnOnly, "q", false, "only warn about expiring certs")
 	flag.DurationVar(&leeway, "t", leeway, "warn if certificates are closer than this to expiring")
 	flag.Parse()
 
+	tlsCfg, err := lib.BaselineTLSConfig(skipVerify, strictTLS)
+	die.If(err)
+
 	for _, file := range flag.Args() {
-		certs, err := lib.GetCertificateChain(file, opts)
+		var certs []*x509.Certificate
+
+		certs, err = lib.GetCertificateChain(file, tlsCfg)
 		if err != nil {
 			_, _ = lib.Warn(err, "while parsing certificates")
 			continue

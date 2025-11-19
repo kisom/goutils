@@ -14,18 +14,8 @@ import (
 	"git.wntrmute.dev/kyle/goutils/fileutil"
 )
 
-// FetcherOpts are options for fetching certificates. They are only applicable to ServerFetcher.
-type FetcherOpts struct {
-	SkipVerify bool
-	Roots      *x509.CertPool
-}
-
-func (fo *FetcherOpts) TLSConfig() *tls.Config {
-	return &tls.Config{
-		InsecureSkipVerify: fo.SkipVerify, // #nosec G402 - intentional
-		RootCAs:            fo.Roots,
-	}
-}
+// Note: Previously this package exposed a FetcherOpts type. It has been
+// refactored to use *tls.Config directly for configuring TLS behavior.
 
 // Fetcher is an interface for fetching certificates from a remote source. It
 // currently supports fetching from a server or a file.
@@ -143,7 +133,10 @@ func (ff *FileFetcher) Get() (*x509.Certificate, error) {
 }
 
 // GetCertificateChain fetches a certificate chain from a remote source.
-func GetCertificateChain(spec string, opts *FetcherOpts) ([]*x509.Certificate, error) {
+// If cfg is non-nil and spec refers to a TLS server, the provided TLS
+// configuration will be used to control verification behavior (e.g.,
+// InsecureSkipVerify, RootCAs).
+func GetCertificateChain(spec string, cfg *tls.Config) ([]*x509.Certificate, error) {
 	if fileutil.FileDoesExist(spec) {
 		return NewFileFetcher(spec).GetChain()
 	}
@@ -153,17 +146,17 @@ func GetCertificateChain(spec string, opts *FetcherOpts) ([]*x509.Certificate, e
 		return nil, err
 	}
 
-	if opts != nil {
-		fetcher.insecure = opts.SkipVerify
-		fetcher.roots = opts.Roots
+	if cfg != nil {
+		fetcher.insecure = cfg.InsecureSkipVerify
+		fetcher.roots = cfg.RootCAs
 	}
 
 	return fetcher.GetChain()
 }
 
 // GetCertificate fetches the first certificate from a certificate chain.
-func GetCertificate(spec string, opts *FetcherOpts) (*x509.Certificate, error) {
-	certs, err := GetCertificateChain(spec, opts)
+func GetCertificate(spec string, cfg *tls.Config) (*x509.Certificate, error) {
+	certs, err := GetCertificateChain(spec, cfg)
 	if err != nil {
 		return nil, err
 	}

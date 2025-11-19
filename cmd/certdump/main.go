@@ -7,6 +7,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"flag"
@@ -350,14 +351,11 @@ func main() {
 	flag.BoolVar(&leafOnly, "l", false, "only show the leaf certificate")
 	flag.Parse()
 
-	opts := &lib.FetcherOpts{
-		SkipVerify: true,
-		Roots:      nil,
-	}
+	tlsCfg := &tls.Config{InsecureSkipVerify: true} // #nosec G402 - tool intentionally inspects broken TLS
 
 	for _, filename := range flag.Args() {
 		fmt.Fprintf(os.Stdout, "--%s ---%s", filename, "\n")
-		certs, err := lib.GetCertificateChain(filename, opts)
+		certs, err := lib.GetCertificateChain(filename, tlsCfg)
 		if err != nil {
 			_, _ = lib.Warn(err, "couldn't read certificate")
 			continue

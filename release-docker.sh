@@ -45,7 +45,7 @@ fi
 
 # Use the first tag if multiple are present; warn the user.
 # Avoid readarray for broader Bash compatibility (e.g., macOS Bash 3.2).
-TAG_ARRAY=($TAGS)
+TAG_ARRAY=("$TAGS")
 TAG="${TAG_ARRAY[0]}"
 
 if (( ${#TAG_ARRAY[@]} > 1 )); then

@@ -20,6 +20,7 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"errors"
+	"flag"
 	"fmt"
 	"net"
 	"net/http"
@@ -29,7 +30,41 @@ import (
 	"time"
 
 	xproxy "golang.org/x/net/proxy"
+
+	"git.wntrmute.dev/kyle/goutils/dbg"
 )
+
+// StrictBaselineTLSConfig returns a secure TLS config.
+// Many of the tools in this repo are designed to debug broken TLS systems
+// and therefore explicitly support old or insecure TLS setups.
+func StrictBaselineTLSConfig() *tls.Config {
+	return &tls.Config{
+		MinVersion:         tls.VersionTLS12,
+		InsecureSkipVerify: false, // explicitly set
+	}
+}
+
+func StrictTLSFlag(useStrict *bool) {
+	flag.BoolVar(useStrict, "strict-tls", false, "Use strict TLS configuration (disables certificate verification)")
+}
+
+func BaselineTLSConfig(skipVerify bool, secure bool) (*tls.Config, error) {
+	if secure && skipVerify {
+		return nil, errors.New("cannot skip verification and use secure TLS")
+	}
+
+	if skipVerify {
+		return &tls.Config{InsecureSkipVerify: true}, nil // #nosec G402 - intentional
+	}
+
+	if secure {
+		return StrictBaselineTLSConfig(), nil
+	}
+
+	return &tls.Config{}, nil // #nosec G402 - intentional
+}
+
+var debug = dbg.NewFromEnv()
 
 // DialerOpts controls creation of proxy-aware dialers.
 //
@@ -94,24 +129,30 @@ func NewNetDialer(opts DialerOpts) (ContextDialer, error) {
 	}
 
 	if u := getProxyURLFromEnv("SOCKS5_PROXY"); u != nil {
+		debug.Printf("using SOCKS5 proxy %q\n", u)
 		return newSOCKS5Dialer(u, opts)
 	}
 
 	if u := getProxyURLFromEnv("HTTPS_PROXY"); u != nil {
+		// Respect the proxy URL scheme. Zscaler may set HTTPS_PROXY to an HTTP proxy
+		// running locally; in that case we must NOT TLS-wrap the proxy connection.
+		debug.Printf("using HTTPS proxy %q\n", u)
 		return &httpProxyDialer{
 			proxyURL: u,
 			timeout:  opts.Timeout,
-			secure:   true,
+			secure:   strings.EqualFold(u.Scheme, "https"),
 			config:   opts.TLSConfig,
 		}, nil
 	}
 
 	if u := getProxyURLFromEnv("HTTP_PROXY"); u != nil {
+		debug.Printf("using HTTP proxy %q\n", u)
 		return &httpProxyDialer{
 			proxyURL: u,
 			timeout:  opts.Timeout,
-			secure:   true,
-			config:   opts.TLSConfig,
+			// Only TLS-wrap the proxy connection if the URL scheme is https.
+			secure: strings.EqualFold(u.Scheme, "https"),
+			config: opts.TLSConfig,
 		}, nil
 	}
 
@@ -131,6 +172,7 @@ func NewTLSDialer(opts DialerOpts) (ContextDialer, error) {
 
 	// Prefer SOCKS5 if present.
 	if u := getProxyURLFromEnv("SOCKS5_PROXY"); u != nil {
+		debug.Printf("using SOCKS5 proxy %q\n", u)
 		base, err := newSOCKS5Dialer(u, opts)
 		if err != nil {
 			return nil, err
@@ -140,19 +182,22 @@ func NewTLSDialer(opts DialerOpts) (ContextDialer, error) {
 
 	// For TLS, prefer HTTPS proxy over HTTP if both set.
 	if u := getProxyURLFromEnv("HTTPS_PROXY"); u != nil {
+		debug.Printf("using HTTPS proxy %q\n", u)
 		base := &httpProxyDialer{
 			proxyURL: u,
 			timeout:  opts.Timeout,
-			secure:   true,
+			secure:   strings.EqualFold(u.Scheme, "https"),
 			config:   opts.TLSConfig,
 		}
 		return &tlsWrappingDialer{base: base, tcfg: opts.TLSConfig, timeout: opts.Timeout}, nil
 	}
+
 	if u := getProxyURLFromEnv("HTTP_PROXY"); u != nil {
+		debug.Printf("using HTTP proxy %q\n", u)
 		base := &httpProxyDialer{
 			proxyURL: u,
 			timeout:  opts.Timeout,
-			secure:   true,
+			secure:   strings.EqualFold(u.Scheme, "https"),
 			config:   opts.TLSConfig,
 		}
 		return &tlsWrappingDialer{base: base, tcfg: opts.TLSConfig, timeout: opts.Timeout}, nil
@@ -246,13 +291,8 @@ type httpProxyDialer struct {
 	config   *tls.Config
 }
 
-func (d *httpProxyDialer) DialContext(ctx context.Context, network, address string) (net.Conn, error) {
-	if !strings.HasPrefix(network, "tcp") {
-		return nil, fmt.Errorf("http proxy dialer only supports TCP, got %q", network)
-	}
-
-	// Dial to proxy
-	var nd = &net.Dialer{Timeout: d.timeout}
+// proxyAddress returns host:port for the proxy, applying defaults by scheme when missing.
+func (d *httpProxyDialer) proxyAddress() string {
 	proxyAddr := d.proxyURL.Host
 	if !strings.Contains(proxyAddr, ":") {
 		if d.secure {
@@ -261,7 +301,61 @@ func (d *httpProxyDialer) DialContext(ctx context.Context, network, address stri
 			proxyAddr += ":80"
 		}
 	}
-	conn, err := nd.DialContext(ctx, "tcp", proxyAddr)
+	return proxyAddr
+}
+
+// tlsWrapProxyConn performs a TLS handshake to the proxy when d.secure is true.
+// It clones the provided tls.Config (if any), ensures ServerName and a safe
+// minimum TLS version.
+func (d *httpProxyDialer) tlsWrapProxyConn(ctx context.Context, conn net.Conn) (net.Conn, error) {
+	host := d.proxyURL.Hostname()
+	// Clone provided config (if any) to avoid mutating caller's config.
+	cfg := &tls.Config{} // #nosec G402 - intentional
+	if d.config != nil {
+		cfg = d.config.Clone()
+	}
+
+	if cfg.ServerName == "" {
+		cfg.ServerName = host
+	}
+
+	tlsConn := tls.Client(conn, cfg)
+	if err := tlsConn.HandshakeContext(ctx); err != nil {
+		_ = conn.Close()
+		return nil, fmt.Errorf("tls handshake with https proxy failed: %w", err)
+	}
+	return tlsConn, nil
+}
+
+// readConnectResponse reads and validates the proxy's response to a CONNECT
+// request. It returns nil on a 200 status and an error otherwise.
+func readConnectResponse(br *bufio.Reader) error {
+	statusLine, err := br.ReadString('\n')
+	if err != nil {
+		return fmt.Errorf("failed to read CONNECT response: %w", err)
+	}
+
+	if !strings.HasPrefix(statusLine, "HTTP/") {
+		return fmt.Errorf("invalid proxy response: %q", strings.TrimSpace(statusLine))
+	}
+
+	if !strings.Contains(statusLine, " 200 ") && !strings.HasSuffix(strings.TrimSpace(statusLine), " 200") {
+		// Drain headers for context
+		_ = drainHeaders(br)
+		return fmt.Errorf("proxy CONNECT failed: %s", strings.TrimSpace(statusLine))
+	}
+
+	return drainHeaders(br)
+}
+
+func (d *httpProxyDialer) DialContext(ctx context.Context, network, address string) (net.Conn, error) {
+	if !strings.HasPrefix(network, "tcp") {
+		return nil, fmt.Errorf("http proxy dialer only supports TCP, got %q", network)
+	}
+
+	// Dial to proxy
+	var nd = &net.Dialer{Timeout: d.timeout}
+	conn, err := nd.DialContext(ctx, "tcp", d.proxyAddress())
 	if err != nil {
 		return nil, err
 	}
@@ -273,14 +367,11 @@ func (d *httpProxyDialer) DialContext(ctx context.Context, network, address stri
 
 	// If HTTPS proxy, wrap with TLS to the proxy itself.
 	if d.secure {
-		host := d.proxyURL.Hostname()
-		d.config.ServerName = host
-		tlsConn := tls.Client(conn, d.config)
-		if err = tlsConn.HandshakeContext(ctx); err != nil {
-			_ = conn.Close()
-			return nil, fmt.Errorf("tls handshake with https proxy failed: %w", err)
+		c, werr := d.tlsWrapProxyConn(ctx, conn)
+		if werr != nil {
+			return nil, werr
 		}
-		conn = tlsConn
+		conn = c
 	}
 
 	req := buildConnectRequest(d.proxyURL, address)
@@ -291,25 +382,7 @@ func (d *httpProxyDialer) DialContext(ctx context.Context, network, address stri
 
 	// Read proxy response until end of headers
 	br := bufio.NewReader(conn)
-	statusLine, err := br.ReadString('\n')
-	if err != nil {
-		_ = conn.Close()
-		return nil, fmt.Errorf("failed to read CONNECT response: %w", err)
-	}
-
-	if !strings.HasPrefix(statusLine, "HTTP/") {
-		_ = conn.Close()
-		return nil, fmt.Errorf("invalid proxy response: %q", strings.TrimSpace(statusLine))
-	}
-
-	if !strings.Contains(statusLine, " 200 ") && !strings.HasSuffix(strings.TrimSpace(statusLine), " 200") {
-		// Drain headers for context
-		_ = drainHeaders(br)
-		_ = conn.Close()
-		return nil, fmt.Errorf("proxy CONNECT failed: %s", strings.TrimSpace(statusLine))
-	}
-
-	if err = drainHeaders(br); err != nil {
+	if err = readConnectResponse(br); err != nil {
 		_ = conn.Close()
 		return nil, err
 	}
@@ -429,7 +502,7 @@ func (t *tlsWrappingDialer) DialContext(ctx context.Context, network, address st
 		}
 		cfg = c
 	} else {
-		cfg = &tls.Config{ServerName: host} // #nosec G402 - intentional
+		cfg = &tls.Config{ServerName: host, MinVersion: tls.VersionTLS12}
 	}
 
 	tlsConn := tls.Client(raw, cfg)

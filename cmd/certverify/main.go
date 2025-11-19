@@ -32,6 +32,7 @@ type appConfig struct {
 	caFile, intFile             string
 	forceIntermediateBundle     bool
 	revexp, skipVerify, verbose bool
+	strictTLS                   bool
 }
 
 func parseFlags() appConfig {
@@ -43,6 +44,7 @@ func parseFlags() appConfig {
 	flag.BoolVar(&cfg.skipVerify, "k", false, "skip CA verification")
 	flag.BoolVar(&cfg.revexp, "r", false, "print revocation and expiry information")
 	flag.BoolVar(&cfg.verbose, "v", false, "verbose")
+	lib.StrictTLSFlag(&cfg.strictTLS)
 	flag.Parse()
 	return cfg
 }
@@ -108,12 +110,13 @@ func run(cfg appConfig) error {
 		return fmt.Errorf("failed to build combined pool: %w", err)
 	}
 
-	opts := &lib.FetcherOpts{
-		Roots:      combinedPool,
-		SkipVerify: cfg.skipVerify,
+	tlsCfg, err := lib.BaselineTLSConfig(cfg.skipVerify, cfg.strictTLS)
+	if err != nil {
+		return err
 	}
+	tlsCfg.RootCAs = combinedPool
 
-	chain, err := lib.GetCertificateChain(flag.Arg(0), opts)
+	chain, err := lib.GetCertificateChain(flag.Arg(0), tlsCfg)
 	if err != nil {
 		return err
 	}
