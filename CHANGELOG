@@ -1,5 +1,36 @@
 CHANGELOG
 
+v1.14.0 - 2025-11-18
+
+Added:
+- lib/dialer: introduce proxy-aware dialers and helpers:
+  - NewNetDialer and NewTLSDialer honoring SOCKS5_PROXY, HTTPS_PROXY, HTTP_PROXY
+    (case-insensitive) with precedence SOCKS5 > HTTPS > HTTP.
+  - DialTCP and DialTLS convenience functions; DialTLS performs a TLS handshake
+    and returns a concrete *tls.Conn.
+  - NewHTTPClient: returns a proxy-aware *http.Client. Uses SOCKS5 proxy when
+    configured (disables HTTP(S) proxying to avoid double-proxying); otherwise
+    relies on http.ProxyFromEnvironment (respects HTTP(S)_PROXY and NO_PROXY).
+- build: the releasse-docker.sh builds and pushes the correct Docker images.
+
+Changed:
+- cmd: migrate tools to new proxy-aware helpers where appropriate:
+  - certchain, stealchain, tlsinfo: use lib.DialTLS.
+  - cert-revcheck: use lib.DialTLS for site connects and a proxy-aware
+    HTTP client for OCSP/CRL fetches.
+  - rhash: use proxy-aware HTTP client for downloads.
+- lib/fetch: migrate from certlib/fetch.go to lib/fetch.go and use DialTLS
+  under the hood.
+- go.mod: add golang.org/x/net dependency (for SOCKS5 support) and align x/crypto.
+
+Notes:
+- HTTP(S) proxy CONNECT supports optional basic auth via proxy URL credentials.
+- HTTPS proxies are TLS-wrapped prior to CONNECT.
+- Timeouts apply to TCP connects, proxy handshakes, and TLS handshakes; context
+  cancellation is honored.
+- Some commands retain bespoke dialing (e.g., IPv6-only or unix sockets) and
+  were intentionally left unchanged.
+
 v1.13.6 - 2025-11-18
 
 Changed:
