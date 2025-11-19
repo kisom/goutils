@@ -3,18 +3,31 @@ kgz
 kgz is like gzip, but supports compressing and decompressing to a different
 directory than the source file is in.
 
-Usage: kgz [-l] source [target]
+Usage: kgz [-l] [-k] [-m] [-x] [--uid N] [--gid N] source [target]
 
-If target is a directory, the basename of the sourcefile will be used
+If target is a directory, the basename of the source file will be used
 as the target filename. Compression and decompression is selected
 based on whether the source filename ends in ".gz".
 
 Flags:
-	-l level	Compression level (0-9). Only meaninful when
-			    compressing a file.
+	-l level    Compression level (0-9). Only meaningful when compressing.
     -u          Do not restrict the size during decompression. As
                 a safeguard against gzip bombs, the maximum size
                 allowed is 32 * the compressed file size.
+    -k          Keep the source file (do not remove it after successful
+                compression or decompression).
+    -m          On decompression, set the file mtime from the gzip header.
+    -x          On compression, include uid/gid/mode/ctime in the gzip Extra
+                field so that decompression can restore them. The Extra payload
+                is an ASN.1 DER-encoded struct.
+    --uid N     When used with -x, set UID in Extra to N (override source).
+    --gid N     When used with -x, set GID in Extra to N (override source).
+
+Metadata notes:
+- mtime is stored in the standard gzip header and restored with -m.
+- uid/gid/mode/ctime are stored in a kgz-specific Extra subfield as an ASN.1
+  DER-encoded struct. Restoring
+  uid/gid may fail without sufficient privileges; such errors are ignored.
 
 
 
