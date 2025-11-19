@@ -1,5 +1,8 @@
 CHANGELOG
 
+v1.15.6 - 2025-11-19
+certlib: add FileKind function to determine file type.
+
 v1.15.5 - 2025-11-19
 certlib/bundler: add support for crt files that are pem-encoded.
 
