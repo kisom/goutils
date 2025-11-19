@@ -1,5 +1,16 @@
 CHANGELOG
 
+v1.14.2 - 2025-11-18
+
+Added:
+- lib: add tooling for generating baseline TLS configs.
+
+Changed:
+- cmd: update all commands to allow the use strict TLS configs. Note that
+  many of these tools are intended for debugging broken or insecure TLS
+  systems, and the ability to support insecure TLS configurations is
+  important in this regard.
+
 v1.14.1 - 2025-11-18
 
 Added:
