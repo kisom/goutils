@@ -179,6 +179,8 @@ func (ka KeyAlgo) String() string {
 		return "Ed25519"
 	case x509.DSA:
 		return "DSA"
+	case x509.UnknownPublicKeyAlgorithm:
+		fallthrough // make linter happy
 	default:
 		return "unknown"
 	}
