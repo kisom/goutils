@@ -1,5 +1,5 @@
 key:
-  algorithm: ed25519
+  algorithm: rsa
   size: 4096
 subject:
   common_name: WNTRMUTE TEST RSA CA 1

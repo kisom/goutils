@@ -143,12 +143,15 @@ func TestReadCertificates(t *testing.T) {
 }
 
 var (
-	ecTestCACert = "testdata/ec-ca-cert.pem"
-	ecTestCAPriv = "testdata/ec-ca-priv.pem"
-	ecTestCAReq  = "testdata/ec-ca-cert.csr"
+	ecTestCACert  = "testdata/ec-ca-cert.pem"
+	ecTestCAPriv  = "testdata/ec-ca-priv.pem"
+	ecTestCAReq   = "testdata/ec-ca-cert.csr"
+	rsaTestCACert = "testdata/rsa-ca-cert.pem"
+	rsaTestCAPriv = "testdata/rsa-ca-priv.pem"
+	rsaTestCAReq  = "testdata/rsa-ca-cert.csr"
 )
 
-func TestFileTypeEC(t *testing.T) {
+func TestFileTypeECPrivate(t *testing.T) {
 	ft, err := FileKind(ecTestCAPriv)
 	assert.NoErrorT(t, err)
 
@@ -165,6 +168,123 @@ func TestFileTypeEC(t *testing.T) {
 		Type:  x509.ECDSA,
 		Size:  521,
 		curve: elliptic.P521(),
+	}
+
+	if ft.Algo.String() != expectedAlgo.String() {
+		t.Errorf("certlib: expected algo '%s', got '%s'", expectedAlgo, ft.Algo)
+	}
+}
+
+func TestFileTypeECCertRequest(t *testing.T) {
+	ft, err := FileKind(ecTestCAReq)
+	assert.NoErrorT(t, err)
+
+	if ft.Format != FormatPEM {
+		t.Errorf("certlib: expected format '%s', got '%s'", FormatPEM, ft.Format)
+	}
+
+	if ft.Type != strings.ToLower(pemTypeCertificateRequest) {
+		t.Errorf("certlib: expected type '%s', got '%s'",
+			strings.ToLower(pemTypeCertificateRequest), ft.Type)
+	}
+
+	expectedAlgo := KeyAlgo{
+		Type:  x509.ECDSA,
+		Size:  521,
+		curve: elliptic.P521(),
+	}
+
+	if ft.Algo.String() != expectedAlgo.String() {
+		t.Errorf("certlib: expected algo '%s', got '%s'", expectedAlgo, ft.Algo)
+	}
+}
+
+func TestFileTypeECCertificate(t *testing.T) {
+	ft, err := FileKind(ecTestCACert)
+	assert.NoErrorT(t, err)
+
+	if ft.Format != FormatPEM {
+		t.Errorf("certlib: expected format '%s', got '%s'", FormatPEM, ft.Format)
+	}
+
+	if ft.Type != strings.ToLower(pemTypeCertificate) {
+		t.Errorf("certlib: expected type '%s', got '%s'",
+			strings.ToLower(pemTypeCertificate), ft.Type)
+	}
+
+	expectedAlgo := KeyAlgo{
+		Type:  x509.ECDSA,
+		Size:  521,
+		curve: elliptic.P521(),
+	}
+
+	if ft.Algo.String() != expectedAlgo.String() {
+		t.Errorf("certlib: expected algo '%s', got '%s'", expectedAlgo, ft.Algo)
+	}
+}
+
+func TestFileTypeRSAPrivate(t *testing.T) {
+	ft, err := FileKind(rsaTestCAPriv)
+	assert.NoErrorT(t, err)
+
+	if ft.Format != FormatPEM {
+		t.Errorf("certlib: expected format '%s', got '%s'", FormatPEM, ft.Format)
+	}
+
+	if ft.Type != strings.ToLower(pemTypePrivateKey) {
+		t.Errorf("certlib: expected type '%s', got '%s'",
+			strings.ToLower(pemTypePrivateKey), ft.Type)
+	}
+
+	expectedAlgo := KeyAlgo{
+		Type: x509.RSA,
+		Size: 4096,
+	}
+
+	if ft.Algo.String() != expectedAlgo.String() {
+		t.Errorf("certlib: expected algo '%s', got '%s'", expectedAlgo, ft.Algo)
+	}
+}
+
+func TestFileTypeRSACertRequest(t *testing.T) {
+	ft, err := FileKind(rsaTestCAReq)
+	assert.NoErrorT(t, err)
+
+	if ft.Format != FormatPEM {
+		t.Errorf("certlib: expected format '%s', got '%s'", FormatPEM, ft.Format)
+	}
+
+	if ft.Type != strings.ToLower(pemTypeCertificateRequest) {
+		t.Errorf("certlib: expected type '%s', got '%s'",
+			strings.ToLower(pemTypeCertificateRequest), ft.Type)
+	}
+
+	expectedAlgo := KeyAlgo{
+		Type: x509.RSA,
+		Size: 4096,
+	}
+
+	if ft.Algo.String() != expectedAlgo.String() {
+		t.Errorf("certlib: expected algo '%s', got '%s'", expectedAlgo, ft.Algo)
+	}
+}
+
+func TestFileTypeRSACertificate(t *testing.T) {
+	ft, err := FileKind(rsaTestCACert)
+	assert.NoErrorT(t, err)
+
+	if ft.Format != FormatPEM {
+		t.Errorf("certlib: expected format '%s', got '%s'", FormatPEM, ft.Format)
+	}
+
+	if ft.Type != strings.ToLower(pemTypeCertificate) {
+		t.Errorf("certlib: expected type '%s', got '%s'",
+			strings.ToLower(pemTypeCertificate), ft.Type)
+	}
+
+	expectedAlgo := KeyAlgo{
+		Type: x509.RSA,
+		Size: 4096,
 	}
 
 	if ft.Algo.String() != expectedAlgo.String() {

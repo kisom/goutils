@@ -171,6 +171,9 @@ func (ka KeyAlgo) String() string {
 	case x509.RSA:
 		return fmt.Sprintf("RSA-%d", ka.Size)
 	case x509.ECDSA:
+		if ka.curve == nil {
+			return fmt.Sprintf("ECDSA (unknown %d)", ka.Size)
+		}
 		return fmt.Sprintf("ECDSA-%s", ka.curve.Params().Name)
 	case x509.Ed25519:
 		return "Ed25519"
@@ -242,7 +245,7 @@ func publicKeyAlgoFromCert(cert *x509.Certificate) KeyAlgo {
 }
 
 func publicKeyAlgoFromCSR(csr *x509.CertificateRequest) KeyAlgo {
-	return publicKeyAlgoFromPublicKey(csr.PublicKeyAlgorithm)
+	return publicKeyAlgoFromPublicKey(csr.PublicKey)
 }
 
 type FileType struct {
@@ -273,7 +276,7 @@ func FileKind(path string) (*FileType, error) {
 		ft.Type = strings.ToLower(block.Type)
 		ft.Format = FormatPEM
 	}
-	
+
 	cert, err := x509.ParseCertificate(data)
 	if err == nil {
 		ft.Algo = publicKeyAlgoFromCert(cert)
