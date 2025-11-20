@@ -1,5 +1,10 @@
 CHANGELOG
 
+v1.15.8 - 2025-11-20
+
+Changed:
+- certlib: fix CSR FileKind, add test cases.
+
 v1.15.7 - 2025-11-19
 
 Changed:
