@@ -22,43 +22,50 @@ import (
 // Fetcher is an interface for fetching certificates from a remote source. It
 // currently supports fetching from a server or a file.
 type Fetcher interface {
+	// Get retrieves the leaf certificate from the source.
 	Get() (*x509.Certificate, error)
+
+	// GetChain retrieves the entire chain from the Fetcher.
 	GetChain() ([]*x509.Certificate, error)
+
+	// String returns a string representation of the Fetcher.
 	String() string
 }
 
+func NewFetcher(spec string, tcfg *tls.Config) (Fetcher, error) {
+	if fileutil.FileDoesExist(spec) || spec == "-" {
+		return NewFileFetcher(spec), nil
+	}
+
+	fetcher, err := ParseServer(spec, tcfg)
+	if err != nil {
+		return nil, err
+	}
+
+	fetcher.config = tcfg
+
+	return fetcher, nil
+}
+
+// ServerFetcher retrieves certificates from a TLS connection.
 type ServerFetcher struct {
-	host     string
-	port     int
-	insecure bool
-	roots    *x509.CertPool
-}
-
-// WithRoots sets the roots for the ServerFetcher.
-func WithRoots(roots *x509.CertPool) func(*ServerFetcher) {
-	return func(sf *ServerFetcher) {
-		sf.roots = roots
-	}
-}
-
-// WithSkipVerify sets the insecure flag for the ServerFetcher.
-func WithSkipVerify() func(*ServerFetcher) {
-	return func(sf *ServerFetcher) {
-		sf.insecure = true
-	}
+	host   string
+	port   int
+	config *tls.Config
 }
 
 // ParseServer parses a server string into a ServerFetcher. It can be a URL or a
 // a host:port pair.
-func ParseServer(host string) (*ServerFetcher, error) {
+func ParseServer(host string, cfg *tls.Config) (*ServerFetcher, error) {
 	target, err := hosts.ParseHost(host)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse server: %w", err)
 	}
 
 	return &ServerFetcher{
-		host: target.Host,
-		port: target.Port,
+		host:   target.Host,
+		port:   target.Port,
+		config: cfg,
 	}, nil
 }
 
@@ -68,10 +75,7 @@ func (sf *ServerFetcher) String() string {
 
 func (sf *ServerFetcher) GetChain() ([]*x509.Certificate, error) {
 	opts := dialer.Opts{
-		TLSConfig: &tls.Config{
-			InsecureSkipVerify: sf.insecure, // #nosec G402 - no shit sherlock
-			RootCAs:            sf.roots,
-		},
+		TLSConfig: sf.config,
 	}
 
 	conn, err := dialer.DialTLS(context.Background(), net.JoinHostPort(sf.host, lib.Itoa(sf.port, -1)), opts)
@@ -93,6 +97,7 @@ func (sf *ServerFetcher) Get() (*x509.Certificate, error) {
 	return certs[0], nil
 }
 
+// FileFetcher retrieves certificates from files on disk.
 type FileFetcher struct {
 	path string
 }
@@ -139,18 +144,9 @@ func (ff *FileFetcher) Get() (*x509.Certificate, error) {
 // configuration will be used to control verification behavior (e.g.,
 // InsecureSkipVerify, RootCAs).
 func GetCertificateChain(spec string, cfg *tls.Config) ([]*x509.Certificate, error) {
-	if fileutil.FileDoesExist(spec) {
-		return NewFileFetcher(spec).GetChain()
-	}
-
-	fetcher, err := ParseServer(spec)
+	fetcher, err := NewFetcher(spec, cfg)
 	if err != nil {
 		return nil, err
-	}
-
-	if cfg != nil {
-		fetcher.insecure = cfg.InsecureSkipVerify
-		fetcher.roots = cfg.RootCAs
 	}
 
 	return fetcher.GetChain()
