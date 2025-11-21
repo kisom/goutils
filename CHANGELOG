@@ -1,5 +1,10 @@
 CHANGELOG
 
+v1.16.1 - 2025-11-21
+
+Changed:
+- msg: rename functions for ergonomics.
+
 v1.16.0 - 2025-11-20
 
 Added:
