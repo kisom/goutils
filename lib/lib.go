@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -328,4 +329,17 @@ func HexEncode(b []byte, mode HexEncodeMode) string {
 	default:
 		panic("invalid hex encode mode")
 	}
+}
+
+// DummyWriteCloser wraps an io.Writer in a struct with a no-op Close.
+type DummyWriteCloser struct {
+	w io.Writer
+}
+
+func (dwc *DummyWriteCloser) Write(p []byte) (int, error) {
+	return dwc.w.Write(p)
+}
+
+func (dwc *DummyWriteCloser) Close() error {
+	return nil
 }
