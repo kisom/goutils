@@ -13,6 +13,7 @@ package msg
 import (
 	"fmt"
 	"io"
+	"os"
 
 	"git.wntrmute.dev/kyle/goutils/lib"
 
@@ -22,9 +23,18 @@ import (
 var (
 	enableQuiet   bool
 	enableVerbose bool
-	debug         = dbg.New()
-	w             io.Writer
+
+	debug           = dbg.New()
+	w     io.Writer = os.Stdout
 )
+
+func Reset() {
+	enableQuiet = false
+	enableVerbose = false
+
+	debug = dbg.New()
+	w = os.Stdout
+}
 
 func SetQuiet(q bool) {
 	enableQuiet = q
