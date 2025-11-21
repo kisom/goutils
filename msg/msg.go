@@ -2,11 +2,11 @@
 // flags for quiet, verbose, and debug modes. The default is to
 // have all modes disabled.
 //
-// The QPrint messages will only output messages if quiet mode is
+// The Qprint messages will only output messages if quiet mode is
 // disabled
-// The VPrint messages will only output messages if verbose mode
+// The Vprint messages will only output messages if verbose mode
 // is enabled.
-// The DPrint messages will only output messages if debug mode
+// The Dprint messages will only output messages if debug mode
 // is enabled.
 package msg
 
@@ -44,7 +44,7 @@ func Set(q, v, d bool) {
 	SetDebug(d)
 }
 
-func QPrint(a ...any) {
+func Qprint(a ...any) {
 	if enableQuiet {
 		return
 	}
@@ -52,7 +52,7 @@ func QPrint(a ...any) {
 	fmt.Fprint(w, a...)
 }
 
-func QPrintf(format string, a ...any) {
+func Qprintf(format string, a ...any) {
 	if enableQuiet {
 		return
 	}
@@ -60,7 +60,7 @@ func QPrintf(format string, a ...any) {
 	fmt.Fprintf(w, format, a...)
 }
 
-func QPrintln(a ...any) {
+func Qprintln(a ...any) {
 	if enableQuiet {
 		return
 	}
@@ -68,15 +68,15 @@ func QPrintln(a ...any) {
 	fmt.Fprintln(w, a...)
 }
 
-func DPrint(a ...any) {
+func Dprint(a ...any) {
 	debug.Print(a...)
 }
 
-func DPrintf(format string, a ...any) {
+func Dprintf(format string, a ...any) {
 	debug.Printf(format, a...)
 }
 
-func DPrintln(a ...any) {
+func Dprintln(a ...any) {
 	debug.Println(a...)
 }
 
@@ -84,7 +84,7 @@ func StackTrace() {
 	debug.StackTrace()
 }
 
-func VPrint(a ...any) {
+func Vprint(a ...any) {
 	if !enableVerbose {
 		return
 	}
@@ -92,7 +92,7 @@ func VPrint(a ...any) {
 	fmt.Fprint(w, a...)
 }
 
-func VPrintf(format string, a ...any) {
+func Vprintf(format string, a ...any) {
 	if !enableVerbose {
 		return
 	}
@@ -100,7 +100,7 @@ func VPrintf(format string, a ...any) {
 	fmt.Fprintf(w, format, a...)
 }
 
-func VPrintln(a ...any) {
+func Vprintln(a ...any) {
 	if !enableVerbose {
 		return
 	}
