@@ -84,6 +84,7 @@ Contents:
     lib/            Commonly-useful functions for writing Go programs.
     log/            A syslog library.
     logging/        A logging library.
+    msg/            Output library for command line programs.
     mwc/            MultiwriteCloser implementation.
     sbuf/           A byte buffer that can be wiped.
     seekbuf/        A read-seekable byte buffer.

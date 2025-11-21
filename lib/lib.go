@@ -336,6 +336,10 @@ type DummyWriteCloser struct {
 	w io.Writer
 }
 
+func WithCloser(w io.Writer) io.WriteCloser {
+	return &DummyWriteCloser{w: w}
+}
+
 func (dwc *DummyWriteCloser) Write(p []byte) (int, error) {
 	return dwc.w.Write(p)
 }
