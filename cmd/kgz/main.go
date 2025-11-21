@@ -101,7 +101,7 @@ func buildExtraForPath(st unix.Stat_t, path string, setUID, setGID int) []byte {
 			gid = uint32(setGID & 0xFFFFFFFF) //#nosec G115 - masked
 		}
 	}
-	mode := uint32(st.Mode & 0o7777)
+	mode := st.Mode & 0o7777
 
 	// Use portable helper to gather ctime
 	var cts int64
