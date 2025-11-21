@@ -1,5 +1,14 @@
 CHANGELOG
 
+v1.16.0 - 2025-11-20
+
+Added:
+- msg: package for command line outputs.
+
+Changed:
+- lib: add DummyWriteCloser
+- Miscellaneous linter fixes and documentation updates.
+
 v1.15.8 - 2025-11-20
 
 Changed:
