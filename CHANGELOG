@@ -1,5 +1,10 @@
 CHANGELOG
 
+v1.16.2 - 2025-11-21
+
+Changed:
+- msg: fill debug null pointer deref.
+
 v1.16.1 - 2025-11-21
 
 Changed:
