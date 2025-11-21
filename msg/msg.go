@@ -22,7 +22,7 @@ import (
 var (
 	enableQuiet   bool
 	enableVerbose bool
-	debug         *dbg.DebugPrinter
+	debug         = dbg.New()
 	w             io.Writer
 )
 
@@ -123,5 +123,7 @@ func Println(a ...any) {
 // SetWriter changes the output for messages.
 func SetWriter(dst io.Writer) {
 	w = dst
+	dbgEnabled := debug.Enabled
 	debug = dbg.To(lib.WithCloser(w))
+	debug.Enabled = dbgEnabled
 }
