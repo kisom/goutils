@@ -1,5 +1,12 @@
 CHANGELOG
 
+v1.17.2 - 2025-11-21
+
+Note: 1.17.2 was a mangled release.
+
+Changed:
+- certlib: fix request configs in testdata.
+
 v1.17.1 - 2025-11-21
 
 Changed:
