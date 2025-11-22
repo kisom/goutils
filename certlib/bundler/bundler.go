@@ -448,13 +448,13 @@ func encodeCertsToFiles(
 				derContent = append(derContent, cert.Raw...)
 			}
 			files = append(files, fileEntry{
-				name:    baseName + ".crt",
+				name:    baseName + ".cer",
 				content: derContent,
 			})
 		} else if len(certs) > 0 {
 			// Individual DER file (should only have one cert)
 			files = append(files, fileEntry{
-				name:    baseName + ".crt",
+				name:    baseName + ".cer",
 				content: certs[0].Raw,
 			})
 		}
@@ -472,17 +472,17 @@ func encodeCertsToFiles(
 				derContent = append(derContent, cert.Raw...)
 			}
 			files = append(files, fileEntry{
-				name:    baseName + ".crt",
+				name:    baseName + ".cer",
 				content: derContent,
 			})
 		} else if len(certs) > 0 {
 			files = append(files, fileEntry{
-				name:    baseName + ".crt",
+				name:    baseName + ".cer",
 				content: certs[0].Raw,
 			})
 		}
 	default:
-		return nil, fmt.Errorf("unsupported encoding: %s (must be 'pem', 'der', or 'both')", encoding)
+		return nil, fmt.Errorf("unsupported encoding: %s (must be 'pem', 'der', 'both', 'crt', 'pemcrt')", encoding)
 	}
 
 	return files, nil

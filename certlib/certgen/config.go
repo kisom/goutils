@@ -60,7 +60,7 @@ type Subject struct {
 	Province           string   `yaml:"province"`
 	Organization       string   `yaml:"organization"`
 	OrganizationalUnit string   `yaml:"organizational_unit"`
-	Email              string   `yaml:"email"`
+	Email              []string `yaml:"email"`
 	DNSNames           []string `yaml:"dns"`
 	IPAddresses        []string `yaml:"ips"`
 }
@@ -92,12 +92,9 @@ func (cs CertificateRequest) Request(priv crypto.PrivateKey) (*x509.CertificateR
 		PublicKeyAlgorithm: 0,
 		PublicKey:          getPublic(priv),
 		Subject:            subject,
+		EmailAddresses:     cs.Subject.Email,
 		DNSNames:           cs.Subject.DNSNames,
 		IPAddresses:        ipAddresses,
-	}
-
-	if cs.Subject.Email != "" {
-		req.EmailAddresses = []string{cs.Subject.Email}
 	}
 
 	reqBytes, err := x509.CreateCertificateRequest(rand.Reader, req, priv)
@@ -130,7 +127,7 @@ func (cs CertificateRequest) Generate() (crypto.PrivateKey, *x509.CertificateReq
 type Profile struct {
 	IsCA         bool     `yaml:"is_ca"`
 	PathLen      int      `yaml:"path_len"`
-	KeyUse       string   `yaml:"key_uses"`
+	KeyUse       []string `yaml:"key_uses"`
 	ExtKeyUsages []string `yaml:"ext_key_usages"`
 	Expiry       string   `yaml:"expiry"`
 }
@@ -161,15 +158,17 @@ func (p Profile) templateFromRequest(req *x509.CertificateRequest) (*x509.Certif
 		IPAddresses:           req.IPAddresses,
 	}
 
-	var ok bool
-	certTemplate.KeyUsage, ok = keyUsageStrings[p.KeyUse]
-	if !ok {
-		return nil, fmt.Errorf("invalid key usage: %s", p.KeyUse)
+	for _, sku := range p.KeyUse {
+		ku, ok := keyUsageStrings[sku]
+		if !ok {
+			return nil, fmt.Errorf("invalid key usage: %s", p.KeyUse)
+		}
+
+		certTemplate.KeyUsage |= ku
 	}
 
-	var eku x509.ExtKeyUsage
 	for _, extKeyUsage := range p.ExtKeyUsages {
-		eku, ok = extKeyUsageStrings[extKeyUsage]
+		eku, ok := extKeyUsageStrings[extKeyUsage]
 		if !ok {
 			return nil, fmt.Errorf("invalid extended key usage: %s", extKeyUsage)
 		}
