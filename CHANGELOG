@@ -1,5 +1,13 @@
 CHANGELOG
 
+v1.17.0 - 2025-11-21
+
+Added:
+- cmd/bcuz: unzips bandcamp archives.
+
+Changed:
+- certlib: ergonomic improvements.
+
 v1.16.3 - 2025-11-21
 
 Changed:
