@@ -9,5 +9,6 @@ subject:
 profile:
   is_ca: true
   path_len: 3
-  key_uses: cert sign
+  key_uses:
+    - cert sign
   expiry: 20y
