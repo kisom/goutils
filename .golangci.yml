@@ -488,6 +488,8 @@ linters:
         linters: [ exhaustive, mnd, revive ]
       - path: 'backoff/backoff_test.go'
         linters: [ testpackage ]
+      - path: "cmd/kgz/main.go"
+        linters: [ unconvert ]
       - path: 'dbg/dbg_test.go'
         linters: [ testpackage ]
       - path: 'log/logger.go'
