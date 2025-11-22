@@ -1,5 +1,10 @@
 CHANGELOG
 
+v1.18.0 - 2025-11-21
+
+Changed:
+- disable unconvert for kgz, as various platforms complain about it.
+
 v1.17.2 - 2025-11-21
 
 Note: 1.17.2 was a mangled release.
