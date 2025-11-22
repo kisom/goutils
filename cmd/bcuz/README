@@ -1,0 +1,8 @@
+bcuz: bandcamp unzip
+
+When you download stuff from bandcamp, it gives you a zip file that
+extracts files into the current directory. This is a quick hack tries
+to parse the filename as "artist - album", unpack the contents to
+"artist/album/*", and remove the zip file (which can be kept with
+-k). Works on my machine™, good enough for me.
+
