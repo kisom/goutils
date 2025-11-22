@@ -16,6 +16,10 @@ import (
 //	oidEd25519 = asn1.ObjectIdentifier{1, 3, 101, 110}
 //)
 
+const (
+	nameEd25519 = "ed25519"
+)
+
 func GenerateKey(algorithm x509.PublicKeyAlgorithm, bitSize int) (crypto.PublicKey, crypto.PrivateKey, error) {
 	var key crypto.PrivateKey
 	var pub crypto.PublicKey

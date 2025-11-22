@@ -19,13 +19,21 @@ type KeySpec struct {
 	Size      int    `yaml:"size"`
 }
 
+func (ks KeySpec) String() string {
+	if strings.ToLower(ks.Algorithm) == nameEd25519 {
+		return nameEd25519
+	}
+
+	return fmt.Sprintf("%s-%d", ks.Algorithm, ks.Size)
+}
+
 func (ks KeySpec) Generate() (crypto.PublicKey, crypto.PrivateKey, error) {
 	switch strings.ToLower(ks.Algorithm) {
 	case "rsa":
 		return GenerateKey(x509.RSA, ks.Size)
 	case "ecdsa":
 		return GenerateKey(x509.ECDSA, ks.Size)
-	case "ed25519":
+	case nameEd25519:
 		return GenerateKey(x509.Ed25519, 0)
 	default:
 		return nil, nil, fmt.Errorf("unknown key algorithm: %s", ks.Algorithm)
@@ -38,7 +46,7 @@ func (ks KeySpec) SigningAlgorithm() (x509.SignatureAlgorithm, error) {
 		return x509.SHA512WithRSAPSS, nil
 	case "ecdsa":
 		return x509.ECDSAWithSHA512, nil
-	case "ed25519":
+	case nameEd25519:
 		return x509.PureEd25519, nil
 	default:
 		return 0, fmt.Errorf("unknown key algorithm: %s", ks.Algorithm)
@@ -86,6 +94,10 @@ func (cs CertificateRequest) Request(priv crypto.PrivateKey) (*x509.CertificateR
 		Subject:            subject,
 		DNSNames:           cs.Subject.DNSNames,
 		IPAddresses:        ipAddresses,
+	}
+
+	if cs.Subject.Email != "" {
+		req.EmailAddresses = []string{cs.Subject.Email}
 	}
 
 	reqBytes, err := x509.CreateCertificateRequest(rand.Reader, req, priv)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"archive/zip"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -9,6 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 )
+
+var unrestrictedDecompression bool
 
 var keepArchive bool
 
@@ -62,14 +65,21 @@ func unpackFile(path string) error {
 			return err
 		}
 
-		out, err := os.Create(filepath.Join(dir, f.FileHeader.Name))
+		if f.UncompressedSize64 > (f.CompressedSize64*32) && !unrestrictedDecompression {
+			rc.Close()
+			removedir(dir, existed)
+			return errors.New("file is too large to decompress (maybe a zip bomb)")
+		}
+
+		var out *os.File
+		out, err = os.Create(filepath.Join(dir, f.FileHeader.Name))
 		if err != nil {
 			rc.Close()
 			removedir(dir, existed)
 			return err
 		}
 
-		_, err = io.Copy(out, rc)
+		_, err = io.Copy(out, rc) // #nosec G110: handled with size check above
 		if err != nil {
 			rc.Close()
 			removedir(dir, existed)
@@ -88,6 +98,7 @@ func unpackFile(path string) error {
 
 func main() {
 	flag.BoolVar(&keepArchive, "k", false, "don't remove the archive file after unpacking")
+	flag.BoolVar(&unrestrictedDecompression, "u", false, "allow unrestricted decompression")
 	flag.Parse()
 
 	for _, path := range flag.Args() {

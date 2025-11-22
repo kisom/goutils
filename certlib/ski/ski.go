@@ -6,6 +6,7 @@ import (
 	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/sha1" // #nosec G505 this is the standard
+	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
@@ -15,7 +16,9 @@ import (
 
 	"git.wntrmute.dev/kyle/goutils/certlib"
 	"git.wntrmute.dev/kyle/goutils/die"
+	"git.wntrmute.dev/kyle/goutils/fileutil"
 	"git.wntrmute.dev/kyle/goutils/lib"
+	"git.wntrmute.dev/kyle/goutils/lib/fetch"
 )
 
 const (
@@ -53,6 +56,30 @@ func (k *KeyInfo) SKI(displayMode lib.HexEncodeMode) (string, error) {
 	return pubHashString, nil
 }
 
+func Lookup(path string, tcfg *tls.Config) (*KeyInfo, error) {
+	if fileutil.FileDoesExist(path) {
+		return ParsePEM(path)
+	}
+
+	server, err := fetch.ParseServer(path, tcfg)
+	if err != nil {
+		return nil, err
+	}
+
+	cert, err := server.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	material := &KeyInfo{
+		FileType: "certificate",
+	}
+
+	material.PublicKey, material.KeyType = parseCertificate(cert)
+
+	return material, nil
+}
+
 // ParsePEM parses a PEM file and returns the public key and its type.
 func ParsePEM(path string) (*KeyInfo, error) {
 	material := &KeyInfo{}
@@ -79,7 +106,7 @@ func ParsePEM(path string) (*KeyInfo, error) {
 		material.PublicKey, material.KeyType = parseKey(data)
 		material.FileType = "private key"
 	case "CERTIFICATE":
-		material.PublicKey, material.KeyType = parseCertificate(data)
+		material.PublicKey, material.KeyType = parseCertificateFile(data)
 		material.FileType = "certificate"
 	case "CERTIFICATE REQUEST":
 		material.PublicKey, material.KeyType = parseCSR(data)
@@ -113,12 +140,17 @@ func parseKey(data []byte) ([]byte, string) {
 	return public, kt
 }
 
-func parseCertificate(data []byte) ([]byte, string) {
+func parseCertificateFile(data []byte) ([]byte, string) {
 	cert, err := x509.ParseCertificate(data)
 	die.If(err)
 
+	return parseCertificate(cert)
+}
+
+func parseCertificate(cert *x509.Certificate) ([]byte, string) {
 	pub := cert.PublicKey
 	var kt string
+
 	switch pub.(type) {
 	case *rsa.PublicKey:
 		kt = keyTypeRSA

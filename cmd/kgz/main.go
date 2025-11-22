@@ -111,7 +111,7 @@ func buildExtraForPath(st unix.Stat_t, path string, setUID, setGID int) []byte {
 		ctns = clampToInt32(ft.Changed.Nanosecond())
 	}
 
-	return buildKGExtra(uid, gid, mode, cts, ctns)
+	return buildKGExtra(uid, gid, uint32(mode), cts, ctns)
 }
 
 // parseKGExtra scans a gzip Extra blob and returns kgz metadata if present.
