@@ -133,3 +133,48 @@ func MatchKeys(cert *x509.Certificate, priv crypto.Signer) (bool, string) {
 		return false, fmt.Sprintf("unrecognised private key type: %T", priv.Public())
 	}
 }
+
+// MatchKeysCSR determines whether the CSR's public key matches the given private key.
+// It returns true if they match; otherwise, it returns false and a human-friendly reason.
+func MatchKeysCSR(csr *x509.CertificateRequest, priv crypto.Signer) (bool, string) {
+	switch keyPub := priv.Public().(type) {
+	case *rsa.PublicKey:
+		switch csrPub := csr.PublicKey.(type) {
+		case *rsa.PublicKey:
+			if matchRSA(csrPub, keyPub) {
+				return true, ""
+			}
+			return false, "public keys don't match"
+		case *ecdsa.PublicKey:
+			return false, "RSA private key, EC public key"
+		default:
+			return false, fmt.Sprintf("unsupported CSR public key type: %T", csr.PublicKey)
+		}
+	case *ecdsa.PublicKey:
+		switch csrPub := csr.PublicKey.(type) {
+		case *ecdsa.PublicKey:
+			if matchECDSA(csrPub, keyPub) {
+				return true, ""
+			}
+			// Determine a more precise reason
+			kc := getECCurve(keyPub)
+			cc := getECCurve(csrPub)
+			if kc == curveInvalid {
+				return false, "invalid private key curve"
+			}
+			if cc == curveRSA {
+				return false, "private key is EC, CSR is RSA"
+			}
+			if kc != cc {
+				return false, "EC curves don't match"
+			}
+			return false, "public keys don't match"
+		case *rsa.PublicKey:
+			return false, "private key is EC, CSR is RSA"
+		default:
+			return false, fmt.Sprintf("unsupported CSR public key type: %T", csr.PublicKey)
+		}
+	default:
+		return false, fmt.Sprintf("unrecognised private key type: %T", priv.Public())
+	}
+}

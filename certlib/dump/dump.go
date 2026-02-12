@@ -165,6 +165,28 @@ func certPublic(cert *x509.Certificate) string {
 	}
 }
 
+func csrPublic(csr *x509.CertificateRequest) string {
+	switch pub := csr.PublicKey.(type) {
+	case *rsa.PublicKey:
+		return fmt.Sprintf("RSA-%d", pub.N.BitLen())
+	case *ecdsa.PublicKey:
+		switch pub.Curve {
+		case elliptic.P256():
+			return "ECDSA-prime256v1"
+		case elliptic.P384():
+			return "ECDSA-secp384r1"
+		case elliptic.P521():
+			return "ECDSA-secp521r1"
+		default:
+			return "ECDSA (unknown curve)"
+		}
+	case *dsa.PublicKey:
+		return "DSA"
+	default:
+		return "Unknown"
+	}
+}
+
 func DisplayName(name pkix.Name) string {
 	var ns []string
 
@@ -332,4 +354,37 @@ func DisplayCert(w io.Writer, cert *x509.Certificate, showHash bool) {
 			wrapPrint(fmt.Sprintf("- %s\n", ocspServer), 2)
 		}
 	}
+}
+
+func DisplayCSR(w io.Writer, csr *x509.CertificateRequest, showHash bool) {
+	fmt.Fprintln(w, "CERTIFICATE REQUEST")
+	if showHash {
+		fmt.Fprintln(w, wrap(fmt.Sprintf("SHA256: %x", sha256.Sum256(csr.Raw)), 0))
+	}
+
+	fmt.Fprintln(w, wrap("Subject: "+DisplayName(csr.Subject), 0))
+	fmt.Fprintf(w, "\tSignature algorithm: %s / %s\n", sigAlgoPK(csr.SignatureAlgorithm),
+		sigAlgoHash(csr.SignatureAlgorithm))
+	fmt.Fprintln(w, "Details:")
+	wrapPrint("Public key: "+csrPublic(csr), 1)
+
+	validNames := make([]string, 0, len(csr.DNSNames)+len(csr.EmailAddresses)+len(csr.IPAddresses)+len(csr.URIs))
+	for i := range csr.DNSNames {
+		validNames = append(validNames, "dns:"+csr.DNSNames[i])
+	}
+
+	for i := range csr.EmailAddresses {
+		validNames = append(validNames, "email:"+csr.EmailAddresses[i])
+	}
+
+	for i := range csr.IPAddresses {
+		validNames = append(validNames, "ip:"+csr.IPAddresses[i].String())
+	}
+
+	for i := range csr.URIs {
+		validNames = append(validNames, "uri:"+csr.URIs[i].String())
+	}
+
+	sans := fmt.Sprintf("SANs (%d): %s\n", len(validNames), strings.Join(validNames, ", "))
+	wrapPrint(sans, 1)
 }
