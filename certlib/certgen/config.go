@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math/big"
 	"net"
+	"slices"
 	"strings"
 	"time"
 
@@ -88,12 +89,17 @@ func (cs CertificateRequest) Request(priv crypto.PrivateKey) (*x509.CertificateR
 		}
 	}
 
+	dnsNames := cs.Subject.DNSNames
+	if isFQDN(cs.Subject.CommonName) && !slices.Contains(dnsNames, cs.Subject.CommonName) {
+		dnsNames = append(dnsNames, cs.Subject.CommonName)
+	}
+
 	req := &x509.CertificateRequest{
 		PublicKeyAlgorithm: 0,
 		PublicKey:          getPublic(priv),
 		Subject:            subject,
 		EmailAddresses:     cs.Subject.Email,
-		DNSNames:           cs.Subject.DNSNames,
+		DNSNames:           dnsNames,
 		IPAddresses:        ipAddresses,
 	}
 
@@ -208,6 +214,32 @@ func (p Profile) SelfSign(req *x509.CertificateRequest, priv crypto.PrivateKey) 
 	}
 
 	return p.SignRequest(certTemplate, req, priv)
+}
+
+// isFQDN returns true if s looks like a fully-qualified domain name.
+func isFQDN(s string) bool {
+	if s == "" {
+		return false
+	}
+	// Must contain at least one dot and no spaces.
+	if !strings.Contains(s, ".") || strings.ContainsAny(s, " \t") {
+		return false
+	}
+	// Each label must be non-empty and consist of letters, digits, or hyphens.
+	for label := range strings.SplitSeq(strings.TrimSuffix(s, "."), ".") {
+		if label == "" {
+			return false
+		}
+		for _, c := range label {
+			if !((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-') {
+				return false
+			}
+		}
+		if label[0] == '-' || label[len(label)-1] == '-' {
+			return false
+		}
+	}
+	return true
 }
 
 func SerialNumber() (*big.Int, error) {
