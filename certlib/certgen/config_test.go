@@ -81,6 +81,90 @@ func TestRequestFQDNNotDuplicated(t *testing.T) {
 	}
 }
 
+func TestProfileAIAFieldsInCertificate(t *testing.T) {
+	caKey := KeySpec{Algorithm: "ecdsa", Size: 256}
+	_, caPriv, err := caKey.Generate()
+	if err != nil {
+		t.Fatalf("generate CA key: %v", err)
+	}
+
+	caProfile := Profile{
+		IsCA:    true,
+		PathLen: 1,
+		KeyUse:  []string{"cert sign", "crl sign"},
+		Expiry:  "8760h",
+	}
+
+	caReq := &CertificateRequest{
+		KeySpec: caKey,
+		Subject: Subject{CommonName: "Test CA", Organization: "Test"},
+		Profile: caProfile,
+	}
+	caCSR, err := caReq.Request(caPriv)
+	if err != nil {
+		t.Fatalf("generate CA CSR: %v", err)
+	}
+	caCert, err := caProfile.SelfSign(caCSR, caPriv)
+	if err != nil {
+		t.Fatalf("self-sign CA: %v", err)
+	}
+
+	leafProfile := Profile{
+		KeyUse:                []string{"digital signature"},
+		ExtKeyUsages:          []string{"server auth"},
+		Expiry:                "24h",
+		OCSPServer:            []string{"https://ocsp.example.com"},
+		IssuingCertificateURL: []string{"https://pki.example.com/ca.pem"},
+	}
+
+	leafReq := &CertificateRequest{
+		KeySpec: KeySpec{Algorithm: "ecdsa", Size: 256},
+		Subject: Subject{CommonName: "leaf.example.com", Organization: "Test"},
+		Profile: leafProfile,
+	}
+	_, leafCSR, err := leafReq.Generate()
+	if err != nil {
+		t.Fatalf("generate leaf CSR: %v", err)
+	}
+
+	leafCert, err := leafProfile.SignRequest(caCert, leafCSR, caPriv)
+	if err != nil {
+		t.Fatalf("sign leaf: %v", err)
+	}
+
+	if len(leafCert.OCSPServer) != 1 || leafCert.OCSPServer[0] != "https://ocsp.example.com" {
+		t.Errorf("OCSPServer = %v, want [https://ocsp.example.com]", leafCert.OCSPServer)
+	}
+	if len(leafCert.IssuingCertificateURL) != 1 || leafCert.IssuingCertificateURL[0] != "https://pki.example.com/ca.pem" {
+		t.Errorf("IssuingCertificateURL = %v, want [https://pki.example.com/ca.pem]", leafCert.IssuingCertificateURL)
+	}
+}
+
+func TestProfileWithoutAIAOmitsExtension(t *testing.T) {
+	profile := Profile{
+		KeyUse:       []string{"digital signature"},
+		ExtKeyUsages: []string{"server auth"},
+		Expiry:       "24h",
+	}
+
+	creq := &CertificateRequest{
+		KeySpec: KeySpec{Algorithm: "ecdsa", Size: 256},
+		Subject: Subject{CommonName: "noaia.example.com", Organization: "Test"},
+		Profile: profile,
+	}
+	cert, _, err := GenerateSelfSigned(creq)
+	if err != nil {
+		t.Fatalf("generate: %v", err)
+	}
+
+	if len(cert.OCSPServer) != 0 {
+		t.Errorf("OCSPServer = %v, want empty", cert.OCSPServer)
+	}
+	if len(cert.IssuingCertificateURL) != 0 {
+		t.Errorf("IssuingCertificateURL = %v, want empty", cert.IssuingCertificateURL)
+	}
+}
+
 func TestRequestNonFQDNCommonNameNotAdded(t *testing.T) {
 	creq := &CertificateRequest{
 		KeySpec: KeySpec{Algorithm: "ecdsa", Size: 256},

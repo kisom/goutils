@@ -131,11 +131,13 @@ func (cs CertificateRequest) Generate() (crypto.PrivateKey, *x509.CertificateReq
 }
 
 type Profile struct {
-	IsCA         bool     `yaml:"is_ca"`
-	PathLen      int      `yaml:"path_len"`
-	KeyUse       []string `yaml:"key_uses"`
-	ExtKeyUsages []string `yaml:"ext_key_usages"`
-	Expiry       string   `yaml:"expiry"`
+	IsCA                  bool     `yaml:"is_ca"`
+	PathLen               int      `yaml:"path_len"`
+	KeyUse                []string `yaml:"key_uses"`
+	ExtKeyUsages          []string `yaml:"ext_key_usages"`
+	Expiry                string   `yaml:"expiry"`
+	OCSPServer            []string `yaml:"ocsp_server,omitempty"`
+	IssuingCertificateURL []string `yaml:"issuing_certificate_url,omitempty"`
 }
 
 func (p Profile) templateFromRequest(req *x509.CertificateRequest) (*x509.Certificate, error) {
@@ -179,6 +181,13 @@ func (p Profile) templateFromRequest(req *x509.CertificateRequest) (*x509.Certif
 			return nil, fmt.Errorf("invalid extended key usage: %s", extKeyUsage)
 		}
 		certTemplate.ExtKeyUsage = append(certTemplate.ExtKeyUsage, eku)
+	}
+
+	if len(p.OCSPServer) > 0 {
+		certTemplate.OCSPServer = p.OCSPServer
+	}
+	if len(p.IssuingCertificateURL) > 0 {
+		certTemplate.IssuingCertificateURL = p.IssuingCertificateURL
 	}
 
 	return certTemplate, nil
