@@ -92,11 +92,26 @@ func isGitRepo(dir string) bool {
 
 // syncRepo performs the full sync sequence on a single repository:
 //
-//	fetch --prune  stash (if dirty)  pull --rebase  stash pop  push
+//	fetch --all --prune → stash (if dirty) → pull --rebase each remote →
+//	stash pop → push each remote → push tags each remote
 func syncRepo(r repo) error {
 	fmt.Printf(" %s (%s)\n", r.name, r.path)
 
-	// 1. Fetch and prune.
+	rems, err := remotes(r.path)
+	if err != nil {
+		return fmt.Errorf("listing remotes: %w", err)
+	}
+	if len(rems) == 0 {
+		fmt.Println("  no remotes configured, skipping")
+		return nil
+	}
+
+	branch, err := currentBranch(r.path)
+	if err != nil {
+		return fmt.Errorf("determining current branch: %w", err)
+	}
+
+	// 1. Fetch all remotes.
 	if err := git(r.path, "fetch", "--all", "--prune"); err != nil {
 		return fmt.Errorf("fetch: %w", err)
 	}
@@ -108,33 +123,76 @@ func syncRepo(r repo) error {
 	}
 	if dirty {
 		fmt.Println("  stashing uncommitted changes")
-		if err := git(r.path, "stash", "push", "-m", "sync-repos auto-stash"); err != nil {
+		if err := git(r.path, "stash", "push", "-m", "git-sync auto-stash"); err != nil {
 			return fmt.Errorf("stash push: %w", err)
 		}
 	}
 
-	// 3. Pull with rebase.
-	pullErr := git(r.path, "pull", "--rebase")
+	// 3. Pull --rebase from each remote.
+	var pullErr error
+	for _, rem := range rems {
+		if err := git(r.path, "pull", "--rebase", rem, branch); err != nil {
+			fmt.Printf("  pull from %s failed: %v\n", rem, err)
+			pullErr = fmt.Errorf("pull from %s: %w", rem, err)
+		}
+	}
 
 	// 4. Pop stash regardless of pull outcome (best effort to restore state).
 	if dirty {
 		fmt.Println("  restoring stashed changes")
 		if popErr := git(r.path, "stash", "pop"); popErr != nil {
-			fmt.Printf("   stash pop failed: %v (changes remain in stash)\n", popErr)
+			fmt.Printf("  stash pop failed: %v (changes remain in stash)\n", popErr)
 		}
 	}
 
 	if pullErr != nil {
-		return fmt.Errorf("pull: %w", pullErr)
+		return pullErr
 	}
 
-	// 5. Push.
-	if err := git(r.path, "push"); err != nil {
-		return fmt.Errorf("push: %w", err)
+	// 5. Push to each remote.
+	for _, rem := range rems {
+		if err := git(r.path, "push", rem); err != nil {
+			return fmt.Errorf("push to %s: %w", rem, err)
+		}
 	}
 
-	fmt.Println("   synced")
+	// 6. Push tags to each remote.
+	for _, rem := range rems {
+		if err := git(r.path, "push", "--tags", rem); err != nil {
+			return fmt.Errorf("push tags to %s: %w", rem, err)
+		}
+	}
+
+	fmt.Println("  synced")
 	return nil
+}
+
+// remotes returns the list of git remote names for a repository.
+func remotes(dir string) ([]string, error) {
+	cmd := exec.Command("git", "remote")
+	cmd.Dir = dir
+	out, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+	var names []string
+	for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
+		if line != "" {
+			names = append(names, line)
+		}
+	}
+	return names, nil
+}
+
+// currentBranch returns the current branch name.
+func currentBranch(dir string) (string, error) {
+	cmd := exec.Command("git", "symbolic-ref", "--short", "HEAD")
+	cmd.Dir = dir
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
 }
 
 // isDirty returns true if the working tree or index has uncommitted changes.
